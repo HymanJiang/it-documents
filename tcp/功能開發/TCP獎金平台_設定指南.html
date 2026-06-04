@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>TCP 業務員獎金平台 — 設定指南（Q&amp;A）</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+      font-size: 11pt;
+      color: #1a1a1a;
+      margin: 60px auto;
+      max-width: 980px;
+      line-height: 1.9;
+    }
+    h1 { font-size: 22pt; color: #1a3c6e; border-bottom: 3px solid #1a3c6e; padding-bottom: 10px; margin-top: 40px; }
+    h2 { font-size: 15pt; color: #1a3c6e; border-left: 5px solid #1a3c6e; padding-left: 12px; margin-top: 40px; }
+    h3 { font-size: 12pt; color: #2c5f9e; margin-top: 28px; }
+
+    .meta {
+      background: #f0f4fb; border: 1px solid #c5d3e8; border-radius: 6px;
+      padding: 14px 20px; margin: 20px 0; font-size: 10pt;
+    }
+    .meta table { width: 100%; border: none; }
+    .meta td { border: none; padding: 3px 12px 3px 0; vertical-align: top; }
+    .meta td:first-child { font-weight: bold; color: #555; width: 100px; }
+
+    .toc { background: #f7f9fc; border: 1px solid #dde4ef; border-radius: 6px; padding: 16px 28px; margin: 24px 0; }
+    .toc ul { margin: 6px 0; padding-left: 20px; }
+    .toc li { margin: 5px 0; }
+    .toc a { color: #1a3c6e; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* Q&A 格式 */
+    .qa-block { border: 1px solid #e2e8f0; border-radius: 8px; margin: 18px 0; overflow: hidden; }
+    .qa-q {
+      background: #1a3c6e; color: #fff;
+      padding: 11px 18px; font-weight: 600; font-size: 11pt;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .qa-q .q-label {
+      background: rgba(255,255,255,0.25); border-radius: 4px;
+      padding: 1px 8px; font-size: 9pt; font-weight: 700;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .qa-a { padding: 16px 20px; background: #fff; font-size: 11pt; }
+    .qa-a p { margin: 8px 0; }
+    .qa-a ul, .qa-a ol { padding-left: 22px; margin: 8px 0; }
+    .qa-a li { margin: 5px 0; }
+
+    /* 情境分類 Tag */
+    .scenario-header {
+      background: #e8eef6; color: #1a3c6e;
+      border-left: 4px solid #1a3c6e;
+      padding: 9px 14px; font-weight: 700; font-size: 11pt;
+      margin: 28px 0 10px;
+    }
+
+    /* Note / Warning / Tip */
+    .note { background: #fffbea; border-left: 4px solid #f5c518; padding: 10px 16px; margin: 12px 0; font-size: 10.5pt; border-radius: 0 4px 4px 0; }
+    .warn { background: #fff5f5; border-left: 4px solid #e53e3e; padding: 10px 16px; margin: 12px 0; font-size: 10.5pt; border-radius: 0 4px 4px 0; }
+    .tip  { background: #f0fdf4; border-left: 4px solid #38a169; padding: 10px 16px; margin: 12px 0; font-size: 10.5pt; border-radius: 0 4px 4px 0; }
+
+    code { background: #f4f4f4; padding: 1px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 10pt; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 10pt; }
+    th { background: #1a3c6e; color: #fff; padding: 8px 10px; text-align: left; }
+    td { border: 1px solid #ccc; padding: 7px 10px; vertical-align: top; }
+    tr:nth-child(even) td { background: #f7f9fc; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 9pt; font-weight: 600; }
+    .badge-atw { background: #dbeafe; color: #1d4ed8; }
+    .badge-ind { background: #dbeafe; color: #1e40af; }
+    .badge-leader { background: #ede9fe; color: #5b21b6; }
+    .badge-rs { background: #d1fae5; color: #065f46; }
+    .badge-noacc { background: #fef3c7; color: #92400e; }
+    .badge-quota { background: #fee2e2; color: #991b1b; }
+    .badge-fixed { background: #f3f4f6; color: #374151; }
+    .badge-qfx { background: #fce7f3; color: #9d174d; }
+
+    .step { counter-reset: step-counter; }
+    .step li { list-style: none; counter-increment: step-counter; padding-left: 8px; margin: 8px 0; }
+    .step li::before {
+      content: counter(step-counter);
+      background: #1a3c6e; color: #fff;
+      border-radius: 50%; width: 20px; height: 20px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 9pt; font-weight: 700; margin-right: 8px; flex-shrink: 0;
+    }
+
+    .page-break { page-break-after: always; }
+    hr { border: none; border-top: 1px solid #e5e7eb; margin: 36px 0; }
+    footer { color: #888; font-size: 9pt; text-align: center; margin-top: 48px; }
+  </style>
+</head>
+<body>
+
+<h1>TCP 業務員獎金平台<br><span style="font-size:14pt; color:#555;">設定指南（Q&amp;A）</span></h1>
+
+<div class="meta">
+  <table>
+    <tr><td>版本</td><td>v1.0（2026-05-07）</td></tr>
+    <tr><td>對應設計文件</td><td>TCP 業務員獎金平台系統設計文件 v1.2</td></tr>
+    <tr><td>適用對象</td><td>系統管理員、Gatekeeper、獎金負責人</td></tr>
+    <tr><td>說明</td><td>本文件以問答形式整理所有設定情境，協助管理人員正確操作系統。</td></tr>
+  </table>
+</div>
+
+<div class="toc">
+  <strong>目錄</strong>
+  <ul>
+    <li><a href="#s1">一、人員管理</a></li>
+    <li><a href="#s2">二、Commission Plan 建立與設定</a></li>
+    <li><a href="#s3">三、Sales ID 設定</a></li>
+    <li><a href="#s4">四、每月 CR（Commission Rate）上傳</a></li>
+    <li><a href="#s5">五、發放門檻（MinAchievementRate）</a></li>
+    <li><a href="#s6">六、暫代設定（TempCoverage）</a></li>
+    <li><a href="#s7">七、模組開關</a></li>
+    <li><a href="#s8">八、扣款機制與排除清單</a></li>
+    <li><a href="#s9">九、獎金異常通知</a></li>
+    <li><a href="#s10">十、特殊獎勵設定</a></li>
+    <li><a href="#s11">十一、年度結算</a></li>
+    <li><a href="#s12">十二、異常狀況處理</a></li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="s1">一、人員管理</h2>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>如何新增一位業務員？</div>
+  <div class="qa-a">
+    <ol class="step">
+      <li>前往「業務員管理」頁面，點擊「新增業務員」。</li>
+      <li>填入 <strong>AD 帳號</strong>（Email 格式）、<strong>顯示名稱</strong>、<strong>所屬 Site</strong>（ATW / HQDC / BO）。</li>
+      <li>設定 <strong>角色</strong>（Sales / Leader / BO），影響 Over Quota 計算比率與全年所得上限。</li>
+      <li>設定 <strong>BonusCurrency</strong>（實際發放幣別）與 <strong>DefaultDisplayCurrency</strong>（報表預設顯示幣別）。兩者可以不同，例如發放 TWD 但報表預設顯示 USD。</li>
+      <li>儲存後，系統的每日同步 Job 會在下次執行時自動從公司內部系統帶入對應的 Sales ID 記錄。</li>
+    </ol>
+    <div class="note">Sales ID 由同步 Job 自動帶入，無需手動輸入。新增業務員後，至遲隔日同步完成即可開始設定 Plan。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>業務員的角色對計算有什麼影響？要如何選擇？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>角色</th><th>Over Quota 100–120% 加成</th><th>Over Quota &gt;120% 加成</th><th>全年所得上限</th></tr>
+      <tr><td><strong>Sales</strong>（預設）</td><td>+1%</td><td>+0.5%</td><td>TCP × 5 倍</td></tr>
+      <tr><td><strong>Leader / Sales Manager</strong></td><td>+0.5%</td><td>+0.3%</td><td>TCP × 3 倍</td></tr>
+      <tr><td><strong>BO</strong></td><td>+0.5%</td><td>+0.3%</td><td>TCP × 3 倍</td></tr>
+    </table>
+    <p>角色的主要差異在於超額獎金加成率及全年所得上限。一般業務員選 Sales；有管轄下屬並負責團隊業績者選 Leader；BO 通路主管選 BO。</p>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>BonusCurrency 和 DefaultDisplayCurrency 有什麼差異？</div>
+  <div class="qa-a">
+    <ul>
+      <li><strong>BonusCurrency</strong>：財務實際發放獎金使用的幣別，影響計算引擎的最終輸出。例如台灣業務員發 TWD，就填 TWD。</li>
+      <li><strong>DefaultDisplayCurrency</strong>：業務員進入報表頁面時，系統預設顯示的幣別。純粹影響 UI，不影響計算。例如某業務員慣用 USD 對帳，可設為 USD，但獎金仍以 TWD 發放。</li>
+    </ul>
+    <div class="tip">兩者相同是最常見的設定。只有當業務員日常對帳使用的幣別與獎金發放幣別不同時，才需要分開設定。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>業務員離職或轉職時，系統需要做哪些處理？</div>
+  <div class="qa-a">
+    <p>每日同步 Job 偵測到業務員在內部系統停用後，會自動執行以下動作：</p>
+    <ol class="step">
+      <li>將 <code>TCP_Salesperson.IsActive</code> 設為 false，並填入 <code>DeactivatedAt</code>（時間）與 <code>DeactivatedReason</code>（Resigned / Transferred / Other）。</li>
+      <li>將該業務員所有 <code>Active</code> 狀態的 Plan，自動標記為 <code>NeedsAttention</code>，並填入說明。</li>
+      <li>在 <code>TCP_PendingAction</code> 建立待處理通知，提醒相關負責人（Gatekeeper 或主管）處理 Sales ID 歸屬及 Plan 狀態。</li>
+    </ol>
+    <p>負責人收到通知後，需手動確認：</p>
+    <ul>
+      <li>原有 Sales ID 是否需要轉移給其他業務員（在對應 Plan 的 Sales ID 設定中調整）。</li>
+      <li>相關 Plan 是否要關閉（將 PlanStatus 改為 Closed）。</li>
+      <li>是否需要設定暫代（見第六節）。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>Sales ID 的 AssignmentType 要設成什麼？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>AssignmentType</th><th>說明</th><th>同步行為</th></tr>
+      <tr>
+        <td><strong>Active</strong>（預設）</td>
+        <td>正式業績歸屬，計入 IND / NOACC 獎金計算</td>
+        <td>同步 Job 自動帶入對應 Plan 的 TCP_PlanSalesId</td>
+      </tr>
+      <tr>
+        <td><strong>Administrative</strong></td>
+        <td>行政歸屬用途，不計入任何獎金</td>
+        <td>同步 Job <strong>不會</strong>帶入 TCP_PlanSalesId</td>
+      </tr>
+    </table>
+    <p>通常一個業務員的所有 Sales ID 都設為 Active。若某個 ID 僅為系統掛名用途（例如某歷史區碼）而非真實業績歸屬，才設為 Administrative。</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2 id="s2">二、Commission Plan 建立與設定</h2>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>一位業務員可以有幾個 Plan？什麼情況下需要多個 Plan？</div>
+  <div class="qa-a">
+    <p>一位業務員可以有<strong>任意數量的 Plan</strong>，每個 Plan 是一條獨立的計算線，擁有各自的業績來源、CR、Quota 設定。常見的多 Plan 情境：</p>
+    <table>
+      <tr><th>情境</th><th>建議 Plan 組合</th></tr>
+      <tr>
+        <td>業務員同時負責個人業績，並管轄下屬業績</td>
+        <td>IND Plan（個人業績） + LEADER Plan（管轄業績）</td>
+      </tr>
+      <tr>
+        <td>業務員有一部分客戶是新開發（NoAcc），其餘是既有客戶</td>
+        <td>IND Plan（既有業績）+ NOACC Plan（新客戶業績）</td>
+      </tr>
+      <tr>
+        <td>主管依業績來源拆分為 Sector A 和 Sector B，各自有不同 Quota</td>
+        <td>兩個 IND Plan，各自綁定對應的 Sales ID</td>
+      </tr>
+      <tr>
+        <td>區域主管需要依地區或產品線匯總業績</td>
+        <td>一個 RS Plan（報表來源）</td>
+      </tr>
+    </table>
+    <div class="note">每個 Plan 的最終獎金會匯總至 <code>TCP_BonusSummary</code>，業務員月底看到的是所有 Plan 的合計。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>四種 Plan Type（IND / LEADER / RS / NOACC）如何選擇？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>Plan Type</th><th>適用情境</th><th>業績來源</th></tr>
+      <tr>
+        <td><span class="badge badge-ind">IND</span></td>
+        <td>一般業務員，業績以個人 Sales ID 計算</td>
+        <td>TCP_PlanSalesId（系統自動同步，可人工調整）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-leader">LEADER</span></td>
+        <td>主管業績，手動指定一組 Sales ID 加總</td>
+        <td>TCP_PlanSalesId（完全人工維護）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-rs">RS</span></td>
+        <td>區域/產品線彙總業績，依報表來源計算</td>
+        <td>Sales by Region / Sales by Product / My Sales Force（可組合）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-noacc">NOACC</span></td>
+        <td>新客戶開發業務，CR 依客戶新舊分三段計算</td>
+        <td>TCP_PlanSalesId（系統自動同步，可人工調整）</td>
+      </tr>
+    </table>
+    <div class="tip">IND 與 NOACC 的 Sales ID 來源邏輯完全相同，差異只在 CR 計算方式：NOACC 依客戶新舊分 Existing / New_Y1 / New_Y2 三段費率。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>三種計算制度（Quota / Fixed / QuotaFX）要選哪一個？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>制度</th><th>適用情境</th><th>獎金公式</th><th>Over Quota 加發</th></tr>
+      <tr>
+        <td><span class="badge badge-quota">Quota 制</span></td>
+        <td>一般業務員，有年度業績目標</td>
+        <td>出貨（本地幣別）× CR%</td>
+        <td>✅ 適用</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-fixed">固定制</span></td>
+        <td>主管另定任務型 CR，不設年度 Quota</td>
+        <td>出貨（本地幣別）× CR%</td>
+        <td>❌ 不適用</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-qfx">QuotaFX 制</span></td>
+        <td>業績以外幣為主，需鎖定固定匯率保護業務員收益</td>
+        <td>出貨（外幣）× CR% × 固定匯率 → 本地幣別</td>
+        <td>✅ 適用（達成率以外幣計算）</td>
+      </tr>
+    </table>
+    <div class="note">固定制不適用 Over Quota 加發，年終獎金與績效以底薪計算（非 TCP）。既有客戶 CR ≤ 1%；新客戶第一年 ≤ 3%；第二年 ≤ 2%。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>QuotaFX 制（固定匯率制）的設定步驟是什麼？</div>
+  <div class="qa-a">
+    <ol class="step">
+      <li>在 Plan 的「計算制度」選擇 <strong>QuotaFX</strong>。</li>
+      <li>填寫 <strong>FXCurrency</strong>：業績計算使用的外幣幣別（例：USD）。</li>
+      <li>填寫 <strong>FXRate</strong>：固定匯率（例：32.0000 代表 1 USD = 32 TWD）。此匯率由負責人與業務員協議後填入，鎖定全年不變。</li>
+      <li>填寫 <strong>AnnualQuota</strong>：年度 Quota 以<strong>外幣</strong>填寫（對應 FXCurrency），例如 1,000,000 USD。</li>
+      <li>每月上傳 CR 時，只需上傳 CR%（不含匯率部分），系統計算時會自動乘上 FXRate。</li>
+    </ol>
+    <div class="warn">報表業績欄位固定顯示外幣，不換算為本地幣別。最終獎金發放時才轉為業務員的 BonusCurrency。不要將 FXRate 預乘進 CR%，系統會自動處理。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>AnnualQuota 和 AnnualVariablePay 分別要填什麼？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>欄位</th><th>填寫說明</th><th>用途</th><th>適用制度</th></tr>
+      <tr>
+        <td><strong>AnnualQuota</strong></td>
+        <td>年度業績目標金額。QuotaFX 以外幣填寫；其他制度以本地幣別填寫。</td>
+        <td>計算 YTM 達成率；Over Quota 加發基準</td>
+        <td>Quota 制、QuotaFX 制</td>
+      </tr>
+      <tr>
+        <td><strong>AnnualVariablePay</strong></td>
+        <td>年度 Variable Pay（獎金部分）。系統預設值為 1,000,000（TWD）。由負責人依薪資規範填入。</td>
+        <td><strong>僅用於計算全年所得上限</strong>（TCP × 5 或 × 3）；不用於推算 CR，不影響每月計算</td>
+        <td>Quota 制、QuotaFX 制</td>
+      </tr>
+    </table>
+    <div class="note">AnnualVariablePay 不影響每月 CR 計算。底薪為個資，不進入本系統，CR 由負責人在系統外計算後上傳。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>備註（Remark）欄位需要填嗎？</div>
+  <div class="qa-a">
+    <p><strong>Remark 為選填欄位</strong>，可省略。方案的主要識別依據為「業務員 + Plan Type + 年份」的組合。</p>
+    <p>建議在以下情況填寫備註以利後續查詢：</p>
+    <ul>
+      <li>同一業務員同年有多個相同 Plan Type（例如兩個 IND Plan），備註說明各自負責的範圍。</li>
+      <li>特殊安排，例如：暫代期間、試用期、特案核准。</li>
+      <li>主管指示的任何補充說明。</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2 id="s3">三、Sales ID 設定</h2>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>IND / NOACC Plan 的 Sales ID 需要手動設定嗎？</div>
+  <div class="qa-a">
+    <p><strong>一般情況下不需要</strong>。每日同步 Job 會自動從公司內部系統讀取業務員的 Sales ID（AssignmentType = Active），寫入 <code>TCP_PlanSalesId</code>（DataSource = Auto）。</p>
+    <p>以下情況才需要手動介入：</p>
+    <ul>
+      <li>某個 Sales ID 雖然歸屬該業務員，但<strong>不應計入獎金</strong>（例如行政用途的舊碼）→ 在 Sales ID 設定頁將其移除。</li>
+      <li>業務員名下有多個 ID，其中一個需要分配給其他 Plan（例如另一個 IND Plan）→ 從本 Plan 移除，並到另一個 Plan 手動加入。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>如何移除一個不應計算的 Auto Sales ID？移除後資料還在嗎？</div>
+  <div class="qa-a">
+    <p>在 Plan 的「Sales ID 設定」頁面，找到該筆記錄，點擊「移除」。</p>
+    <p>移除行為依 DataSource 不同而有差異：</p>
+    <table>
+      <tr><th>DataSource</th><th>移除動作</th><th>顯示結果</th></tr>
+      <tr>
+        <td><strong>Auto</strong>（系統同步）</td>
+        <td>系統填入 ValidToYear / ValidToMonth（當下年月），標記結束時間；<strong>資料保留</strong></td>
+        <td>該筆以灰底顯示，標記「已失效」</td>
+      </tr>
+      <tr>
+        <td><strong>Manual</strong>（人工新增）</td>
+        <td>直接從資料庫刪除（Hard Delete）</td>
+        <td>該筆不再顯示</td>
+      </tr>
+    </table>
+    <div class="note">Auto 記錄保留是為了稽核用途，日後可追溯「這個 ID 在哪個時間點被移出此 Plan」。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>LEADER Plan 要如何設定 Sales ID？</div>
+  <div class="qa-a">
+    <p>LEADER Plan 的 Sales ID 完全人工維護，系統不自動帶入任何記錄。</p>
+    <ol class="step">
+      <li>在 Plan 的「Sales ID 設定」頁面，點擊「新增 Sales ID」。</li>
+      <li>輸入 Sales ID 字串。</li>
+      <li>設定 <strong>ValidFromYear / ValidFromMonth</strong>：此 ID 開始計算業績的年月。</li>
+      <li>如果已知結束月份（例如某下屬預計年中離職），可填入 <strong>ValidToYear / ValidToMonth</strong>；未知則留空（null = 至今有效）。</li>
+      <li>填寫備註說明此 ID 的來由。</li>
+    </ol>
+    <div class="tip">ValidFromYear/Month 與 ValidToYear/Month 都是整數欄位，月份填 1–12。例如：2026 年 4 月起生效，就填 ValidFromYear=2026、ValidFromMonth=4。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>某個 Sales ID 在年中換人（例如 1–3 月是 A 業務，4–12 月是 B 業務），要如何設定？</div>
+  <div class="qa-a">
+    <ol class="step">
+      <li>在 A 業務的 Plan 中，找到該 Sales ID 的 Auto 記錄，移除（系統會填入 ValidTo = 3 月）。</li>
+      <li>在 B 業務的 Plan 中，手動新增該 Sales ID，設定 ValidFromYear=2026、ValidFromMonth=4，ValidTo 留空。</li>
+    </ol>
+    <p>計算引擎會依 ValidFromYear/Month ~ ValidToYear/Month 的有效範圍篩選每月適用的 Sales ID，因此只要有效期間設定正確，同一個 Sales ID 在不同月份歸屬不同業務員是沒有問題的。</p>
+    <div class="warn">同一個 Sales ID 在同一個月份不應同時歸屬兩個 Plan，否則業績會被重複計算。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>RS Plan 不需要設定 Sales ID，要設定什麼？</div>
+  <div class="qa-a">
+    <p>RS Plan 的業績來源是報表，而非 Sales ID。需要在「報表來源設定」選擇一或多個報表來源，同一個 CR% 適用所有選用的報表：</p>
+    <table>
+      <tr><th>SourceType</th><th>說明</th></tr>
+      <tr><td>SalesByRegion</td><td>依地區匯總的業績報表</td></tr>
+      <tr><td>SalesByProduct</td><td>依產品線匯總的業績報表</td></tr>
+      <tr><td>MySalesForce</td><td>管轄下屬銷售力彙總報表</td></tr>
+    </table>
+    <p>三種來源可以任意組合，例如同時勾選 SalesByRegion + SalesByProduct。</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="s4">四、每月 CR（Commission Rate）上傳</h2>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>CR 為什麼需要手動上傳？系統不能自動計算嗎？</div>
+  <div class="qa-a">
+    <p>所有制度（Quota / Fixed / QuotaFX）的 CR% 均由負責人<strong>在系統外依薪資規範算好後手動上傳</strong>，系統本身不計算 CR。</p>
+    <p>原因：Quota 制的 CR 需依底薪推算（年度 Commission ÷ 年度 Quota），固定制的 CR 由主管依薪資任務設定，而<strong>底薪屬於個人薪資資料，不存入本系統</strong>。</p>
+    <div class="note">上傳的 CR% 以小數表示，例如 1% 填入 0.0100；2.5% 填入 0.0250。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>如何上傳每月 CR？</div>
+  <div class="qa-a">
+    <ol class="step">
+      <li>前往 Plan 的「每月 CR 設定」頁籤。</li>
+      <li>下載 Excel 範本（系統自動依 Plan Type 產生對應格式）。</li>
+      <li>在範本中填入每月的 CR%（及 NOACC 各客戶類型的 CR%）。</li>
+      <li>將填好的 Excel 拖放至上傳區或點擊選擇檔案後上傳。</li>
+      <li>系統解析後顯示預覽，確認無誤後送出。</li>
+    </ol>
+    <div class="tip">也可以直接在頁面上的表格逐月輸入，不一定要透過 Excel。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>修改某月 CR 後，後續月份會怎麼變？</div>
+  <div class="qa-a">
+    <p>修改某月的 CR% 後，<strong>該月之後的所有月份會自動覆蓋為相同值</strong>；修改月之前的月份不受影響。</p>
+    <p>例如修改 5 月 CR% 為 0.0120，則 5、6、7、8、9、10、11、12 月全部變為 0.0120，1–4 月維持原值不變。</p>
+    <p>若要每個月設定不同的 CR%，需要逐月個別修改（後修改的月份會再次向後覆蓋）。</p>
+    <div class="note">此規則同樣適用於 MinAchievementRate（發放門檻）的修改。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>NOACC Plan 的 CR 要填幾組？</div>
+  <div class="qa-a">
+    <p>每個月需填寫 <strong>3 組 CR%</strong>，對應三種客戶類型：</p>
+    <table>
+      <tr><th>CustomerType</th><th>說明</th><th>CR 上限（依規範）</th></tr>
+      <tr><td>Existing</td><td>既有客戶</td><td>≤ 1%</td></tr>
+      <tr><td>New_Y1</td><td>新客戶第一年</td><td>≤ 3%</td></tr>
+      <tr><td>New_Y2</td><td>新客戶第二年</td><td>≤ 2%</td></tr>
+    </table>
+    <p>計算時系統依每筆業績的客戶屬性（新舊判斷來自現有交易記錄）套用對應的 CR%，三段業績加總即為當月 Normal Incentive。</p>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>QuotaFX Plan 上傳 CR 時，需要把匯率乘進去嗎？</div>
+  <div class="qa-a">
+    <p><strong>不需要</strong>。上傳時只填入 CR%（不含匯率），系統計算時會自動依 Plan 上設定的 FXRate 相乘：</p>
+    <p style="text-align:center; font-size:12pt; color:#1a3c6e; font-weight:bold;">
+      Effective CR = CR%（上傳值）× FXRate（Plan 設定）
+    </p>
+    <p>例如上傳 CR% = 0.0100，Plan 設定 FXRate = 32.0，計算引擎實際使用 Effective CR = 0.32（即 0.01 × 32）。</p>
+    <div class="warn">若將匯率預乘進 CR% 再上傳，會導致重複計算，獎金金額會錯誤。</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2 id="s5">五、發放門檻（MinAchievementRate）</h2>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>MinAchievementRate 是什麼？</div>
+  <div class="qa-a">
+    <p>Normal Incentive 的<strong>每月發放條件</strong>：YTM（Year-to-Month 年度累計）業績達成率需達到此門檻，才發放當月獎金。</p>
+    <ul>
+      <li>預設值：<strong>70%</strong>（0.70）</li>
+      <li>若當月 YTM 達成率未達門檻，當月計算所得的獎金暫扣，待達標後釋放。</li>
+      <li>例如 1–4 月均未達 70%，到 5 月 YTM 達到 75%，則 1–5 月的暫扣獎金在 5 月份一併釋放。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>如何調整某個 Plan 的發放門檻？</div>
+  <div class="qa-a">
+    <ol class="step">
+      <li>前往 Plan 的「每月 CR 設定」頁籤。</li>
+      <li>找到要調整的月份，修改 <strong>MinAchievementRate</strong> 欄位（填 0.00 ~ 1.00 之間的小數，例如 60% 填 0.60）。</li>
+      <li>修改後，該月及之後的所有月份自動覆蓋為相同值（與 CR% 的覆蓋邏輯相同）。</li>
+    </ol>
+    <div class="tip">若某業務員年度目標偏高，主管可考慮降低門檻（例如 60%）以確保業務員在達標前仍有部分獎金激勵。也可設為 0 代表不設門檻，每月均發放。</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="s6">六、暫代設定（TempCoverage）</h2>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>什麼情況下需要設定暫代（TempCoverage）？</div>
+  <div class="qa-a">
+    <p>當某業務員離職或轉職，新人尚未到位或仍在試用期時，由現有業務員<strong>暫時接手</strong>對應的 Sales ID。</p>
+    <p>暫代設定的特性：</p>
+    <ul>
+      <li>暫代期間 CR = 原 CR × <strong>50%</strong>（依規範固定）</li>
+      <li>暫代期間達成 Over 100% Quota，<strong>不額外加發</strong> Over Quota 獎金</li>
+      <li>暫代與業務員本身的正式 Plan 分開計算，不互相影響</li>
+    </ul>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>如何設定暫代？</div>
+  <div class="qa-a">
+    <ol class="step">
+      <li>前往執行暫代的業務員的 Plan 頁面，開啟「暫代設定」。</li>
+      <li>填入被暫代的 <strong>Sales ID</strong>。</li>
+      <li>填入 <strong>StartDate</strong>（暫代開始日）。</li>
+      <li>填入 <strong>TempQuota</strong>（暫代期間分配的 Quota 金額）。</li>
+      <li><strong>EndDate 暫時留空</strong>，等新人正式確認開始領獎金後，再回來填入結束日。</li>
+    </ol>
+    <div class="note">EndDate 不自動推算，須由負責人在新人試用期確認通過、正式接手後手動填入。不要猜測日期，等確認再填。</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="s7">七、模組開關</h2>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>哪些模組是預設啟用，哪些需要另外設定？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>模組</th><th>說明</th><th>ATW</th><th>HQDC</th><th>BO</th></tr>
+      <tr><td>NORMAL_INCENTIVE</td><td>每月業績獎金</td><td>✅ 啟用</td><td>✅ 啟用</td><td>✅ 啟用</td></tr>
+      <tr><td>OVER_QUOTA</td><td>Over 100% Quota 獎金</td><td colspan="3">Quota / QuotaFX 制才適用，Fixed 制不適用</td></tr>
+      <tr><td>OVERDUE_AR</td><td>逾期 AR 扣款</td><td>✅ 啟用</td><td>✅ 啟用</td><td>✅ 啟用</td></tr>
+      <tr><td>BAD_DEBT</td><td>壞帳扣款</td><td>✅ 啟用</td><td>✅ 啟用</td><td>✅ 啟用</td></tr>
+      <tr><td>COGS</td><td>訂單取消/延遲成本扣款</td><td>✅ 啟用</td><td>✅ 啟用</td><td>✅ 啟用</td></tr>
+      <tr><td>LOW_GP</td><td>低毛利調整</td><td>✅ 啟用</td><td>✅ 啟用</td><td>✅ 啟用</td></tr>
+      <tr><td>DESIGN_IN_WIN</td><td>Design-in Win 獎勵</td><td>⬜ 選配</td><td>⬜ 選配</td><td>⬜ 選配</td></tr>
+      <tr><td>SERVICE_INCENTIVE</td><td>ATW Service 獎勵</td><td>⬜ 選配</td><td>— 不適用</td><td>— 不適用</td></tr>
+      <tr><td>GOVT_SUBSIDY</td><td>政府補助款</td><td>⬜ 選配</td><td>— 不適用</td><td>— 不適用</td></tr>
+      <tr><td>BUSINESS_LOAN</td><td>業務借貸</td><td>⬜ 選配</td><td>— 不適用</td><td>— 不適用</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>如何為特定業務員開啟或關閉某個模組？</div>
+  <div class="qa-a">
+    <p>個人模組開關會覆蓋系統預設值（<code>TCP_ModuleDefault</code>），以該業務員為準。</p>
+    <ol class="step">
+      <li>前往「業務員設定」，找到目標業務員，進入「模組設定」頁面。</li>
+      <li>找到要調整的模組，切換啟用/停用狀態。</li>
+      <li>填入設定原因（Note），方便日後稽核。</li>
+      <li>儲存後，下次計算引擎執行時即套用個人設定。</li>
+    </ol>
+    <div class="note">個人設定以年份為單位。若需要只在特定年份有效，設定時注意年份欄位。</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2 id="s8">八、扣款機制與排除清單</h2>
+
+<div class="scenario-header">8.1 Overdue AR（逾期應收帳款）</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>Overdue AR 是怎麼觸發扣款的？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>逾期狀態</th><th>扣款方式</th></tr>
+      <tr><td>逾期 &gt; 30 天</td><td>保留 100% 相關業績的獎金，等待付款</td></tr>
+      <tr><td>逾期 &gt; 90 天</td><td>額外再保留 100%，合計保留 200%</td></tr>
+    </table>
+    <p>客戶付清款項後，系統將 Status 更新為 FullyPaid，保留的獎金在下月釋放。</p>
+    <div class="note">Overdue AR 資料由計算引擎自動從財務系統取得，無需手動輸入。若有爭議，可在備註欄說明，並聯絡財務確認。</div>
+  </div>
+</div>
+
+<div class="scenario-header">8.2 壞帳（Bad Debt）</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>壞帳如何從逾期 AR 轉入？</div>
+  <div class="qa-a">
+    <p>當客戶確認支票跳票或無法收回款項時，財務人員將對應的 Overdue AR 轉為壞帳：</p>
+    <ol class="step">
+      <li>在逾期 AR 記錄中，點擊「認定壞帳」，選擇原因（BounceCheck / ConfirmedLoss）。</li>
+      <li>系統自動在 <code>TCP_BadDebt</code> 建立記錄，並計算扣款金額（原銷售額 × 2 倍業績獎金）。</li>
+      <li>扣款金額在下月的 BonusSummary 中以 BadDebtDeduction 項目扣除。</li>
+    </ol>
+  </div>
+</div>
+
+<div class="scenario-header">8.3 COGS 扣款</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>COGS 扣款在什麼情況下發生？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>觸發條件</th><th>扣款時機</th></tr>
+      <tr><td>訂單取消（PT 類產品）</td><td>次月扣除</td></tr>
+      <tr><td>訂單延遲超過半年未出貨</td><td>到期月扣除</td></tr>
+    </table>
+    <p>扣款金額：<code>（業績 − 品項成本）× CR</code></p>
+    <p>COGS 資料由 SCM 人員透過系統提報，填入訂單號、料號、成本金額及觸發原因。若訂單後來正常出貨，可設定 <code>Status = Reversed</code> 取消扣款。</p>
+  </div>
+</div>
+
+<div class="scenario-header">8.4 Low GP 低毛利</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>低毛利如何影響獎金？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>E2E GP%</th><th>業績獎金認列比例</th></tr>
+      <tr><td>10% ~ 15%</td><td>只認列 50%</td></tr>
+      <tr><td>≤ 10%</td><td>不計入獎金</td></tr>
+      <tr><td>&gt; 15%</td><td>正常認列（不受影響）</td></tr>
+    </table>
+    <p>E2E GP% = （E2E Sales − E2E Cost）÷ E2E Sales，Cost 包含 COGS + Landing Cost。系統自動從 eManager 取得 GP 資料計算，無需手動輸入。</p>
+  </div>
+</div>
+
+<div class="scenario-header">8.5 業務借貸（ATW 專屬）</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>業務借貸如何設定與追蹤？</div>
+  <div class="qa-a">
+    <ol class="step">
+      <li>借出時，在系統建立借貸記錄：填入業務員、借出日、料號、數量、單位成本。</li>
+      <li>系統自動計算 DueDate（借出日 +90 天）。</li>
+      <li>若需延期（最多 +30 天），填入主管簽核單號，系統更新 ExtendedDueDate。</li>
+      <li>歸還或賣出時，更新 Status（Returned / Sold）並填入 ReturnedAt。</li>
+      <li>若到期仍未歸還或賣出（Overdue），系統在到期月從業績獎金扣除成本 100%（TotalCost）。</li>
+    </ol>
+    <div class="warn">業務借貸模組僅適用 ATW。HQDC / BO 業務員的頁面不會顯示此功能。</div>
+  </div>
+</div>
+
+<div class="scenario-header">8.6 排除清單（事前規則）</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>什麼是排除清單？什麼時候需要設定？</div>
+  <div class="qa-a">
+    <p>排除清單是<strong>事前設定的豁免規則</strong>，讓計算引擎在產生扣款記錄前，先比對清單，符合條件的訂單/客戶/料號直接略過，不產生扣款。</p>
+    <p>適用情境：</p>
+    <ul>
+      <li><strong>Low GP 排除</strong>：某訂單雖然毛利低，但已獲得主管核准特案處理，不應扣款。</li>
+      <li><strong>壞帳排除</strong>：某客戶的帳款已由總部另行處理，不由業務員承擔。</li>
+      <li><strong>借貨排除</strong>：某料號屬於展示品，不適用借貨扣款規則。</li>
+    </ul>
+    <div class="note">排除清單僅影響「未來」的計算。對於已經產生的扣款記錄，須使用「事後標記排除」（IsExcluded）方式處理。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>如何新增排除規則？各類型的排除維度是什麼？</div>
+  <div class="qa-a">
+    <p>前往「系統設定 → 扣款排除規則」，選擇對應類型新增：</p>
+    <table>
+      <tr><th>排除類型</th><th>可選排除維度</th><th>ScopeValue 填入</th></tr>
+      <tr>
+        <td>Low GP 排除規則</td>
+        <td>Order（特定訂單）<br>Customer（特定客戶所有訂單）</td>
+        <td>OrderNo 或 CustomerId</td>
+      </tr>
+      <tr>
+        <td>壞帳排除規則</td>
+        <td>Invoice（特定發票）<br>Customer（特定客戶）</td>
+        <td>InvoiceNo 或 CustomerId</td>
+      </tr>
+      <tr>
+        <td>借貨排除規則</td>
+        <td>Item（特定料號）<br>Salesperson（特定業務員）</td>
+        <td>ItemNo 或 SalespersonId</td>
+      </tr>
+    </table>
+    <p>每條規則需填入：排除維度、對應值、排除原因、核准人 AD 帳號。規則建立後 IsActive 預設啟用；停用後資料保留供稽核，不再影響新計算。</p>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>已經產生的扣款記錄，發現有誤要如何排除？</div>
+  <div class="qa-a">
+    <p>對已存在的扣款明細，使用<strong>事後標記排除</strong>：</p>
+    <ol class="step">
+      <li>在對應的扣款明細清單（Low GP / 壞帳 / 借貨）找到目標記錄。</li>
+      <li>點擊「標記排除」，填入 <strong>ExclusionReason</strong>（排除原因說明）。</li>
+      <li>系統自動記錄 ExcludedBy（操作者）與 ExcludedAt（時間）。</li>
+      <li>下次計算引擎執行時，IsExcluded = true 的記錄不計入扣款。</li>
+    </ol>
+    <div class="note">事後排除只影響「未來的計算結果」，已發放的 BonusSummary 需要重新計算才能更新。如需補發，請聯絡系統管理員重算。</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="s9">九、獎金異常通知</h2>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>獎金異常通知的觸發條件是什麼？</div>
+  <div class="qa-a">
+    <p>當計算引擎產生的<strong>單月獎金（GrossIncentive）超過設定的門檻金額</strong>時，系統自動：</p>
+    <ul>
+      <li>發送通知信給設定的收件人</li>
+      <li>在 <code>TCP_BonusAlert</code> 建立記錄（含金額快照、門檻快照、收件人快照）</li>
+    </ul>
+    <div class="note">快照設計確保日後修改通知設定，不影響歷史記錄的可追溯性。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>如何設定各 Site 的獎金異常通知門檻與收件人？</div>
+  <div class="qa-a">
+    <ol class="step">
+      <li>前往「系統設定 → 獎金異常通知」。</li>
+      <li>選擇要設定的 Site（ATW / HQDC / BO）。</li>
+      <li>填入 <strong>AlertThreshold</strong>（觸發門檻金額）。幣別由 Site 固定（ATW = TWD），無法修改。</li>
+      <li>填入 <strong>NotifiedTo</strong>：以分號分隔的 AD 帳號或 Email，例如 <code>admin@test.com;manager@test.com</code>。</li>
+      <li>確認 <strong>IsEnabled</strong> 已勾選，儲存。</li>
+    </ol>
+    <p>各 Site 可設定不同的門檻與不同的通知對象，互不影響。</p>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>收到異常通知後，要在哪裡確認審閱？</div>
+  <div class="qa-a">
+    <ol class="step">
+      <li>前往「系統設定 → 獎金異常通知 → 通知記錄」（或從通知信的連結進入）。</li>
+      <li>找到對應的通知記錄，查看觸發時的獎金金額與門檻快照。</li>
+      <li>確認屬於正常（例如大單出貨）後，點擊「標記已審閱」，可選填備註說明原因。</li>
+      <li>系統自動記錄 ReviewedBy（AD 帳號）與 ReviewedAt（時間）。</li>
+    </ol>
+    <div class="tip">建議每月收到通知後及時審閱，避免積壓，也讓財務審核更容易追蹤。</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2 id="s10">十、特殊獎勵設定</h2>
+
+<div class="scenario-header">10.1 Design-in Win 獎勵</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>Design-in Win 獎勵有哪些階段，各要設定什麼？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>階段</th><th>觸發條件</th><th>獎金金額</th></tr>
+      <tr>
+        <td>SampleWin（樣品階段）</td>
+        <td>主管確認已 design-in win 且取得客戶樣品訂單</td>
+        <td>NT$3,000</td>
+      </tr>
+      <tr>
+        <td>AnnualShipmentMet（年度出貨達標）</td>
+        <td>年底符合出貨數量或金額條件</td>
+        <td>NT$10,000（最多連續 3 年）</td>
+      </tr>
+    </table>
+    <p>新增記錄需填入：業務員、客戶資訊、專案名稱、階段、樣品訂單日期（SampleWin 用）或出貨金額（AnnualShipmentMet 用）、MaxYears（上限 3 年）。</p>
+    <p>建立後由主管審核（IsApproved = true + ApprovedBy + ApprovedAt），通過後系統才計入當月 BonusSummary。</p>
+    <div class="note">Design-in Win 模組預設為選配，需在業務員的模組設定中啟用 DESIGN_IN_WIN 才會計算。</div>
+  </div>
+</div>
+
+<div class="scenario-header">10.2 ATW Service 獎勵</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>ATW Service 獎勵怎麼設定？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>ServiceType</th><th>料號</th><th>獎金</th><th>需審核</th></tr>
+      <tr><td>2Y_ONSITE</td><td>AGS-OS-24</td><td>NT$100 / 台</td><td>否</td></tr>
+      <tr><td>VAS3（綜合服務）</td><td>AGS-OS-VAS3</td><td>5%</td><td>否</td></tr>
+      <tr><td>VAS4（跨區 Onsite）</td><td>AGS-OS-VAS4</td><td>審核後 8%</td><td><strong>是</strong></td></tr>
+      <tr><td>OA1（良品銷售）</td><td>AGS-OS-OA1</td><td>審核後 8%</td><td><strong>是</strong></td></tr>
+      <tr><td>EW（延長保固）</td><td>AGS-EW</td><td>2%</td><td>否</td></tr>
+      <tr><td>OEW（延伸延長保固）</td><td>AGS-OEW</td><td>3%</td><td>否</td></tr>
+    </table>
+    <p>Service 獎勵記錄由系統從訂單資料自動產生，無需手動新增。VAS4 與 OA1 需主管審核後才計入獎金。</p>
+    <div class="warn">SERVICE_INCENTIVE 模組僅適用 ATW，且預設為選配需手動啟用。</div>
+  </div>
+</div>
+
+<div class="scenario-header">10.3 政府補助款（ATW 專屬）</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>政府補助款的哪些類型可以計算獎金？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>交易類型</th><th>業績認列</th><th>獎金認列</th><th>備注</th></tr>
+      <tr><td>研華實出硬體（invoice to SI）</td><td>✅</td><td>✅</td><td>正常計算</td></tr>
+      <tr><td>SI 整合 PAPS、SW</td><td>❌</td><td>❌</td><td>不認列</td></tr>
+      <tr><td>專案產品報告交付政府</td><td>❌</td><td>❌</td><td>不認列</td></tr>
+      <tr><td>政府撥款（進度款）</td><td>❌</td><td>✅</td><td>不計業績但發獎金</td></tr>
+      <tr><td>政府撥款（按完成項目付 SI）</td><td>❌</td><td>條件式</td><td>Profit ≥ 20% 才認列</td></tr>
+    </table>
+    <p>政府補助款記錄需人工新增，填入補助類型、金額、Profit 達成率（GovtPayment 類型必填），並設定 IsBonusEligible 決定是否核發獎金。</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="s11">十一、年度結算</h2>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>Over 100% Quota 獎金什麼時候結算？怎麼設定？</div>
+  <div class="qa-a">
+    <p>Over Quota 獎金為<strong>年結</strong>（每年一次），由計算引擎在年底執行時自動計算並寫入 <code>TCP_OverQuotaIncentive</code>，無需手動輸入業績或公式。</p>
+    <p>需要確認的前置設定：</p>
+    <ul>
+      <li>Plan 的 <strong>AnnualQuota</strong> 已正確填入（這是計算達成率的基準）</li>
+      <li>業務員的 <strong>Role</strong> 已正確設定（影響加成比率與全年上限）</li>
+      <li>業務員 <strong>年底仍在職</strong>（結算時須在職才能領取）</li>
+      <li>模組 <strong>OVER_QUOTA</strong> 已啟用（Quota / QuotaFX 制自動適用，Fixed 制不適用）</li>
+    </ul>
+    <div class="note">退貨追回：若客戶於次年第一季前取消訂單退貨，系統會在退貨確認後從後續月份追回相應獎金。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>全年所得上限（AnnualEarningCap）是怎麼計算的？</div>
+  <div class="qa-a">
+    <table>
+      <tr><th>角色</th><th>上限公式</th></tr>
+      <tr><td>Sales</td><td>AnnualVariablePay × 5 倍（TCP × 5）</td></tr>
+      <tr><td>Leader / Sales Manager</td><td>AnnualVariablePay × 3 倍（TCP × 3）</td></tr>
+    </table>
+    <p>全年所得上限包含：Normal Incentive、Design-in Win、Service Incentive、Over Quota Incentive 及 KPI 獎金的年度合計。超過上限的部分不發放。</p>
+    <div class="note">AnnualVariablePay 是各 Plan 分別設定的，若業務員有多個 Plan，需確認各 Plan 的 AnnualVariablePay 加總符合薪資規範。AnnualVariablePay 由負責人自行填入，系統不自動推算。</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="s12">十二、異常狀況處理</h2>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>Plan 狀態顯示「NeedsAttention」要怎麼處理？</div>
+  <div class="qa-a">
+    <p>NeedsAttention 通常由以下情況自動觸發：</p>
+    <ul>
+      <li>業務員已離職或停用（最常見原因）</li>
+      <li>系統偵測到設定異常需要人工確認</li>
+    </ul>
+    <p>處理步驟：</p>
+    <ol class="step">
+      <li>查看 <code>TCP_PendingAction</code> 中的待處理通知，了解具體原因。</li>
+      <li>確認 Sales ID 歸屬是否需要調整（轉移給其他業務員）。</li>
+      <li>若此 Plan 確認不再使用，將 PlanStatus 改為 <strong>Closed</strong>，填入 StatusRemark 說明原因。</li>
+      <li>若此 Plan 繼續有效（例如業務員僅轉職），更新相關設定後，將 PlanStatus 手動改回 <strong>Active</strong>。</li>
+    </ol>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>發現某月獎金計算有誤，可以重新計算嗎？</div>
+  <div class="qa-a">
+    <p>可以，但需依狀態操作：</p>
+    <table>
+      <tr><th>BonusSummary 狀態</th><th>處理方式</th></tr>
+      <tr><td>Draft（草稿）</td><td>可直接觸發重算，系統重新執行計算引擎並更新結果</td></tr>
+      <tr><td>Approved（已審核）</td><td>需先退回為 Draft 狀態，再重算（須由有權限的主管操作）</td></tr>
+      <tr><td>Paid（已發放）</td><td>不可直接修改；若有差異需在下月以補扣款或補發方式處理，並在備註記錄原因</td></tr>
+    </table>
+    <div class="warn">所有狀態異動都會記錄在 TCP_AuditLog，包含異動前後值、操作者、時間。</div>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>如何查詢某筆設定的歷史異動記錄？</div>
+  <div class="qa-a">
+    <p>系統的 <code>TCP_AuditLog</code> 記錄所有資料的異動，包含：建立、修改、刪除、審核、退回、覆寫等操作。</p>
+    <p>查詢方式：在各設定頁面的右上角通常有「查看歷史」功能，或至「系統設定 → 稽核紀錄」，依以下條件篩選：</p>
+    <ul>
+      <li>EntityType：要查詢的資料表（例如 TCP_CommissionPlan、TCP_MonthlyRate）</li>
+      <li>EntityId：對應記錄的 ID</li>
+      <li>日期範圍</li>
+      <li>操作者 AD 帳號</li>
+    </ul>
+    <p>每筆記錄會顯示異動前後的完整欄位值（JSON 格式）。</p>
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-label">Q</span>年度初，新一年的設定要做什麼？</div>
+  <div class="qa-a">
+    <ol class="step">
+      <li><strong>新增年度 Plan</strong>：為每位業務員新增本年度的 Commission Plan（Plan Type、計算制度、AnnualQuota、AnnualVariablePay）。若與上年度相同，可從上年度複製後修改。</li>
+      <li><strong>Sales ID 同步確認</strong>：等待每日同步 Job 執行後，確認 IND / NOACC Plan 的 Sales ID 已正確同步帶入；LEADER Plan 手動維護 Sales ID。</li>
+      <li><strong>上傳 CR</strong>：依薪資規範計算好 CR% 後，上傳至各 Plan 的每月 CR 設定（可一次上傳全年 12 個月，或逐月上傳）。</li>
+      <li><strong>確認模組開關</strong>：確認各業務員的個人模組設定是否需要沿用或調整。</li>
+      <li><strong>更新通知設定</strong>：如門檻或通知人員有異動，在「獎金異常通知」頁面更新。</li>
+    </ol>
+  </div>
+</div>
+
+<hr>
+<footer>TCP 業務員獎金平台設定指南 v1.0 ｜ 2026-05-07 ｜ 研華公司內部文件</footer>
+
+</body>
+</html>

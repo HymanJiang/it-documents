@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>TCP 獎金平台 — 設定規格說明</title>
+  <style>
+    body { font-family: "Microsoft JhengHei", Arial, sans-serif; font-size: 11pt; color: #1a1a1a; margin: 60px auto; max-width: 980px; line-height: 1.9; }
+    h1 { font-size: 20pt; color: #1a3c6e; border-bottom: 3px solid #1a3c6e; padding-bottom: 10px; margin-top: 40px; }
+    h2 { font-size: 14pt; color: #1a3c6e; border-left: 5px solid #1a3c6e; padding-left: 12px; margin-top: 40px; }
+    h3 { font-size: 11.5pt; color: #2c5f9e; margin-top: 28px; margin-bottom: 8px; }
+
+    .meta { background: #f0f4fb; border: 1px solid #c5d3e8; border-radius: 6px; padding: 14px 20px; margin: 20px 0; font-size: 10pt; }
+    .meta table { width: 100%; border: none; }
+    .meta td { border: none; padding: 3px 12px 3px 0; }
+    .meta td:first-child { font-weight: bold; color: #555; width: 80px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 10.5pt; }
+    th { background: #1a3c6e; color: #fff; padding: 8px 12px; text-align: left; font-weight: 500; }
+    td { border: 1px solid #d1d5db; padding: 7px 12px; vertical-align: top; }
+    tr:nth-child(even) td { background: #f7f9fc; }
+
+    .note  { background: #fffbea; border-left: 4px solid #f5c518; padding: 10px 16px; margin: 12px 0; font-size: 10.5pt; border-radius: 0 4px 4px 0; }
+    .good  { background: #f0fdf4; border-left: 4px solid #38a169; padding: 10px 16px; margin: 12px 0; font-size: 10.5pt; border-radius: 0 4px 4px 0; }
+    .info  { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px 16px; margin: 12px 0; font-size: 10.5pt; border-radius: 0 4px 4px 0; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 9.5pt; font-weight: 700; }
+    .b-ind    { background: #dbeafe; color: #1d4ed8; }
+    .b-leader { background: #ede9fe; color: #5b21b6; }
+    .b-rs     { background: #d1fae5; color: #065f46; }
+    .b-noacc  { background: #fef3c7; color: #92400e; }
+    .b-auto   { background: #e0f2fe; color: #0369a1; }
+    .b-manual { background: #fef9c3; color: #854d0e; }
+
+    /* Part header */
+    .part-header {
+      background: #1a3c6e; color: #fff;
+      border-radius: 8px; padding: 14px 20px;
+      margin: 32px 0 16px; display: flex; align-items: center; gap: 14px;
+    }
+    .part-num { font-size: 22pt; font-weight: 700; opacity: .5; line-height: 1; }
+    .part-title { font-size: 14pt; font-weight: 700; }
+    .part-sub { font-size: 10pt; opacity: .75; margin-top: 2px; }
+
+    /* Plan type cards */
+    .plan-types { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin: 14px 0; }
+    .pt-card { border: 1px solid #e5e7eb; border-radius: 7px; padding: 12px 14px; font-size: 10.5pt; }
+    .pt-card .pt-name { font-weight: 700; font-size: 12pt; margin-bottom: 4px; }
+    .pt-card .pt-desc { color: #6b7280; font-size: 10pt; line-height: 1.5; }
+    .pt-card.ind    { border-top: 3px solid #3b82f6; }
+    .pt-card.leader { border-top: 3px solid #8b5cf6; }
+    .pt-card.rs     { border-top: 3px solid #10b981; }
+    .pt-card.noacc  { border-top: 3px solid #f59e0b; }
+
+    /* Sales ID spec table */
+    .spec-section { border: 1px solid #e5e7eb; border-radius: 8px; margin: 16px 0; overflow: hidden; }
+    .spec-head { background: #f8faff; padding: 10px 16px; font-weight: 700; font-size: 11pt; color: #1a3c6e; border-bottom: 1px solid #e5e7eb; }
+    .spec-body { padding: 14px 16px; }
+    .spec-body ul { padding-left: 20px; margin: 6px 0; }
+    .spec-body li { margin: 5px 0; }
+
+    /* Checkbox month mockup */
+    .month-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 6px; margin: 10px 0; }
+    .m-item { border: 1px solid #d1d5db; border-radius: 5px; padding: 5px 8px; font-size: 10pt; display: flex; align-items: center; gap: 6px; background: #fff; }
+    .m-item.checked { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+    .m-cb { width: 14px; height: 14px; border: 2px solid #9ca3af; border-radius: 3px; display: inline-block; flex-shrink: 0; }
+    .m-cb.on { background: #3b82f6; border-color: #3b82f6; }
+
+    /* RS filters mockup */
+    .filter-block { background: #f8faff; border: 1px solid #dde4ef; border-radius: 6px; padding: 12px 16px; margin: 10px 0; font-size: 10.5pt; }
+    .filter-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+    .filter-lbl { width: 100px; color: #6b7280; font-size: 10pt; flex-shrink: 0; }
+    .filter-val { background: #fff; border: 1px solid #d1d5db; border-radius: 4px; padding: 3px 10px; font-size: 10pt; }
+    .filter-tag { background: #dbeafe; color: #1d4ed8; border-radius: 3px; padding: 2px 8px; font-size: 10pt; }
+
+    hr { border: none; border-top: 1px solid #e5e7eb; margin: 36px 0; }
+    code { background: #f4f4f4; padding: 1px 5px; border-radius: 3px; font-size: 10pt; }
+    footer { color: #aaa; font-size: 9pt; text-align: center; margin-top: 48px; }
+  </style>
+</head>
+<body>
+
+<h1>TCP 獎金平台 — 設定規格說明</h1>
+
+<div class="meta">
+  <table>
+    <tr><td>版本</td><td>v1.0（2026-05-12）</td></tr>
+    <tr><td>說明</td><td>業務員獎金設定的完整規格，涵蓋身分設定與獎金計算設定兩個部分</td></tr>
+  </table>
+</div>
+
+<p>業務員的獎金設定分為兩個獨立部分，各有不同的設定時機與操作者：</p>
+
+<table>
+  <tr>
+    <th></th>
+    <th>Part 1 — 身分設定</th>
+    <th>Part 2 — 獎金計算設定</th>
+  </tr>
+  <tr>
+    <td><strong>設定內容</strong></td>
+    <td>業務員角色（一般業務 / 主管）</td>
+    <td>CR%、計算方式（IND / Leader / RS / NoAcc）</td>
+  </tr>
+  <tr>
+    <td><strong>影響範圍</strong></td>
+    <td>僅影響 Over Quota 加成計算</td>
+    <td>影響所有獎金計算邏輯</td>
+  </tr>
+  <tr>
+    <td><strong>設定來源</strong></td>
+    <td>Role Permission 系統（或本平台）</td>
+    <td>本平台，由設定同仁操作</td>
+  </tr>
+  <tr>
+    <td><strong>設定頻率</strong></td>
+    <td>人員建立時，異動時才改</td>
+    <td>每年一次，年中可異動</td>
+  </tr>
+</table>
+
+<hr>
+
+<!-- ======== PART 1 ======== -->
+<div class="part-header">
+  <div class="part-num">1</div>
+  <div>
+    <div class="part-title">身分設定</div>
+    <div class="part-sub">決定業務員的角色，唯一用途是計算 Over Quota 加成比率</div>
+  </div>
+</div>
+
+<h3>設定欄位</h3>
+
+<table>
+  <tr><th>欄位</th><th>選項</th><th>說明</th></tr>
+  <tr>
+    <td>角色</td>
+    <td>一般業務 / 主管</td>
+    <td>決定超額獎金的加成比率與全年所得上限係數（TCP × 5 或 × 3）</td>
+  </tr>
+</table>
+
+<h3>Over Quota 加成對照</h3>
+
+<table>
+  <tr>
+    <th>角色</th>
+    <th>Over Quota 100–120%</th>
+    <th>Over Quota &gt;120%</th>
+    <th>全年所得上限</th>
+  </tr>
+  <tr>
+    <td>一般業務</td>
+    <td>+1%</td>
+    <td>+0.5%</td>
+    <td>TCP × 5</td>
+  </tr>
+  <tr>
+    <td>主管</td>
+    <td>+0.5%</td>
+    <td>+0.3%</td>
+    <td>TCP × 3</td>
+  </tr>
+</table>
+
+<div class="info">
+  <strong>重要：</strong>角色設定僅影響 Over Quota 加成，與下方 Part 2 的計算方式（IND / Leader / RS / NoAcc）無直接關聯。
+  一位設定為「主管」角色的業務員，其計算方式可以是 IND，也可以是 LEADER，兩者獨立設定。
+</div>
+
+<div class="good">
+  身分設定可從 Role Permission 系統同步帶入，無需在本平台重複設定。
+  若本平台需要提供設定入口，應以 Role Permission 為主，本平台顯示為唯讀並標示來源。
+</div>
+
+<hr>
+
+<!-- ======== PART 2 ======== -->
+<div class="part-header">
+  <div class="part-num">2</div>
+  <div>
+    <div class="part-title">獎金計算設定</div>
+    <div class="part-sub">設定 CR% 與計算方式，依選擇的方式顯示對應的設定介面</div>
+  </div>
+</div>
+
+<h3>共同設定欄位</h3>
+
+<table>
+  <tr><th>欄位</th><th>說明</th><th>備註</th></tr>
+  <tr>
+    <td>CR%（Commission Rate）</td>
+    <td>獎金計算的費率，由負責人提供，系統不自動推算</td>
+    <td>預設全年相同，可依月份個別設定；每年設定一次，年中可異動</td>
+  </tr>
+  <tr>
+    <td>匯率（選填）</td>
+    <td>
+      若業績以外幣計算，可填入固定匯率，獎金計算時套用此匯率換算為本地幣別。<br>
+      欄位組成：幣別下拉（USD / EUR / …）+ 匯率數值輸入框。<br>
+      公式：出貨（外幣）× CR% × 匯率 → 本地幣別獎金
+    </td>
+    <td>
+      選填；未填則視為無匯率換算，以原幣別直接計算。<br>
+      填入後報表業績欄位固定顯示外幣，不換算。
+    </td>
+  </tr>
+  <tr>
+    <td>計算方式</td>
+    <td>IND / Leader / RS / NoAcc 四選一</td>
+    <td>決定業績來源與計算邏輯，選擇後顯示對應設定介面</td>
+  </tr>
+</table>
+
+<h3>四種計算方式概覽</h3>
+
+<div class="plan-types">
+  <div class="pt-card ind">
+    <div class="pt-name"><span class="badge b-ind">IND</span></div>
+    <div class="pt-desc">個人業績<br>以本人 Sales ID 的出貨業績計算</div>
+  </div>
+  <div class="pt-card leader">
+    <div class="pt-name"><span class="badge b-leader">Leader</span></div>
+    <div class="pt-desc">主管業績<br>加總指定 Sales ID 的業績</div>
+  </div>
+  <div class="pt-card rs">
+    <div class="pt-name"><span class="badge b-rs">RS</span></div>
+    <div class="pt-desc">區域 / 產品別業績<br>依報表來源篩選計算</div>
+  </div>
+  <div class="pt-card noacc">
+    <div class="pt-name"><span class="badge b-noacc">NoAcc</span></div>
+    <div class="pt-desc">新客戶業績<br>依客戶新舊分段計算 CR</div>
+  </div>
+</div>
+
+<hr>
+
+<h2>IND / NoAcc / Leader — Sales ID 設定</h2>
+
+<p>三種計算方式共用同一套 Sales ID 設定介面，差異在於 ID 的來源與預設行為：</p>
+
+<table>
+  <tr>
+    <th>計算方式</th>
+    <th>Sales ID 來源</th>
+    <th>預設行為</th>
+  </tr>
+  <tr>
+    <td><span class="badge b-ind">IND</span></td>
+    <td>系統帶出該業務員在公司規範下的所有 ID</td>
+    <td>全部帶入，預設 1–12 月全年負責</td>
+  </tr>
+  <tr>
+    <td><span class="badge b-noacc">NoAcc</span></td>
+    <td>系統帶出該業務員在公司規範下的所有 ID</td>
+    <td>全部帶入，預設 1–12 月全年負責</td>
+  </tr>
+  <tr>
+    <td><span class="badge b-leader">Leader</span></td>
+    <td>系統帶出該業務員在公司規範下的所有 ID</td>
+    <td>全部帶入，預設 1–12 月全年負責；可移除或額外新增其他 ID</td>
+  </tr>
+</table>
+
+<div class="spec-section">
+  <div class="spec-head">Sales ID 清單 — 欄位與操作規格</div>
+  <div class="spec-body">
+    <table>
+      <tr><th>欄位</th><th>規格</th></tr>
+      <tr>
+        <td>Sales ID</td>
+        <td>
+          下拉選單，帶出所有可選的 Sales ID；支援模糊查詢（輸入部分 ID 或名稱即可篩選）
+        </td>
+      </tr>
+      <tr>
+        <td>負責月份</td>
+        <td>
+          12 個 Checkbox（1月 ～ 12月），可多選；預設全勾選（全年負責）<br>
+          取消勾選代表該 Sales ID 在該月份不計入業績
+        </td>
+      </tr>
+    </table>
+
+    <h3 style="margin-top:16px;">負責月份 Checkbox 示意</h3>
+    <div class="month-grid">
+      <div class="m-item checked"><div class="m-cb on"></div>1月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>2月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>3月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>4月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>5月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>6月</div>
+      <div class="m-item"><div class="m-cb"></div>7月</div>
+      <div class="m-item"><div class="m-cb"></div>8月</div>
+      <div class="m-item"><div class="m-cb"></div>9月</div>
+      <div class="m-item"><div class="m-cb"></div>10月</div>
+      <div class="m-item"><div class="m-cb"></div>11月</div>
+      <div class="m-item"><div class="m-cb"></div>12月</div>
+    </div>
+    <p style="font-size:10pt; color:#6b7280;">↑ 範例：該 Sales ID 僅 1–6 月負責（7月起移交他人）</p>
+
+    <h3>清單操作</h3>
+    <ul>
+      <li><strong>新增：</strong>點「新增 Sales ID」，從下拉選單選擇（支援模糊查詢），設定負責月份後加入清單</li>
+      <li><strong>移除：</strong>點該列的移除按鈕，從清單中刪除</li>
+      <li><strong>全選 / 全取消：</strong>月份 Checkbox 列上方提供快捷按鈕</li>
+    </ul>
+  </div>
+</div>
+
+<hr>
+
+<h2>RS — 區域 / 產品別設定</h2>
+
+<p>
+  RS 不使用 Sales ID，改以報表為業績來源。
+  設定時先選擇參考報表，系統依報表類型帶出對應的篩選器。
+</p>
+
+<div class="spec-section">
+  <div class="spec-head">步驟 1 — 選擇參考報表</div>
+  <div class="spec-body">
+    <p>從以下報表中選擇一個作為業績來源（可多選）：</p>
+    <table>
+      <tr><th>報表名稱</th><th>業績計算依據</th><th>篩選器</th></tr>
+      <tr>
+        <td>SalesByRegion</td>
+        <td>依業務區域加總出貨業績</td>
+        <td>區域、客戶</td>
+      </tr>
+      <tr>
+        <td>SalesByProduct</td>
+        <td>依產品線 / 產品別加總出貨業績</td>
+        <td>產品線、產品編號</td>
+      </tr>
+      <tr>
+        <td>MySalesForce</td>
+        <td>依業務員組合加總出貨業績</td>
+        <td>業務員清單</td>
+      </tr>
+    </table>
+    <div class="info" style="margin-top:8px;">
+      選擇多份報表時，系統將各報表計算結果加總為最終業績。
+    </div>
+  </div>
+</div>
+
+<div class="spec-section">
+  <div class="spec-head">步驟 2 — 設定篩選條件（依所選報表動態帶出）</div>
+  <div class="spec-body">
+    <p>
+      選定報表後，系統依該報表的結構帶出對應篩選欄位。
+      各篩選欄位均為<strong>多選</strong>，預設<strong>空值（不限定）</strong>。
+      篩選選項的內容依共用架構（報表系統）帶入，實際可選項目以報表系統定義為準。
+    </p>
+    <table>
+      <tr><th>報表</th><th>帶出的篩選欄位</th><th>空值代表</th></tr>
+      <tr>
+        <td>SalesByRegion</td>
+        <td>區域（多選）、客戶（多選）</td>
+        <td>不限定，計入該報表所有資料</td>
+      </tr>
+      <tr>
+        <td>SalesByProduct</td>
+        <td>產品線（多選）、產品編號（多選）</td>
+        <td>不限定，計入該報表所有資料</td>
+      </tr>
+      <tr>
+        <td>MySalesForce</td>
+        <td>業務員清單（多選）</td>
+        <td>不限定，計入該報表所有資料</td>
+      </tr>
+    </table>
+    <div class="note">
+      篩選欄位為空值時代表「不限定」，系統計入該報表下的所有資料。
+      若要縮小範圍，才需要選取特定條件。
+    </div>
+  </div>
+</div>
+
+<div class="spec-section">
+  <div class="spec-head">步驟 3 — 設定負責月份</div>
+  <div class="spec-body">
+    <p>以 Checkbox 勾選負責月份，可多選；預設全年（1–12 月）全勾選。</p>
+    <div class="month-grid">
+      <div class="m-item checked"><div class="m-cb on"></div>1月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>2月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>3月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>4月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>5月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>6月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>7月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>8月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>9月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>10月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>11月</div>
+      <div class="m-item checked"><div class="m-cb on"></div>12月</div>
+    </div>
+  </div>
+</div>
+
+<hr>
+
+<h2>Quota 預覽與儲存</h2>
+
+<p>
+  完成計算方式與內容設定後，頁面下方自動帶出對應的 <strong>Quota 預覽</strong>，
+  讓設定同仁確認數字正確後再儲存。
+</p>
+
+<div class="spec-section">
+  <div class="spec-head">Quota 預覽規格</div>
+  <div class="spec-body">
+    <table>
+      <tr><th>計算方式</th><th>Quota 資料來源</th><th>帶出內容</th></tr>
+      <tr>
+        <td><span class="badge b-ind">IND</span> / <span class="badge b-noacc">NoAcc</span> / <span class="badge b-leader">Leader</span></td>
+        <td>對應 Sales ID 的資料表</td>
+        <td>依已選取的 Sales ID 與負責月份，撈取對應業績數值</td>
+      </tr>
+      <tr>
+        <td><span class="badge b-rs">RS</span></td>
+        <td>對應報表的數值</td>
+        <td>依已選取的報表、篩選條件與負責月份，撈取對應報表數值</td>
+      </tr>
+    </table>
+    <div class="info" style="margin-top:8px;">
+      Quota 預覽為唯讀顯示，供確認用，不可在此直接修改。
+      若數字與預期不符，應回到上方調整 Sales ID 或篩選條件後，預覽會自動更新。
+    </div>
+  </div>
+</div>
+
+<div class="spec-section">
+  <div class="spec-head">儲存按鈕</div>
+  <div class="spec-body">
+    <ul>
+      <li>儲存按鈕位於頁面最下方，Quota 預覽確認後才點擊</li>
+      <li>儲存前系統驗證必填欄位（CR%、計算方式）是否已填寫</li>
+      <li>儲存成功後回到設定總覽頁</li>
+    </ul>
+  </div>
+</div>
+
+<hr>
+
+<h2>設定完整流程摘要</h2>
+
+<table>
+  <tr>
+    <th>步驟</th>
+    <th>內容</th>
+    <th>所有計算方式</th>
+    <th>IND / NoAcc</th>
+    <th>Leader</th>
+    <th>RS</th>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>身分確認（一般業務 / 主管）</td>
+    <td>✅</td><td>✅</td><td>✅</td><td>✅</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>設定 CR%，選填匯率（幣別 + 匯率值）</td>
+    <td>✅</td><td>✅</td><td>✅</td><td>✅</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>選擇計算方式</td>
+    <td>✅</td><td>✅</td><td>✅</td><td>✅</td>
+  </tr>
+  <tr>
+    <td>4a</td>
+    <td>確認 Sales ID 清單（系統預帶，可調整），設定各 ID 負責月份</td>
+    <td></td><td>✅</td><td>✅</td><td></td>
+  </tr>
+  <tr>
+    <td>4b</td>
+    <td>選擇參考報表（可多選）、設定篩選條件（多選，預設空值）、設定負責月份</td>
+    <td></td><td></td><td></td><td>✅</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>確認 Quota 預覽（系統自動帶出，唯讀）</td>
+    <td>✅</td><td>✅</td><td>✅</td><td>✅</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>點擊「儲存」</td>
+    <td>✅</td><td>✅</td><td>✅</td><td>✅</td>
+  </tr>
+</table>
+
+<hr>
+
+<footer>TCP 獎金平台 設定規格說明 v1.0（2026-05-12）</footer>
+</body>
+</html>

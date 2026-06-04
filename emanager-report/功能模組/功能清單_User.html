@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>eManagerReport 框架功能說明</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+      font-size: 15px;
+      line-height: 1.75;
+      color: #1e293b;
+      background: #f8fafc;
+    }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      flex-shrink: 0;
+      background: #1e293b;
+      color: #cbd5e1;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 28px 0;
+    }
+    .sidebar-brand {
+      padding: 0 20px 16px;
+      border-bottom: 1px solid #334155;
+      margin-bottom: 12px;
+    }
+    .sidebar-brand .brand-name { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+    .sidebar-brand .brand-sub  { font-size: 12px; color: #64748b; margin-top: 2px; }
+    .sidebar nav a {
+      display: block;
+      padding: 7px 20px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13.5px;
+      border-left: 3px solid transparent;
+      transition: all .15s;
+    }
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      color: #e2e8f0;
+      background: #273549;
+      border-left-color: #38bdf8;
+    }
+    .sidebar nav .nav-section {
+      padding: 14px 20px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #475569;
+    }
+
+    /* Content */
+    .content { flex: 1; min-width: 0; padding: 48px 60px; max-width: 1000px; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #1e40af 0%, #0369a1 60%, #0891b2 100%);
+      color: #fff;
+      border-radius: 14px;
+      padding: 40px 44px;
+      margin-bottom: 52px;
+    }
+    .hero-eyebrow {
+      font-size: 12px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; opacity: .7; margin-bottom: 10px;
+    }
+    .hero h1 { font-size: 28px; font-weight: 800; margin-bottom: 10px; }
+    .hero p  { font-size: 15px; opacity: .88; max-width: 580px; line-height: 1.7; }
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 20px; padding: 4px 13px;
+      font-size: 12.5px; font-weight: 600;
+    }
+
+    /* Section */
+    .section { margin-bottom: 60px; scroll-margin-top: 24px; }
+    h2 {
+      font-size: 20px; font-weight: 800; color: #0f172a;
+      padding-bottom: 12px; border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    h2 .sec-icon {
+      font-size: 19px; width: 36px; height: 36px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #eff6ff; border-radius: 8px; flex-shrink: 0;
+    }
+    h3 { font-size: 15px; font-weight: 700; color: #1d4ed8; margin: 26px 0 12px; }
+    p  { margin-bottom: 14px; color: #334155; }
+
+    /* Capability cards */
+    .cap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+    .cap-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 20px;
+      border-left: 4px solid #1d4ed8;
+    }
+    .cap-card.green  { border-left-color: #059669; }
+    .cap-card.purple { border-left-color: #7c3aed; }
+    .cap-card.orange { border-left-color: #d97706; }
+    .cap-card.teal   { border-left-color: #0891b2; }
+    .cap-card .cap-icon { font-size: 22px; margin-bottom: 8px; }
+    .cap-card h4 { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+    .cap-card p  { font-size: 13.5px; color: #475569; margin: 0; }
+
+    /* Feature list */
+    .feat-list { list-style: none; padding: 0; margin-bottom: 16px; }
+    .feat-list li {
+      padding: 10px 14px 10px 38px;
+      position: relative;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+      color: #334155;
+    }
+    .feat-list li:last-child { border-bottom: none; }
+    .feat-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 12px;
+      color: #059669;
+      font-weight: 700;
+    }
+    .feat-list.cross li::before { content: "—"; color: #94a3b8; }
+
+    /* Example block */
+    .example {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 16px;
+    }
+    .example .ex-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: #64748b; margin-bottom: 8px;
+    }
+    .example p { font-size: 14px; color: #475569; margin: 0; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13.5px; background: #fff;
+      border-radius: 10px; overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    thead tr { background: #f1f5f9; }
+    th {
+      text-align: left; padding: 10px 14px;
+      font-weight: 700; color: #475569;
+      font-size: 12.5px; letter-spacing: .03em;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155; vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+
+    /* Callout */
+    .callout {
+      border-radius: 8px; padding: 14px 18px;
+      margin-bottom: 16px; font-size: 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .callout.info { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; }
+    .callout.tip  { background: #f0fdf4; border-left: 4px solid #22c55e; color: #15803d; }
+    .callout .ci  { font-size: 17px; flex-shrink: 0; margin-top: 1px; }
+
+    /* Report mock */
+    .report-mock {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+    .mock-header {
+      background: #1e40af;
+      color: #fff;
+      padding: 8px 14px;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+    .mock-tabs {
+      display: flex;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .mock-tab {
+      padding: 6px 16px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .mock-tab.active {
+      color: #1d4ed8;
+      border-bottom-color: #1d4ed8;
+      background: #fff;
+    }
+    .mock-body { padding: 0; overflow-x: auto; }
+    .mock-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .mock-table th {
+      background: #f8fafc;
+      padding: 6px 10px;
+      text-align: center;
+      font-weight: 700;
+      color: #475569;
+      border-right: 1px solid #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 12px;
+    }
+    .mock-table th.left { text-align: left; }
+    .mock-table td {
+      padding: 6px 10px;
+      text-align: right;
+      border-right: 1px solid #f8fafc;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+    .mock-table td.name { text-align: left; font-weight: 600; color: #0f172a; }
+    .mock-table td.green { color: #059669; font-weight: 600; }
+    .mock-table td.red   { color: #dc2626; font-weight: 600; }
+    .mock-table td.gray  { color: #94a3b8; }
+    .mock-table tr:hover td { background: #f8fafc; }
+
+    code {
+      background: #f1f5f9; color: #1d4ed8;
+      border-radius: 4px; padding: 1px 6px;
+      font-size: 13px;
+      font-family: "Cascadia Code", "Consolas", monospace;
+    }
+
+    /* Tag */
+    .tag {
+      display: inline-block; border-radius: 4px;
+      padding: 1px 8px; font-size: 11.5px; font-weight: 600;
+    }
+    .tag.yes { background: #dcfce7; color: #15803d; }
+    .tag.cfg { background: #dbeafe; color: #1d4ed8; }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name">eManagerReport</div>
+      <div class="brand-sub">框架功能說明</div>
+    </div>
+    <nav>
+      <div class="nav-section">報表結構</div>
+      <a href="#s1">多層下鑽結構</a>
+      <a href="#s2">時間維度欄位</a>
+      <a href="#s3">多報表 Tab 切換</a>
+      <div class="nav-section">KPI 欄位</div>
+      <a href="#s4">KPI 顯示與格式</a>
+      <a href="#s5">KPI 比較與顏色規則</a>
+      <a href="#s6">動態年份名稱</a>
+      <a href="#s7">特殊格子覆蓋顯示</a>
+      <div class="nav-section">資料與幣別</div>
+      <a href="#s8">多幣別支援</a>
+      <a href="#s9">特殊計算欄位</a>
+      <a href="#s10">空白列自動過濾</a>
+      <div class="nav-section">權限控管</div>
+      <a href="#s11">三層權限設定</a>
+      <div class="nav-section">其他</div>
+      <a href="#s12">外部系統連結</a>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <main class="content">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-eyebrow">eManager ScoreCard 共用框架</div>
+      <h1>eManagerReport 可以做什麼？</h1>
+      <p>說明這個框架能呈現哪些報表內容與功能，幫助你了解在設計或申請新報表時，有哪些選項可以使用。</p>
+      <div class="badge-row">
+        <span class="badge">🗂️ 多層下鑽</span>
+        <span class="badge">📊 KPI 比較規則</span>
+        <span class="badge">🌍 多幣別</span>
+        <span class="badge">🔒 三層權限</span>
+        <span class="badge">🔗 外部連結</span>
+      </div>
+    </div>
+
+    <!-- 1. 多層下鑽 -->
+    <div class="section" id="s1">
+      <h2><span class="sec-icon">🔽</span> 多層下鑽結構</h2>
+      <p>報表可以設定多個層級，使用者點擊列名稱後自動下鑽到下一層，看更細的組織單位資料。層數、每層的名稱與對應的資料欄位都可以依報表需求設定。</p>
+
+      <div class="cap-grid">
+        <div class="cap-card">
+          <div class="cap-icon">🏢</div>
+          <h4>自定義層數</h4>
+          <p>可設定 1 層到任意層數，例如 Global → Region → Entity 三層，或更深的五層結構。</p>
+        </div>
+        <div class="cap-card green">
+          <div class="cap-icon">🏷️</div>
+          <h4>每層獨立命名</h4>
+          <p>每個層級可自訂篩選器顯示名稱（如「Sector」、「Sales Team」）。</p>
+        </div>
+        <div class="cap-card purple">
+          <div class="cap-icon">👆</div>
+          <h4>點擊列名稱下鑽</h4>
+          <p>使用者點擊報表中的組織單位列，即可自動切換到該項目的下一層，不需手動調整篩選器。</p>
+        </div>
+        <div class="cap-card orange">
+          <div class="cap-icon">🔢</div>
+          <h4>預設進入層級</h4>
+          <p>可設定使用者進入報表時的預設層級，也可設為依使用者權限自動決定。</p>
+        </div>
+      </div>
+
+      <div class="example">
+        <div class="ex-label">範例：OSF 業績報表</div>
+        <p>第 1 層顯示各 Sector 合計 → 點擊「APAC」後切換到第 2 層顯示 APAC 底下各 Region → 再點擊「TW」切換到第 3 層顯示 TW 底下各 Entity。</p>
+      </div>
+    </div>
+
+    <!-- 2. 時間維度 -->
+    <div class="section" id="s2">
+      <h2><span class="sec-icon">📅</span> 時間維度欄位</h2>
+      <p>報表橫軸的欄位群組（時間維度）可以自由設定，不限於月份，也可以加入各種彙總維度。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>常見維度類型</th><th>說明</th><th>是否可自訂</th></tr></thead>
+          <tbody>
+            <tr><td>月份（Jan ～ Dec）</td><td>各月份實際值</td><td><span class="tag cfg">可設定</span></td></tr>
+            <tr><td>YTD</td><td>截至當月的年度累積值</td><td><span class="tag cfg">可設定</span></td></tr>
+            <tr><td>Year Total</td><td>全年加總</td><td><span class="tag cfg">可設定</span></td></tr>
+            <tr><td>Budget</td><td>預算值</td><td><span class="tag cfg">可設定</span></td></tr>
+            <tr><td>自訂名稱</td><td>任何有意義的彙總群組</td><td><span class="tag cfg">可設定</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>每個維度可設定群組名稱、排序，以及預設是否顯示。</p>
+    </div>
+
+    <!-- 3. MultipleReportView -->
+    <div class="section" id="s3">
+      <h2><span class="sec-icon">🗂️</span> 多報表 Tab 切換</h2>
+      <p>同一系列的報表可以在同一頁面上方排成 Tab，讓使用者在不離開頁面的情況下切換不同報表（例如在 OSF 系列中切換「Sales Performance」和「SBU」）。</p>
+
+      <div class="report-mock">
+        <div class="mock-header">ScoreCard — OSF 業績</div>
+        <div class="mock-tabs">
+          <div class="mock-tab active">Sales Performance</div>
+          <div class="mock-tab">SBU Performance</div>
+          <div class="mock-tab">Region Performance</div>
+        </div>
+        <div class="mock-body">
+          <table class="mock-table">
+            <thead>
+              <tr>
+                <th class="left" style="min-width:100px">Sector</th>
+                <th>Jan</th><th>Feb</th><th>Mar</th><th>YTD</th><th>Year Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="name">APAC</td><td>1,240</td><td>1,380</td><td>1,520</td><td class="green">4,140</td><td class="gray">—</td></tr>
+              <tr><td class="name">EMEA</td><td>890</td><td>920</td><td>870</td><td>2,680</td><td class="gray">—</td></tr>
+              <tr><td class="name">Americas</td><td>640</td><td>710</td><td>780</td><td class="red">2,130</td><td class="gray">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <ul class="feat-list">
+        <li>同一系列中可放任意數量的 Tab</li>
+        <li>切換 Tab 時，年份和幣別的篩選條件自動保留</li>
+        <li>每個 Tab 可以有獨立的層級結構和 KPI 欄位</li>
+      </ul>
+    </div>
+
+    <!-- 4. KPI 顯示與格式 -->
+    <div class="section" id="s4">
+      <h2><span class="sec-icon">📊</span> KPI 顯示與格式設定</h2>
+      <p>每個 KPI 欄位的顯示方式都可以個別設定，不需改程式碼。</p>
+
+      <div class="cap-grid">
+        <div class="cap-card">
+          <div class="cap-icon">🔢</div>
+          <h4>小數位數</h4>
+          <p>每個 KPI 可獨立設定要顯示幾位小數（0 位、1 位、2 位等）。</p>
+        </div>
+        <div class="cap-card green">
+          <div class="cap-icon">📐</div>
+          <h4>單位標示</h4>
+          <p>可設定顯示在欄位標題旁的單位，例如 $K、%、人數 等。</p>
+        </div>
+        <div class="cap-card purple">
+          <div class="cap-icon">🎨</div>
+          <h4>字體與背景顏色</h4>
+          <p>每個 KPI 可設定欄位標題的字體色和背景色，方便視覺分群。</p>
+        </div>
+        <div class="cap-card orange">
+          <div class="cap-icon">🔗</div>
+          <h4>點擊連結</h4>
+          <p>KPI 欄位可設定連結，使用者點擊後跳至其他系統或報表詳細頁。</p>
+        </div>
+        <div class="cap-card teal">
+          <div class="cap-icon">➕</div>
+          <h4>空白分隔列</h4>
+          <p>KPI 之間可插入空白列，用於視覺上的分組區隔。</p>
+        </div>
+        <div class="cap-card">
+          <div class="cap-icon">📅</div>
+          <h4>當月歸零</h4>
+          <p>可設定某 KPI 在當月資料未完整時顯示為零，避免呈現不完整數字。</p>
+        </div>
+      </div>
+
+      <h3>顯示名稱與資料欄位可以不同</h3>
+      <p>KPI 的「顯示名稱」（使用者看到的標題）和「資料欄位名稱」（對應資料來源的欄位）可以分開設定，不影響資料的正確性。</p>
+    </div>
+
+    <!-- 5. 比較規則 -->
+    <div class="section" id="s5">
+      <h2><span class="sec-icon">↕️</span> KPI 比較與顏色規則</h2>
+      <p>每個 KPI 可以設定比較條件，系統會在每個儲存格自動判斷，條件成立時將數字顏色切換為指定顏色，讓使用者一眼辨識達成狀況。背景色不受影響，只有數字顏色會改變。</p>
+
+      <h3>兩種比較模式</h3>
+
+      <div class="cap-grid">
+        <div class="cap-card green">
+          <div class="cap-icon">🔢</div>
+          <h4>與固定數值比較（Value）</h4>
+          <p>將 KPI 的值與一個設定好的固定數字做比較。<br><br>
+          <strong>範例：</strong>Achv. % 小於 100 時標紅。</p>
+        </div>
+        <div class="cap-card purple">
+          <div class="cap-icon">📊</div>
+          <h4>與同 KPI 另一維度比較（Column）</h4>
+          <p>將 KPI 的值與「同一個 KPI 在另一個時間維度」的值做比較。<br><br>
+          <strong>範例：</strong>YTD 低於 Year Total 時標橘。</p>
+        </div>
+      </div>
+
+      <h3>可設定的比較條件</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>設定項目</th><th>可填的值</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>比較基準類型</td>
+              <td><code>Value</code> / <code>Column</code></td>
+              <td>選擇要與固定數值比較，還是與同 KPI 另一維度的值比較</td>
+            </tr>
+            <tr>
+              <td>比較運算子</td>
+              <td><code>&lt;</code>、<code>&gt;</code>、<code>&lt;=</code>、<code>&gt;=</code></td>
+              <td>判斷條件的方向</td>
+            </tr>
+            <tr>
+              <td>比較目標</td>
+              <td>數值字串 或 維度名稱</td>
+              <td>Value 模式：填入固定數字（如 <code>100</code>）；Column 模式：填入維度名稱（如 <code>Year Total</code>）</td>
+            </tr>
+            <tr>
+              <td>條件成立顏色</td>
+              <td>CSS 顏色（如 <code>red</code>、<code>orange</code>）</td>
+              <td>條件成立時數字改用此顏色；不成立則維持原本的字體顏色</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>設定範例</h3>
+      <div class="report-mock">
+        <div class="mock-header">範例 1：Achv. % 低於 100% 時標紅（Value 模式）</div>
+        <div class="mock-body">
+          <table class="mock-table">
+            <thead>
+              <tr>
+                <th class="left">Region</th>
+                <th>2025 Quota</th>
+                <th>2025 Achv.</th>
+                <th>Achv. %</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="name">APAC</td><td>3,800</td><td>4,140</td><td class="green">109%</td></tr>
+              <tr><td class="name">EMEA</td><td>3,000</td><td>2,680</td><td class="red">89%</td></tr>
+              <tr><td class="name">Americas</td><td>2,500</td><td>2,130</td><td class="red">85%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="report-mock">
+        <div class="mock-header">範例 2：YTD 低於 Year Total 時標橘（Column 模式）</div>
+        <div class="mock-body">
+          <table class="mock-table">
+            <thead>
+              <tr>
+                <th class="left">Region</th>
+                <th>Jan</th><th>Feb</th><th>Mar</th><th>YTD</th><th>Year Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="name">APAC</td><td>1,240</td><td>1,380</td><td>1,520</td><td class="green">4,140</td><td>9,800</td></tr>
+              <tr><td class="name">EMEA</td><td>890</td><td>920</td><td>870</td><td style="color:#d97706;font-weight:600;">2,680</td><td>8,200</td></tr>
+              <tr><td class="name">Americas</td><td>640</td><td>710</td><td>780</td><td style="color:#d97706;font-weight:600;">2,130</td><td>7,500</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <span class="ci">ℹ</span>
+        <div>比較邏輯逐儲存格執行，同一個 KPI 的每個月份數字都會獨立判斷，不影響彼此。</div>
+      </div>
+    </div>
+
+    <!-- 6. 動態年份名稱 -->
+    <div class="section" id="s6">
+      <h2><span class="sec-icon">🔄</span> KPI 動態年份名稱</h2>
+      <p>KPI 名稱可以包含年份佔位符，系統在顯示時自動替換為使用者選擇的年份，不需每年更新設定。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>設定的 KPI 名稱</th><th>使用者選 2025 年時顯示</th><th>使用者選 2024 年時顯示</th></tr></thead>
+          <tbody>
+            <tr><td><code>CurrentYear Quota</code></td><td>2025 Quota</td><td>2024 Quota</td></tr>
+            <tr><td><code>CurrentYear Achv.</code></td><td>2025 Achv.</td><td>2024 Achv.</td></tr>
+            <tr><td><code>LastYear Actual</code></td><td>2024 Actual</td><td>2023 Actual</td></tr>
+            <tr><td><code>CurrentYear Backlog</code></td><td>2025 Backlog</td><td>2024 Backlog</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <span class="ci">💡</span>
+        <div>這樣設定一次就可以長期使用，不需要每年手動修改 KPI 名稱。</div>
+      </div>
+    </div>
+
+    <!-- 7. SpecialRule -->
+    <div class="section" id="s7">
+      <h2><span class="sec-icon">✏️</span> 特殊格子覆蓋顯示</h2>
+      <p>若某個組織單位（Measure）在某個時間維度（Dimension）下，特定 KPI 不應顯示計算值，可以設定改用固定文字覆蓋顯示（例如顯示「N/A」或「—」）。</p>
+
+      <div class="example">
+        <div class="ex-label">使用情境</div>
+        <p>例如「Total」列在「Budget」維度下的某個 KPI 沒有意義，可設定顯示「N/A」而非錯誤的計算結果。</p>
+      </div>
+
+      <ul class="feat-list">
+        <li>可指定特定 KPI + 特定維度的組合套用覆蓋規則</li>
+        <li>覆蓋文字可自訂（如「N/A」、「—」、任意文字）</li>
+        <li>不影響其他組合的正常顯示</li>
+      </ul>
+    </div>
+
+    <!-- 8. 多幣別 -->
+    <div class="section" id="s8">
+      <h2><span class="sec-icon">💱</span> 多幣別支援</h2>
+      <p>報表可以依資料來源支援多種幣別，使用者可在篩選區切換，所有數值自動換算顯示。</p>
+
+      <ul class="feat-list">
+        <li>幣別選項由資料來源決定，有幾種幣別就提供幾種選擇</li>
+        <li>預設幣別為 USD</li>
+        <li>部分報表固定幣別（如 HC Dashboard 固定 USD）</li>
+        <li>OSF 可額外顯示「YTM Local $」維度——依各 Region 本地幣別呈現 YTM 數字，方便當地報告對齊</li>
+      </ul>
+    </div>
+
+    <!-- 9. SpecialKPI -->
+    <div class="section" id="s9">
+      <h2><span class="sec-icon">⚡</span> 特殊計算欄位</h2>
+      <p>部分 KPI 不是直接從資料來源取值，而是由框架在後端額外計算後附加到報表中。這類欄位可以出現在表格之外的固定位置，不受時間維度限制。</p>
+
+      <div class="example">
+        <div class="ex-label">現有範例：HC Dashboard</div>
+        <p>
+          <strong>Last Year HC</strong>：自動取去年 12 月底的人力實績，呈現在每個單位旁作為基準比較。<br>
+          <strong>H/C Budget</strong>：自動取本年度人力預算合計，顯示在固定位置。
+        </p>
+      </div>
+
+      <div class="callout info">
+        <span class="ci">ℹ</span>
+        <div>此類特殊欄位目前為各資料來源個別實作，若有新報表需要類似的計算欄位，需與 IT 討論設計方式。</div>
+      </div>
+    </div>
+
+    <!-- 10. 零值過濾 -->
+    <div class="section" id="s10">
+      <h2><span class="sec-icon">🧹</span> 空白列自動過濾</h2>
+      <p>若某個組織單位在關鍵 KPI 的全年合計為零（代表該單位本年度完全沒有資料），系統可以自動將整列隱藏，避免報表出現一大排空白行。</p>
+
+      <ul class="feat-list">
+        <li>可依報表需求決定要不要啟用此過濾</li>
+        <li>可設定以哪個 KPI 和哪個維度的值作為判斷依據</li>
+        <li>過濾只影響當前顯示層，上層的彙總列不受影響</li>
+      </ul>
+    </div>
+
+    <!-- 11. 三層權限 -->
+    <div class="section" id="s11">
+      <h2><span class="sec-icon">🔒</span> 三層權限設定</h2>
+      <p>報表提供三個層次的權限控管，可以精細設定每個人能看到的範圍：</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>層次</th><th>控制什麼</th><th>設定範例</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>層級權限</strong></td>
+              <td>使用者可以看哪個層級，以及進入報表時的預設層</td>
+              <td>A 只能看 Region 層；B 可以看到 Entity 層</td>
+            </tr>
+            <tr>
+              <td><strong>列（Measure）權限</strong></td>
+              <td>使用者在每個層級能看到哪些組織單位列</td>
+              <td>A 只看到 APAC；B 可以看到全部 Region</td>
+            </tr>
+            <tr>
+              <td><strong>KPI 欄位權限</strong></td>
+              <td>使用者能看到哪些 KPI 欄位</td>
+              <td>財務欄位只有特定人員能看</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>KPI 欄位權限的進階設定</h3>
+      <p>KPI 的可見性可以依「使用者在上層選了什麼」來動態決定，不需為每個人個別設定。</p>
+
+      <div class="example">
+        <div class="ex-label">範例：依選擇動態決定</div>
+        <p>設定為「只有在第 1 層選了 APAC 時，才顯示 Digital Actual % 這個欄位」。使用者選 APAC → 欄位出現；選其他 Sector → 欄位隱藏。</p>
+      </div>
+
+      <ul class="feat-list">
+        <li>可設定通用規則（套用所有使用者）或個人規則（指定 Email）</li>
+        <li>個人規則優先於通用規則</li>
+        <li>可設定使用者必須看到特定 Measure 才顯示某 KPI</li>
+      </ul>
+    </div>
+
+    <!-- 12. 外部連結 -->
+    <div class="section" id="s12">
+      <h2><span class="sec-icon">🔗</span> 外部系統連結按鈕</h2>
+      <p>報表頁面可以加上一個導向按鈕，連結到其他系統或報表，方便使用者從業績數字直接跳到相關的詳細系統查看。</p>
+
+      <ul class="feat-list">
+        <li>按鈕文字可自訂（例如「查看詳細」、「前往 CRM」）</li>
+        <li>連結 URL 可以自動帶入使用者的 Email 和 SSO Token，實現免登入的單一簽入跳轉</li>
+        <li>按鈕是選擇性的，不需要的報表可以不設定</li>
+      </ul>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('.section');
+  const links    = document.querySelectorAll('.sidebar nav a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const id = entry.target.id;
+        const active = document.querySelector(`.sidebar nav a[href="#${id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>eManagerReport 功能文件</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #1e293b;
+      background: #f8fafc;
+    }
+
+    /* Layout */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: #1e293b;
+      color: #cbd5e1;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 28px 0;
+    }
+    .sidebar-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #64748b;
+      padding: 0 20px 12px;
+      border-bottom: 1px solid #334155;
+      margin-bottom: 12px;
+    }
+    .sidebar nav a {
+      display: block;
+      padding: 6px 20px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13.5px;
+      border-left: 3px solid transparent;
+      transition: all .15s;
+    }
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      color: #e2e8f0;
+      background: #273549;
+      border-left-color: #3b82f6;
+    }
+    .sidebar nav .section-label {
+      padding: 14px 20px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #475569;
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      min-width: 0;
+      padding: 48px 56px;
+      max-width: 960px;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #1e40af 0%, #0ea5e9 100%);
+      color: #fff;
+      border-radius: 12px;
+      padding: 36px 40px;
+      margin-bottom: 48px;
+    }
+    .hero h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .hero p  { font-size: 15px; opacity: .85; }
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Section */
+    .section { margin-bottom: 56px; scroll-margin-top: 24px; }
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      background: #3b82f6;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e40af;
+      margin: 24px 0 10px;
+    }
+
+    p { margin-bottom: 14px; color: #334155; }
+
+    /* Cards */
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .card p { margin-bottom: 0; font-size: 14px; }
+
+    /* Feature grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .feature-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px;
+    }
+    .feature-icon { font-size: 22px; margin-bottom: 8px; }
+    .feature-card h4 { font-size: 13.5px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .feature-card p  { font-size: 13px; color: #64748b; margin: 0; }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; margin-bottom: 20px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    thead tr { background: #f1f5f9; }
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 700;
+      color: #475569;
+      font-size: 12.5px;
+      letter-spacing: .03em;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+
+    /* Code blocks */
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 20px 22px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+    code {
+      font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+    }
+    p code, li code, td code {
+      background: #f1f5f9;
+      color: #be185d;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 12.5px;
+    }
+
+    /* Flow diagram */
+    .flow {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .flow-step:last-child { margin-bottom: 0; }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-body { flex: 1; }
+    .step-body strong { color: #0f172a; display: block; font-size: 14px; margin-bottom: 2px; }
+    .step-body span { font-size: 13px; color: #64748b; }
+    .flow-arrow {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 18px;
+      margin: -4px 0 -4px 6px;
+    }
+
+    /* Permission layers */
+    .perm-layers { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .perm-layer {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid;
+      padding: 16px 20px;
+    }
+    .perm-layer.l1 { border-left-color: #3b82f6; }
+    .perm-layer.l2 { border-left-color: #8b5cf6; }
+    .perm-layer.l3 { border-left-color: #ec4899; }
+    .perm-layer h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .perm-layer.l1 h4 { color: #1d4ed8; }
+    .perm-layer.l2 h4 { color: #6d28d9; }
+    .perm-layer.l3 h4 { color: #be185d; }
+    .perm-layer p  { margin: 0; font-size: 13px; color: #475569; }
+
+    /* Source cards */
+    .source-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .source-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .source-header {
+      padding: 12px 18px;
+      font-weight: 700;
+      font-size: 14px;
+      color: #fff;
+    }
+    .source-header.osf  { background: #2563eb; }
+    .source-header.hc   { background: #16a34a; }
+    .source-header.crm  { background: #dc2626; }
+    .source-body { padding: 14px 18px; }
+    .source-body p { margin: 0; font-size: 13px; color: #475569; }
+
+    /* Tag */
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .tag-blue   { background: #dbeafe; color: #1e40af; }
+    .tag-green  { background: #dcfce7; color: #15803d; }
+    .tag-purple { background: #ede9fe; color: #6d28d9; }
+    .tag-red    { background: #fee2e2; color: #b91c1c; }
+    .tag-gray   { background: #f1f5f9; color: #475569; }
+
+    /* File list */
+    .file-list { list-style: none; }
+    .file-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13.5px;
+    }
+    .file-list li:last-child { border-bottom: none; }
+    .file-icon { color: #94a3b8; font-size: 14px; width: 18px; text-align: center; }
+    .file-path { color: #0284c7; font-family: monospace; font-size: 12.5px; }
+    .file-desc { color: #64748b; font-size: 12.5px; }
+
+    ul { padding-left: 20px; color: #334155; }
+    li { margin-bottom: 4px; font-size: 14px; }
+
+    /* Scrollbar */
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-title">eManagerReport</div>
+    <nav>
+      <a href="#overview">1. 功能概述</a>
+      <a href="#architecture">2. 系統架構</a>
+      <a href="#database">3. 資料庫結構</a>
+      <a href="#permission">4. 權限系統</a>
+      <a href="#flow">5. 資料流程</a>
+      <a href="#source">6. 資料來源</a>
+      <a href="#api">7. API 端點</a>
+      <a href="#frontend">8. 前端互動</a>
+      <a href="#special">9. 特殊處理邏輯</a>
+      <a href="#files">10. 關鍵檔案清單</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="content">
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>eManagerReport 功能文件</h1>
+      <p>ScoreCard 核心報表模組 — 資料庫驅動、三層權限控管的彈性報表框架</p>
+      <div class="badge-row">
+        <span class="badge">ASP.NET Core MVC</span>
+        <span class="badge">Dapper</span>
+        <span class="badge">ScoreCard Area</span>
+        <span class="badge">OSF / HC / CRM</span>
+      </div>
+    </div>
+
+    <!-- 1. 功能概述 -->
+    <section class="section" id="overview">
+      <h2><span class="num">1</span>功能概述</h2>
+      <p>
+        <code>eManagerReport</code> 是 Advantech eManager ScoreCard 的核心報表模組，提供各層級主管查閱業績績效數據的統一入口。
+        報表結構（層級、欄位、KPI）全部存於資料庫，新增報表不需修改程式碼。
+      </p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🗄️</div>
+          <h4>資料庫驅動設定</h4>
+          <p>報表結構存於 DB，新增報表不需改程式</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <h4>三層權限控管</h4>
+          <p>依身份控制可見層級、Measure、KPI</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔗</div>
+          <h4>多資料來源整合</h4>
+          <p>統一框架支援 OSF、HC、CRM</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h4>動態 KPI 名稱</h4>
+          <p>依年份自動轉換，設定一次長期適用</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📑</div>
+          <h4>多報表切換</h4>
+          <p>同 ReportCode 群組支援 Tab 切換</p>
+        </div>
+      </div>
+
+      <h3>支援的報表類型</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ReportType</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td><code>Classic</code></td><td>標準單一報表畫面</td></tr>
+            <tr><td><code>MultipleReportView</code></td><td>多報表切換畫面（上方有 Tab 標籤）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 2. 系統架構 -->
+    <section class="section" id="architecture">
+      <h2><span class="num">2</span>系統架構</h2>
+
+      <h3>分層架構</h3>
+      <pre><code>Controller 層
+└─ HomeController.cs  (Areas/ScoreCard/Controllers/)
+   ├─ eManagerReport()      ← HTTP GET 進入點
+   ├─ NewReportStructure()  ← 組裝報表並決定 View
+   └─ XClassicReport()      ← Partial View（AJAX 用）
+
+Service 層
+└─ ReportStructureService.cs
+   ├─ GetReport()           ← 主流程協調
+   ├─ GetReportMeasures()   ← Measures 清單（含權限過濾）
+   ├─ GetReportKPI()        ← KPI 清單（含名稱轉換與權限）
+   └─ GetReportSources()    ← 業績數據（依 ReportCode 分支）
+
+Repository 層
+├─ ReportStructureRepository.cs  ← 報表結構 DB 查詢
+└─ ReportSourceRepository.cs     ← 業績資料 DB 查詢
+
+Model 層
+├─ ReportFilter.cs     ← 查詢條件
+├─ Report.cs           ← 完整報表資料物件
+└─ Table/              ← DB 資料表對應 Model
+
+View 層
+├─ ClassicReport.cshtml
+├─ MultipleReportView.cshtml
+└─ ClassicReportPartialView.cshtml
+
+前端 JS
+├─ eManagerReport.js        ← 篩選條件收集與頁面跳轉
+└─ MultipleReportView.js    ← Tab 切換邏輯</code></pre>
+
+      <h3>依賴注入</h3>
+      <p>
+        <code>HomeController</code> 注入 <code>IReportStructureService</code>，<code>ReportStructureService</code> 注入
+        <code>IReportStructureRepository</code> 與 <code>IReportSourceRepository</code>，
+        所有 DB 連線透過 <code>IEMGRV2DatabaseHelper</code> 取得，指向 <code>EMGRV2</code> 資料庫。
+      </p>
+    </section>
+
+    <!-- 3. 資料庫結構 -->
+    <section class="section" id="database">
+      <h2><span class="num">3</span>資料庫結構</h2>
+
+      <h3>Report_Basic — 報表基本設定</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>欄位</th><th>型別</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td><code>ReportID</code></td><td>Guid</td><td>報表唯一識別碼</td></tr>
+            <tr><td><code>ReportCode</code></td><td>string</td><td>資料來源代碼（<code>OSF</code> / <code>HC Dashboard</code> / <code>CRM</code>）</td></tr>
+            <tr><td><code>Name</code></td><td>string</td><td>報表名稱（如 <code>Sales Performance</code>、<code>SBU</code>）</td></tr>
+            <tr><td><code>ReportType</code></td><td>string</td><td><code>Classic</code> 或 <code>MultipleReportView</code></td></tr>
+            <tr><td><code>StartYear</code></td><td>string</td><td>報表起始年份</td></tr>
+            <tr><td><code>MaxLevel</code></td><td>int</td><td>最深層級數</td></tr>
+            <tr><td><code>isDefaultLevel</code></td><td>bool</td><td>是否依使用者權限決定預設層級</td></tr>
+            <tr><td><code>RedirectText</code></td><td>string</td><td>導向按鈕文字（可選）</td></tr>
+            <tr><td><code>RedirectUrl</code></td><td>string</td><td>導向 URL，支援 <code>{Email}</code>、<code>{EZTicketId}</code> 佔位符</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Report_Level — 層級定義</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td><code>Level</code></td><td>層級編號（1, 2, 3...）</td></tr>
+            <tr><td><code>LevelColumnName</code></td><td>對應資料來源的欄位名稱（如 <code>Region</code>、<code>Sector</code>）</td></tr>
+            <tr><td><code>FilterName</code></td><td>篩選器顯示名稱</td></tr>
+            <tr><td><code>ShowFilter</code></td><td>是否在畫面顯示此層級篩選器</td></tr>
+            <tr><td><code>hasPermission</code></td><td>此層級是否啟用 Measure 權限控管</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Report_Measures_KPIs — KPI 欄位定義</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td><code>Name</code></td><td>KPI 名稱（可含 <code>CurrentYear</code>、<code>LastYear</code> 佔位符）</td></tr>
+            <tr><td><code>DisplayName</code></td><td>顯示名稱（若與 Name 相同則跟隨 Name 轉換）</td></tr>
+            <tr><td><code>Unit</code></td><td>單位（如 <code>$K</code>、<code>%</code>）</td></tr>
+            <tr><td><code>DecimalPoint</code></td><td>小數位數</td></tr>
+            <tr><td><code>CompareCategory</code></td><td>比較基準類型</td></tr>
+            <tr><td><code>CompareType</code></td><td>比較方式</td></tr>
+            <tr><td><code>Compare</code></td><td>比較對象 KPI</td></tr>
+            <tr><td><code>CompareStyle</code></td><td>比較樣式（顏色規則）</td></tr>
+            <tr><td><code>Permission</code></td><td>是否啟用 KPI 層級權限</td></tr>
+            <tr><td><code>needEmpty</code></td><td>是否需要空白行間隔</td></tr>
+            <tr><td><code>CurrentMonthZero</code></td><td>當月是否顯示為零</td></tr>
+            <tr><td><code>PastMonthsAdjustment</code></td><td>過去月份調整值</td></tr>
+            <tr><td><code>FutureMonthsAdjustment</code></td><td>未來月份調整值</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Report_Measures_KPIs_Permission — KPI 個人權限</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td><code>Email</code></td><td>使用者 Email；<strong>空值代表套用全員</strong></td></tr>
+            <tr><td><code>Name</code></td><td>KPI 名稱</td></tr>
+            <tr><td><code>LastLevelMeasures</code></td><td>要對照的層級選擇值；空值代表不限制</td></tr>
+            <tr><td><code>CheckLevel</code></td><td>指定對照哪一層的選擇值；<strong>空值代表 Level - 1（上一層）</strong></td></tr>
+            <tr><td><code>Measures</code></td><td>授權可見的 Measure</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>資料庫 View</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>View 名稱</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td><code>vw_Report_Level_Permission</code></td><td>整合使用者的層級存取權限，輸出 <code>DefaultLevel</code>、<code>RequiredPermissionLevels</code></td></tr>
+            <tr><td><code>vw_Report_Measures</code></td><td>整合 Measures 清單（含年份對應邏輯）</td></tr>
+            <tr><td><code>vw_Report_Measures_Permission</code></td><td>整合使用者的 Measure 存取權限</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. 權限系統 -->
+    <section class="section" id="permission">
+      <h2><span class="num">4</span>權限系統</h2>
+      <p>系統採三層疊加式權限，每層獨立設定：</p>
+
+      <div class="perm-layers">
+        <div class="perm-layer l1">
+          <h4>Layer 1：Level 權限</h4>
+          <p>控制使用者可查看哪個層級的資料。來源：<code>vw_Report_Level_Permission</code>。
+          若 <code>DefaultLevel = 0</code> 代表無存取權，回傳空報表。</p>
+        </div>
+        <div class="perm-layer l2">
+          <h4>Layer 2：Measure 權限</h4>
+          <p>控制使用者在每個層級可見哪些組織/業務單位列。來源：<code>vw_Report_Measures_Permission</code>。
+          特殊值 <code>"ALL"</code> 代表可見該層級全部 Measures；無設定代表不限制。</p>
+        </div>
+        <div class="perm-layer l3">
+          <h4>Layer 3：KPI 權限</h4>
+          <p>控制使用者可見哪些 KPI 欄位。<code>Email</code> 為空 = 通用規則；有值 = 個人規則。
+          <code>LastLevelMeasures</code> 有值時，依 <code>CheckLevel</code> 指定的層級選擇值動態決定 KPI 是否顯示。
+          <code>CheckLevel</code> 為空時預設對照上一層（Level - 1）；有值時可指定任意層，例如永遠對照第一層。</p>
+        </div>
+      </div>
+
+      <h3>CheckLevel 判斷邏輯</h3>
+      <pre><code>KPI.Permission = false
+  └─ 永遠顯示
+
+KPI.Permission = true，且任一筆 Permission 記錄的 LastLevelMeasures 為空
+  └─ 顯示（不限制）
+
+KPI.Permission = true，且所有 Permission 記錄的 LastLevelMeasures 都有值
+  └─ 逐筆檢查（ANY 符合即顯示）：
+       checkLevel = 該筆 CheckLevel ?? (當前 Level - 1)
+       ├─ 使用者在 checkLevel 的選擇值 == LastLevelMeasures → 顯示
+       ├─ 使用者尚未在 checkLevel 做選擇 → 顯示（預設開放）
+       └─ 全部不符合 → 隱藏</code></pre>
+
+      <h3>CheckLevel 設定範例</h3>
+      <p>需求：第三層時，只有第一層選了「A」才顯示某 KPI</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>欄位</th><th>值</th></tr></thead>
+          <tbody>
+            <tr><td><code>Level</code></td><td><code>3</code></td></tr>
+            <tr><td><code>Name</code></td><td>KPI 名稱</td></tr>
+            <tr><td><code>CheckLevel</code></td><td><code>1</code>（對照第一層）</td></tr>
+            <tr><td><code>LastLevelMeasures</code></td><td><code>A</code></td></tr>
+            <tr><td><code>Measures</code></td><td>（空 = 不限制當前層）</td></tr>
+            <tr><td><code>Email</code></td><td>（空 = 全員）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>KPI 權限查詢 SQL 設計</h3>
+      <pre><code>SELECT * FROM (
+    -- 全員通用規則
+    SELECT * FROM [Report_Measures_KPIs_Permission]
+    WHERE [ReportID] = @ReportID AND ISNULL([Email],'') = ''
+    UNION ALL
+    -- 個人專屬規則
+    SELECT * FROM [Report_Measures_KPIs_Permission]
+    WHERE [ReportID] = @ReportID AND ISNULL([Email],'') = @Email
+) A
+WHERE [Level] = @Level</code></pre>
+      <p>兩者 <code>UNION ALL</code> 合併後再篩 Level，同一個 KPI 可同時擁有「預設規則」與「個人覆寫規則」。</p>
+    </section>
+
+    <!-- 5. 資料流程 -->
+    <section class="section" id="flow">
+      <h2><span class="num">5</span>資料流程</h2>
+
+      <h3>完整請求流程</h3>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>使用者互動</strong>
+            <span>點擊報表連結或調整篩選條件（Year / Currency / Measures）</span>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>eManagerReport.js</strong>
+            <span>收集 reportId、Year、Currency 及各層級 Measures 選擇（格式：<code>"{Level}-{Value}"</code>）</span>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>GET /ScoreCard/Home/eManagerReport/{reportId}</strong>
+            <span>帶入 ReportFilter query parameters</span>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>HomeController.eManagerReport()</strong>
+            <span>驗證 reportId、補齊預設值（Year=當年、Currency=USD、Level=1）、反序列化 MeasuresJson</span>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <strong>ReportStructureService.GetReport()</strong>
+            <span>平行抓取基礎設定 → 計算 Level → 取 Dimensions / Measures / KPIs / 業績資料 → 過濾零值</span>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <strong>View 渲染</strong>
+            <span><code>Classic</code> → ClassicReport.cshtml ／ <code>MultipleReportView</code> → MultipleReportView.cshtml</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Level 決定邏輯</h3>
+      <pre><code>初次載入（無 MeasuresValue）：
+  isDefaultLevel = true  → 使用 Permission.DefaultLevel（無權限則 Level = 0）
+  isDefaultLevel = false → Level = 1
+
+使用者有選擇（有 MeasuresValue）：
+  找第一個值為 "ALL" 的 Level → 使用該 Level
+  都不是 "ALL"               → 使用 MaxLevel
+
+  + 套用 Level 權限：
+    從授權清單找 >= 當前 Level 的最小值</code></pre>
+    </section>
+
+    <!-- 6. 資料來源 -->
+    <section class="section" id="source">
+      <h2><span class="num">6</span>資料來源</h2>
+
+      <div class="source-grid">
+        <div class="source-card">
+          <div class="source-header osf">OSF — Order / Shipment / Forecast</div>
+          <div class="source-body">
+            <p>業務出貨與業績達成率，支援多幣別。Level 1 → Sector、Level 2 → Region、Level 3+ → Entity。額外處理 YTM Local Currency 邏輯。</p>
+          </div>
+        </div>
+        <div class="source-card">
+          <div class="source-header hc">HC Dashboard — Human Capital</div>
+          <div class="source-body">
+            <p>人力編制追蹤，固定幣別 USD。額外計算 <code>Last Year HC</code>（上年 Dec 快照）與 <code>H/C Budget</code>（Budget 維度快照）。</p>
+          </div>
+        </div>
+        <div class="source-card">
+          <div class="source-header crm">CRM — Customer Relationship Management</div>
+          <div class="source-body">
+            <p>業務銷售管道，支援多幣別。Level 1→Region、2→Sector、3→SalesTeam、4→SalesId、5→Account。Level ≥ 4 自動對應可讀名稱。</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>OSF Level 對應</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Level</th><th>Measures 欄位</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><code>Sector</code></td></tr>
+            <tr><td>2</td><td><code>Region</code></td></tr>
+            <tr><td>3+</td><td><code>Entity</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>CRM Level 對應</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Level</th><th>Measures 欄位</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><code>Region</code></td></tr>
+            <tr><td>2</td><td><code>Sector</code></td></tr>
+            <tr><td>3</td><td><code>SalesTeam</code></td></tr>
+            <tr><td>4</td><td><code>SalesId</code> → 顯示 <code>SalesName</code></td></tr>
+            <tr><td>5</td><td><code>Account</code> → 顯示 <code>AccountName</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>零值 Measures 過濾規則</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>報表</th><th>過濾條件</th></tr></thead>
+          <tbody>
+            <tr><td><code>Sales Performance</code>（Name）</td><td><code>{Year} Achv.</code> 在 <code>Year Total</code> 維度值為 0</td></tr>
+            <tr><td><code>HC Dashboard</code>（ReportCode）</td><td><code>Revenue</code> 在 <code>YTM</code> 維度值為 0</td></tr>
+            <tr><td><code>CRM</code>（ReportCode）</td><td><code>Achivement</code> 在 <code>Year Total</code> 維度值為 0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 7. API 端點 -->
+    <section class="section" id="api">
+      <h2><span class="num">7</span>API 端點</h2>
+
+      <div class="card">
+        <div class="card-title">
+          <span class="tag tag-blue">GET</span>&nbsp;
+          /ScoreCard/Home/eManagerReport/{reportId}
+        </div>
+        <p>完整報表頁面載入。</p>
+      </div>
+
+      <h3>Route Parameter</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>參數</th><th>型別</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td><code>reportId</code></td><td>Guid</td><td>報表唯一識別碼，不可為 <code>Guid.Empty</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Query Parameters（ReportFilter）</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>參數</th><th>型別</th><th>預設值</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td><code>Year</code></td><td>string</td><td>當年</td><td>篩選年份</td></tr>
+            <tr><td><code>Currency</code></td><td>string</td><td><code>USD</code></td><td>篩選幣別</td></tr>
+            <tr><td><code>Level</code></td><td>int</td><td><code>1</code></td><td>顯示層級</td></tr>
+            <tr><td><code>Measures</code></td><td>List&lt;string&gt;</td><td>—</td><td>各層選擇，格式 <code>"{Level}-{Value}"</code></td></tr>
+            <tr><td><code>MeasuresJson</code></td><td>string</td><td>—</td><td>Measures 的 JSON 序列化版本（擇一使用）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span class="tag tag-green">GET</span>&nbsp;
+          /ScoreCard/Home/XClassicReport
+        </div>
+        <p>Partial View 版本，供 AJAX 局部更新使用，回傳 <code>ClassicReportPartialView</code>。</p>
+      </div>
+    </section>
+
+    <!-- 8. 前端互動 -->
+    <section class="section" id="frontend">
+      <h2><span class="num">8</span>前端互動</h2>
+
+      <h3>eManagerReport.js</h3>
+      <p>負責從畫面收集篩選條件並觸發頁面跳轉：</p>
+      <ul>
+        <li>監聽 Measure 列的點擊事件</li>
+        <li>收集 Year、Currency、各層級 Measures 選擇</li>
+        <li>將 Measures 組成 <code>"{Level}-{Value}"</code> 格式的 Array</li>
+        <li>導向 <code>/ScoreCard/Home/eManagerReport/{reportId}?...</code> 帶入所有篩選</li>
+      </ul>
+
+      <h3>MultipleReportView.js</h3>
+      <p>在 <code>eManagerReport.js</code> 基礎上，增加 Tab 切換功能：</p>
+      <ul>
+        <li>監聽報表 Tab 標籤點擊</li>
+        <li>切換 Tab 時更新 FilterBox 中的 <code>reportid</code></li>
+        <li>其餘篩選邏輯沿用 <code>eManagerReport.js</code></li>
+      </ul>
+    </section>
+
+    <!-- 9. 特殊處理邏輯 -->
+    <section class="section" id="special">
+      <h2><span class="num">9</span>特殊處理邏輯</h2>
+
+      <h3>KPI 名稱年份動態轉換</h3>
+      <p>Service 層每次查詢時依 <code>reportFilter.Year</code> 建立轉換字典：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>原始 KPI 名稱</th><th>轉換後（以 2025 年為例）</th></tr></thead>
+          <tbody>
+            <tr><td><code>LastYear Actual</code></td><td><code>2024 Actual</code></td></tr>
+            <tr><td><code>CurrentYear Quota</code></td><td><code>2025 Quota</code></td></tr>
+            <tr><td><code>CurrentYear Achv.</code></td><td><code>2025 Achv.</code></td></tr>
+            <tr><td><code>CurrentYear Backlog</code></td><td><code>2025 Backlog</code></td></tr>
+            <tr><td><code>LastYear Digital Actual %</code></td><td><code>2024 Digital Actual %</code></td></tr>
+            <tr><td><code>CurrentYear Digital Actual %</code></td><td><code>2025 Digital Actual %</code></td></tr>
+            <tr><td><code>2025Shipment</code></td><td><code>2025 Achv.</code></td></tr>
+            <tr><td><code>2024Shipment</code></td><td><code>2024 Actual</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>非斷行空白 (Non-Breaking Space) 處理</h3>
+      <p>KPI 名稱若混入 Unicode <code> </code>（字元碼 160），會導致 Dictionary 比對失敗。Service 在轉換前先 normalize：</p>
+      <pre><code>var normalizedName = originalName
+    .Replace(' ', ' ')  // Non-Breaking Space → 標準空白
+    .Trim();</code></pre>
+
+      <h3>FilterColumn 的 "null" 字串清理</h3>
+      <p>前端若傳入字串 <code>"null"</code> 作為篩選值，Service 在建立 FilterColumn 後會自動移除，避免傳入 DB 查詢造成錯誤。</p>
+
+      <h3>RedirectUrl 佔位符替換</h3>
+      <p><code>Report_Basic.RedirectUrl</code> 支援以下佔位符，在 <code>NewReportStructure()</code> 渲染時自動替換：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>佔位符</th><th>替換內容</th></tr></thead>
+          <tbody>
+            <tr><td><code>{Email}</code></td><td>當前使用者（或模擬使用者）的 Email</td></tr>
+            <tr><td><code>{EZTicketId}</code></td><td>使用者的 EZTicket 單一登入 Token</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>OSF Local Currency 邏輯</h3>
+      <p>
+        <code>YTM Total</code> 維度的資料需依 Region 對應本地幣別，轉為 <code>YTM Local $</code> 維度顯示。
+        <code>Rolling Forecast</code> 與 <code>Forecast Achv. %</code> 兩個 KPI 不參與此處理。
+      </p>
+    </section>
+
+    <!-- 10. 關鍵檔案清單 -->
+    <section class="section" id="files">
+      <h2><span class="num">10</span>關鍵檔案清單</h2>
+      <div class="card" style="padding: 0;">
+        <ul class="file-list">
+          <li>
+            <span class="file-icon">C</span>
+            <div>
+              <div class="file-path">eManagerCore/Areas/ScoreCard/Controllers/HomeController.cs</div>
+              <div class="file-desc">Controller — eManagerReport、NewReportStructure、XClassicReport</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">S</span>
+            <div>
+              <div class="file-path">eManagerCore.Service/Service/eManager/IReportStructureService.cs</div>
+              <div class="file-desc">Service 介面</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">S</span>
+            <div>
+              <div class="file-path">eManagerCore.Service/Service/eManager/ReportStructureService.cs</div>
+              <div class="file-desc">Service 實作 — 核心業務邏輯（880+ 行）</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">R</span>
+            <div>
+              <div class="file-path">eManagerCore.DataAccess/Repository/eManager/IReportStructureRepository.cs</div>
+              <div class="file-desc">Repository 介面</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">R</span>
+            <div>
+              <div class="file-path">eManagerCore.DataAccess/Repository/eManager/ReportStructureRepository.cs</div>
+              <div class="file-desc">Repository 實作 — Dapper SQL 查詢</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">R</span>
+            <div>
+              <div class="file-path">eManagerCore.DataAccess/Repository/eManager/IReportSourceRepository.cs</div>
+              <div class="file-desc">資料來源 Repository（OSF / HC / CRM）</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">M</span>
+            <div>
+              <div class="file-path">eManagerCore.Models/DataModels/eManager/ReportStructure/ReportFilter.cs</div>
+              <div class="file-desc">查詢條件 Model</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">M</span>
+            <div>
+              <div class="file-path">eManagerCore.Models/DataModels/eManager/ReportStructure/Report.cs</div>
+              <div class="file-desc">完整報表資料物件</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">M</span>
+            <div>
+              <div class="file-path">eManagerCore.Models/DataModels/eManager/ReportStructure/Table/</div>
+              <div class="file-desc">DB 資料表對應 Model 類別</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">V</span>
+            <div>
+              <div class="file-path">eManagerCore/Areas/ScoreCard/Views/Home/ClassicReport.cshtml</div>
+              <div class="file-desc">標準報表 View</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">V</span>
+            <div>
+              <div class="file-path">eManagerCore/Areas/ScoreCard/Views/Home/MultipleReportView.cshtml</div>
+              <div class="file-desc">多報表切換 View</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">J</span>
+            <div>
+              <div class="file-path">eManagerCore/wwwroot/js/Home/eManagerReport.js</div>
+              <div class="file-desc">前端篩選邏輯與頁面跳轉</div>
+            </div>
+          </li>
+          <li>
+            <span class="file-icon">J</span>
+            <div>
+              <div class="file-path">eManagerCore/wwwroot/js/Home/MultipleReportView.js</div>
+              <div class="file-desc">Tab 切換邏輯</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Active link highlight on scroll
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.sidebar nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`.sidebar nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

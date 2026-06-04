@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TCP 業務員設定 Q&amp;A</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #333; font-size: 14px; }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    position: fixed; top: 0; left: 0;
+    width: 260px; height: 100vh;
+    background: #00315a; color: #e8f0f8;
+    overflow-y: auto; overflow-x: hidden;
+    transition: width 0.28s ease;
+    z-index: 1000; display: flex; flex-direction: column;
+  }
+  body.sidebar-collapsed #sidebar { width: 0; }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: #2a6096; border-radius: 2px; }
+  .sidebar-inner { min-width: 260px; padding: 0 0 40px; }
+  .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 18px 16px 14px; border-bottom: 1px solid #1a4a6e; white-space: nowrap; }
+  .sidebar-brand-icon { width: 30px; height: 30px; background: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sidebar-brand-icon svg { width: 18px; height: 18px; }
+  .sidebar-brand-text { font-size: 13px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .sidebar-brand-sub  { font-size: 10px; color: #7ab0d4; font-weight: 400; }
+  .sidebar-nav { padding: 10px 0; }
+  .sidebar-nav a { display: block; padding: 6px 16px 6px 20px; font-size: 13px; color: #b8d4ea; text-decoration: none; white-space: nowrap; border-left: 3px solid transparent; transition: background 0.15s, color 0.15s, border-color 0.15s; line-height: 1.5; }
+  .sidebar-nav a:hover { background: #1a4a6e; color: #fff; }
+  .sidebar-nav a.active { background: #1a4a6e; color: #fff; border-left-color: #5bb0e8; }
+  .sidebar-nav .nav-section { padding: 10px 16px 3px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #5a8aaa; font-weight: 600; white-space: nowrap; }
+  .sidebar-nav .nav-sub { padding-left: 32px; font-size: 12px; }
+
+  /* ── Toggle ── */
+  #sidebar-toggle {
+    position: fixed; top: 14px; left: 268px; z-index: 1001;
+    background: #00467f; color: #fff; border: none; border-radius: 5px;
+    width: 30px; height: 30px; cursor: pointer; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    transition: left 0.28s ease, background 0.15s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+  #sidebar-toggle:hover { background: #0059a0; }
+  body.sidebar-collapsed #sidebar-toggle { left: 8px; }
+
+  /* ── Main ── */
+  #main-wrapper { margin-left: 260px; transition: margin-left 0.28s ease; }
+  body.sidebar-collapsed #main-wrapper { margin-left: 0; }
+  .header { background: #00467f; color: #fff; padding: 16px 48px 14px 58px; }
+  body.sidebar-collapsed .header { padding-left: 52px; }
+  .header h1 { margin: 0 0 4px; font-size: 22px; }
+  .header p  { margin: 0; font-size: 12px; opacity: 0.8; }
+  .container { max-width: 900px; margin: 28px auto; padding: 0 24px 60px; }
+
+  /* ── Section Title ── */
+  .section { margin-bottom: 40px; scroll-margin-top: 20px; }
+  .section-title {
+    font-size: 17px; font-weight: 700; color: #00467f;
+    border-left: 4px solid #00467f; padding-left: 10px; margin-bottom: 16px;
+  }
+
+  /* ── QA Card ── */
+  .qa-card { background: #fff; border: 1px solid #dde3ea; border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
+  .qa-q {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 13px 16px; background: #f8fafc; border-bottom: 1px solid #dde3ea;
+    font-weight: 600; font-size: 14px; cursor: pointer; user-select: none;
+  }
+  .qa-q:hover { background: #eef3f8; }
+  .qa-q .q-badge { flex-shrink: 0; width: 22px; height: 22px; background: #00467f; color: #fff; border-radius: 50%; text-align: center; line-height: 22px; font-size: 12px; font-weight: 700; }
+  .qa-q .q-text { flex: 1; line-height: 1.5; }
+  .qa-q .q-arrow { flex-shrink: 0; font-size: 11px; color: #888; margin-top: 4px; transition: transform 0.2s; }
+  .qa-card.open .q-arrow { transform: rotate(180deg); }
+  .qa-a { padding: 14px 16px 14px 48px; line-height: 1.7; display: none; }
+  .qa-card.open .qa-a { display: block; }
+
+  /* ── Table ── */
+  .qa-a table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 13px; }
+  .qa-a th { background: #00467f; color: #fff; padding: 6px 10px; text-align: left; white-space: nowrap; }
+  .qa-a td { border: 1px solid #ddd; padding: 5px 10px; vertical-align: top; }
+  .qa-a tr:nth-child(even) td { background: #f7f9fc; }
+  .qa-a td.empty { color: #aaa; font-style: italic; }
+
+  /* ── Callout ── */
+  .note, .tip, .warn { border-radius: 0 4px 4px 0; padding: 10px 14px; margin: 10px 0; font-size: 13px; line-height: 1.6; }
+  .note { background: #e8f0fe; border-left: 4px solid #3b82f6; }
+  .tip  { background: #e6f4ea; border-left: 4px solid #22a360; }
+  .warn { background: #fff8e1; border-left: 4px solid #f0ad4e; }
+  .note b, .tip b, .warn b { display: block; margin-bottom: 3px; }
+
+  /* ── Steps ── */
+  .steps { padding-left: 20px; margin: 8px 0; }
+  .steps li { margin-bottom: 5px; }
+
+  /* ── Code / badge ── */
+  code { background: #eef0f3; border-radius: 3px; padding: 1px 5px; font-size: 12px; font-family: Consolas, monospace; color: #c0392b; }
+  .badge { display: inline-block; border-radius: 3px; padding: 1px 7px; font-size: 11px; font-weight: 700; margin-right: 3px; }
+  .badge-blue   { background: #d0e8ff; color: #004080; }
+  .badge-green  { background: #d4edda; color: #155724; }
+  .badge-yellow { background: #fff3cd; color: #856404; }
+  .badge-red    { background: #f8d7da; color: #721c24; }
+
+  .divider { border: none; border-top: 1px solid #e0e5ec; margin: 24px 0; }
+  .page-footer { text-align: center; font-size: 12px; color: #999; padding: 12px 0; border-top: 1px solid #dde3ea; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<div id="sidebar">
+  <div class="sidebar-inner">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#00467f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div>
+        <div class="sidebar-brand-text">TCP Platform</div>
+        <div class="sidebar-brand-sub">業務員設定 Q&amp;A</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">設定 Q&amp;A</div>
+      <a href="#s-commission">1. Commission Rate</a>
+      <a href="#qa-types" class="nav-sub">Commission Type</a>
+      <a href="#qa-threshold" class="nav-sub">Achievement Threshold</a>
+      <a href="#qa-monthly" class="nav-sub">Monthly CR%</a>
+      <a href="#qa-cr-detail" class="nav-sub">Standard CR% 欄位</a>
+      <a href="#qa-update-cr" class="nav-sub">中途調整費率</a>
+
+      <div class="nav-section"></div>
+      <a href="#s-salesid">2. Sales ID Config</a>
+      <a href="#qa-isactive" class="nav-sub">Jan~Dec 欄位</a>
+      <a href="#qa-multi-sid" class="nav-sub">多個 Sales ID</a>
+      <a href="#qa-change-sid" class="nav-sub">中途換 Sales ID</a>
+      <a href="#qa-delta-truth" class="nav-sub">Delta vs Full-truth</a>
+
+      <div class="nav-section"></div>
+      <a href="#s-mapping">3. Mapping</a>
+
+      <div class="nav-section"></div>
+      <a href="#s-rs">4. RS</a>
+      <a href="#qa-rs-report" class="nav-sub">Report 欄位別名</a>
+      <a href="#qa-rs-dims" class="nav-sub">維度欄位填法</a>
+      <a href="#qa-rs-validation" class="nav-sub">驗證規則</a>
+
+      <div class="nav-section"></div>
+      <a href="#s-groupname">5. Group Name</a>
+    </nav>
+  </div>
+</div>
+
+<button id="sidebar-toggle" title="展開/收縮目錄">&#9776;</button>
+
+<!-- ══ MAIN ══ -->
+<div id="main-wrapper">
+  <div class="header">
+    <h1>TCP 業務員設定 Q&amp;A</h1>
+    <p>常見情境的設定方式說明 &nbsp;|&nbsp; 更新日期：2026-05-26</p>
+  </div>
+
+  <div class="container">
+
+    <!-- ════ Section 1: Commission Rate ════ -->
+    <div class="section" id="s-commission">
+      <div class="section-title">1. Commission Rate（CR% 費率）</div>
+
+      <div class="qa-card open" id="qa-types">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">Commission Type 四種類型有什麼差別？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <table>
+            <tr><th>類型</th><th>適用對象</th><th>Sales ID 來源</th><th>Sales ID Config 必要？</th></tr>
+            <tr>
+              <td><span class="badge badge-blue">IND</span></td>
+              <td>一般個人業務員</td>
+              <td>系統自動從 eManager 同步</td>
+              <td>不需要</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-green">NOACC</span></td>
+              <td>無個人帳號的業務員，邏輯同 IND</td>
+              <td>系統自動同步</td>
+              <td>不需要（但支援 Delta 調整）</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-yellow">LEADER</span></td>
+              <td>主管或多 Sales ID 負責人</td>
+              <td>完全依 Sales ID Config 設定</td>
+              <td><strong>必須設定（Full-truth 模式）</strong></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-red">RS</span></td>
+              <td>Report-based 業務員，依報表維度計算</td>
+              <td>不使用 Sales ID</td>
+              <td>不適用（改設定 RS Sheet）</td>
+            </tr>
+          </table>
+          <div class="tip"><b>建議</b>一般業務員填 <code>IND</code>；主管或需要彈性控制多 Sales ID 的填 <code>LEADER</code>；依報表篩選維度計算的填 <code>RS</code>。</div>
+        </div>
+      </div>
+
+      <div class="qa-card" id="qa-threshold">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">Achievement Rate Threshold 是什麼？什麼時候要填？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>這是<strong>年度累積達成率門檻</strong>。系統會以業務員的累積達成率與門檻比較：</p>
+          <ul class="steps">
+            <li>達成率 ≥ 門檻 → 套用 <code>Standard CR%</code> 計算獎金</li>
+            <li>達成率 &lt; 門檻 → 不套用（依業務邏輯處理）</li>
+          </ul>
+          <div class="note"><b>填寫格式</b>填入小數比例，例如 70% 門檻填 <code>0.7</code>。</div>
+        </div>
+      </div>
+
+      <div class="qa-card" id="qa-monthly">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">什麼時候需要填 Achievement Rate Threshold(Monthly) 和 Monthly CR%？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>當業務員需要<strong>每月獨立計算達成率</strong>，並套用不同費率時才需要填。</p>
+          <div class="warn">
+            <b>注意</b>
+            <code>Achievement Rate Threshold(Monthly)</code> 和 <code>Monthly CR%.Commission Rate</code> 必須<strong>同時填寫</strong>，任一欄位留空，整個 Monthly CR% 區塊（所有月份欄位）都不會儲存。
+          </div>
+          <table>
+            <tr><th>欄位</th><th>說明</th><th>範例</th></tr>
+            <tr><td>Achievement Rate Threshold(Monthly)</td><td>每月達成率門檻</td><td>0.8</td></tr>
+            <tr><td>Monthly CR% → Commission Rate</td><td>未達月門檻時的預設 CR%</td><td>0.02</td></tr>
+            <tr><td>Monthly CR% → Jan ~ Dec</td><td>各月可單獨設定（留空沿用 Commission Rate）</td><td>0.02</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="qa-card" id="qa-cr-detail">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">Standard CR% 有 Commission Rate 和 Jan~Dec，差別是什麼？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p><code>Commission Rate</code> 是<strong>全年預設值</strong>；<code>Jan</code>~<code>Dec</code> 是各月份的個別覆蓋設定。</p>
+          <ul class="steps">
+            <li>若某月份欄位有填值 → 以該月欄位為準</li>
+            <li>若某月份欄位<strong>留空</strong> → 沿用 Commission Rate 的值</li>
+          </ul>
+          <div class="tip"><b>範例</b>Q1 費率較低，其他月份維持預設 5%：</div>
+          <table>
+            <tr><th>Commission Rate</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr ~ Dec</th></tr>
+            <tr><td>0.05</td><td>0.03</td><td>0.03</td><td>0.03</td><td class="empty">（留空，沿用 0.05）</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="qa-card" id="qa-update-cr">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">業務員中途調整費率，要怎麼更新設定？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>有兩種方式：</p>
+          <ul class="steps">
+            <li><strong>Upload（批次）</strong>：在 Excel 中修改費率後重新上傳，系統以 <code>Email + Group Name + Site</code> 為 Key 執行 UPSERT（覆蓋更新）。</li>
+            <li><strong>Data View（單筆）</strong>：進入 Data View → Commission Rate Tab，找到該筆資料點 <strong>Edit</strong>，直接修改後 Save。</li>
+          </ul>
+          <div class="warn"><b>注意</b>若只要變更部分月份，建議利用 Jan~Dec 各月欄位逐月填寫，避免 Commission Rate 預設值自動覆蓋原有月份設定。</div>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">GP 欄位是什麼意思？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>GP（Gross Profit，毛利率）是獎金計算的附加條件，填入小數比例（例如 <code>0.3</code> 代表 30%）。不需要時可以留空。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Section 2: Sales ID Config ════ -->
+    <div class="section" id="s-salesid">
+      <div class="section-title">2. Sales ID Config（Sales ID 設定）</div>
+
+      <div class="qa-card open" id="qa-isactive">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">Jan ~ Dec 欄位要填什麼？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>代表該 Sales ID 在該月份是否啟用（isActive）：</p>
+          <ul class="steps">
+            <li><code>1</code>（或任何非空白值）＝ 啟用，該月業績計入</li>
+            <li><code>0</code> 或<strong>留空</strong> ＝ 停用，該月不計入</li>
+          </ul>
+          <div class="tip"><b>常見用法</b>全年啟用：全填 <code>1</code>；下半年啟用：Jul~Dec 填 <code>1</code>，Jan~Jun 填 <code>0</code>。</div>
+        </div>
+      </div>
+
+      <div class="qa-card" id="qa-multi-sid">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">一位業務員有多個 Sales ID，要怎麼設定？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>每個 Sales ID 各填一行，Email 與 Group Name 相同（或都留空）。</p>
+          <table>
+            <tr><th>Email</th><th>Group Name</th><th>Sales ID</th><th>Jan</th><th>Feb</th><th>...</th><th>Dec</th></tr>
+            <tr><td>john@co.com</td><td class="empty">（空白）</td><td>S001</td><td>1</td><td>1</td><td>...</td><td>1</td></tr>
+            <tr><td>john@co.com</td><td class="empty">（空白）</td><td>S002</td><td>1</td><td>1</td><td>...</td><td>1</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="qa-card" id="qa-change-sid">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">業務員中途換了 Sales ID，舊的要停用、新的要啟用，要怎麼設定？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <div class="tip"><b>範例</b>7 月換 Sales ID：</div>
+          <table>
+            <tr><th>Email</th><th>Sales ID</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th></tr>
+            <tr><td>john@co.com</td><td>S001（舊）</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            <tr><td>john@co.com</td><td>S999（新）</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="qa-card" id="qa-delta-truth">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">IND/NOACC 和 LEADER 匯入 Sales ID Config 的行為有什麼差異？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>兩種模式的增刪語意不同，請特別注意 LEADER 的「Full-truth」行為：</p>
+          <table>
+            <tr><th>Commission Type</th><th>情況</th><th>系統動作</th></tr>
+            <tr>
+              <td rowspan="3"><span class="badge badge-blue">IND</span> / <span class="badge badge-green">NOACC</span><br><small>Delta 模式</small></td>
+              <td>該 Email 出現，至少一月 = 1</td><td>INSERT 或 UPDATE</td>
+            </tr>
+            <tr><td>該 Email 出現，所有月份空白</td><td>DELETE 該 Sales_Id</td></tr>
+            <tr><td>該 Email <strong>未出現</strong>在 Sheet</td><td>不動（Job 維護基底）</td></tr>
+            <tr>
+              <td rowspan="3"><span class="badge badge-yellow">LEADER</span><br><small>Full-truth 模式</small></td>
+              <td>該 Email 出現，至少一月 = 1</td><td>INSERT 或 UPDATE</td>
+            </tr>
+            <tr><td>該 Email 出現，所有月份空白</td><td>IGNORE（忽略）</td></tr>
+            <tr><td>該 Email <strong>未出現</strong>在 Sheet</td><td><strong>DELETE 該 Email 所有舊有 Sales_Id</strong></td></tr>
+          </table>
+          <div class="warn"><b>LEADER 注意</b>每次上傳等同重新宣告全部有效 Sales ID，未在此次 Sheet 列出的 Sales_Id 全部刪除。請確保每次帶完整清單，避免誤刪。</div>
+          <div class="tip"><b>IND/NOACC 移除 Sales ID</b>填一行該 Sales ID，Jan~Dec 全部留空，上傳後系統會 DELETE 該筆。</div>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">RS 類型的業務員需要設定 Sales ID Config 嗎？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p><strong>不需要。</strong><span class="badge badge-red">RS</span> 類型業務員不使用 Sales ID，業績計算依 RS Sheet 設定的報表維度（Region/Entity/Sector/Prod_Group）從報表系統拉取。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Section 3: Mapping ════ -->
+    <div class="section" id="s-mapping">
+      <div class="section-title">3. Mapping（觀看權限）</div>
+
+      <div class="qa-card open">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">Mapping 是什麼用途？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>設定<strong>誰可以看到誰的業績資料</strong>（觀看權限），與管理階層無關。</p>
+          <ul class="steps">
+            <li><code>Email</code>：觀看者（要開放觀看權限的人）</li>
+            <li><code>Sales Email</code>：被觀看的業務員 Email</li>
+          </ul>
+          <div class="note"><b>範例</b>主管 A 想查看業務員 B 和 C 的業績：<br>→ 填兩行：Email = A，Sales Email 分別填 B、C</div>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">主管要看所有組員的業績，要怎麼設定？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>每位組員填一行，Email 欄填主管，Sales Email 欄填各組員 Email。</p>
+          <table>
+            <tr><th>Email（觀看者）</th><th>Sales Email（被觀看者）</th></tr>
+            <tr><td>manager@co.com</td><td>sales1@co.com</td></tr>
+            <tr><td>manager@co.com</td><td>sales2@co.com</td></tr>
+            <tr><td>manager@co.com</td><td>sales3@co.com</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">業務員離職或轉組，原有的觀看權限要怎麼移除？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>系統匯入只做 UPSERT，不會自動移除舊記錄。移除方式：</p>
+          <ul class="steps">
+            <li><strong>逐筆刪除（推薦）</strong>：至 <strong>Data View → Mapping Tab</strong>，找到該筆記錄點 <strong>Delete</strong>，即時生效。</li>
+            <li><strong>整批重傳</strong>：在 Upload History 中刪除整批上傳記錄，再重新上傳不含該筆的 Excel。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">非主管（例如 PM 或跨部門同事）也能設定觀看權限嗎？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>可以。Mapping 不限定管理關係，任何需要觀看特定業務員業績的人都可以在此設定。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Section 4: RS ════ -->
+    <div class="section" id="s-rs">
+      <div class="section-title">4. RS（Revenue / Quota 篩選條件）</div>
+
+      <div class="qa-card open">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">RS Sheet 是用來設定什麼的？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>RS（Report Source）設定系統在計算 <span class="badge badge-red">RS</span> 類型業務員的獎金時，要從哪個報表、哪些維度條件下抓取 Revenue 和 Quota。每一行代表一組篩選條件組合。</p>
+          <div class="note"><b>注意</b>RS Sheet 不包含 Site 欄位；Region 欄位已涵蓋地區資訊。</div>
+        </div>
+      </div>
+
+      <div class="qa-card" id="qa-rs-report">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">Report 欄位可以填什麼？大小寫有影響嗎？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>系統支援別名對應，<strong>不分大小寫</strong>，上傳後自動正規化為標準值：</p>
+          <table>
+            <tr><th>接受輸入（範例）</th><th>正規化為</th><th>對應資料表</th></tr>
+            <tr><td>Region / Sales by Region / SalesByRegion</td><td><code>SalesByRegion</code></td><td>Sales_Sector</td></tr>
+            <tr><td>Product / Sales by Product / SalesByProduct</td><td><code>SalesByProduct</code></td><td>SALES_PRODUCT</td></tr>
+            <tr><td>My Sales Force / MySalesForce</td><td><code>MySalesForce</code></td><td>SALES_FORCE</td></tr>
+          </table>
+          <div class="tip"><b>建議</b>直接填標準值（<code>SalesByRegion</code>、<code>SalesByProduct</code>、<code>MySalesForce</code>）最清楚，別名主要用於舊格式相容。</div>
+        </div>
+      </div>
+
+      <div class="qa-card" id="qa-rs-dims">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">不同 Report 類型的 Region / Entity / Sector / Prod_Group 各要填什麼？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>三種 Report 對應不同的報表畫面，維度欄位的來源與意義也不同：</p>
+          <table>
+            <tr><th>Report</th><th>Region</th><th>Entity</th><th>Sector</th><th>Prod_Group</th></tr>
+            <tr>
+              <td><code>SalesByProduct</code></td>
+              <td><code>ALL</code></td>
+              <td><code>ALL</code></td>
+              <td><code>ALL</code></td>
+              <td>報表的 <strong>SBU Hierarchy</strong><br><small style="color:#666;">PG / MD / PD 皆可</small></td>
+            </tr>
+            <tr>
+              <td><code>SalesByRegion</code></td>
+              <td>報表上方 Filter 值<br><small style="color:#666;">空白未顯示 = <code>ALL</code></small></td>
+              <td>報表上方 Filter 值<br><small style="color:#666;">空白未顯示 = <code>ALL</code></small></td>
+              <td>報表上方 Filter 值<br><small style="color:#666;">空白未顯示 = <code>ALL</code></small></td>
+              <td>報表 Filter 的 <strong>Product Division</strong><br>或報表中的 <strong>Prod Group</strong> 欄位</td>
+            </tr>
+            <tr>
+              <td><code>MySalesForce</code></td>
+              <td>報表上方 Filter 值</td>
+              <td>報表上方 Filter 值</td>
+              <td>報表 Filter 的 <strong>Sales Group</strong><br><small style="color:#666;">（DB 對應 Sales_Group 欄位）</small></td>
+              <td>報表 Filter 的 <strong>Product Division</strong></td>
+            </tr>
+          </table>
+          <div class="tip"><b>SalesByProduct 說明</b>此 Report 通常不依地區或業務分組篩選，Region / Entity / Sector 大多填 <code>ALL</code>；需要指定的是 Prod_Group（SBU 層級，PG / MD / PD 皆可填）。</div>
+          <div class="note"><b>空白未顯示 = ALL</b>SalesByRegion 和 MySalesForce 報表上方的 Filter 若某欄位空白未顯示，代表不限制（等同 ALL），填 <code>ALL</code> 即可。</div>
+        </div>
+      </div>
+
+      <div class="qa-card" id="qa-rs-validation">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">上傳 RS 時常見什麼驗證錯誤？如何修正？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>Preview 時系統進行兩層驗證，不合法的儲存格會以<strong>紅底</strong>標記：</p>
+
+          <p style="margin:10px 0 4px;font-weight:600;">第一層：Enum 驗證（固定值）</p>
+          <table>
+            <tr><th>Excel 欄位</th><th>合法值</th><th>常見錯誤</th></tr>
+            <tr>
+              <td><code>Report</code></td>
+              <td><code>SalesByRegion</code> / <code>SalesByProduct</code> / <code>MySalesForce</code><br><small style="color:#666;">（及別名，不分大小寫）</small></td>
+              <td>拼錯、填入其他報表名稱</td>
+            </tr>
+            <tr>
+              <td><code>FOB_Local</code></td>
+              <td><code>Local</code> / <code>FOB</code><br><small style="color:#666;">（不分大小寫）</small></td>
+              <td>填了空白或其他值</td>
+            </tr>
+          </table>
+
+          <p style="margin:14px 0 4px;font-weight:600;">第二層：DB 維度驗證（值須存在於資料庫）</p>
+          <table>
+            <tr><th>Excel 欄位</th><th>適用 Report</th><th>對應 DB 欄位</th><th>常見錯誤</th></tr>
+            <tr>
+              <td><code>Region</code></td>
+              <td>全部三種</td>
+              <td>Sales_Sector / SALES_PRODUCT / SALES_FORCE<br>的 <code>region_id</code></td>
+              <td>填了不存在的區域代碼</td>
+            </tr>
+            <tr>
+              <td><code>Entity</code></td>
+              <td>全部三種</td>
+              <td>Sales_Sector / SALES_PRODUCT / SALES_FORCE<br>的 <code>entity_id</code></td>
+              <td>填了不存在的 entity 代碼</td>
+            </tr>
+            <tr>
+              <td><code>Sector</code></td>
+              <td>SalesByRegion / SalesByProduct</td>
+              <td>Sales_Sector / SALES_PRODUCT 的 <code>sector</code></td>
+              <td>填了不存在的 sector 代碼</td>
+            </tr>
+            <tr>
+              <td><code>Sector</code><br><small style="color:#888;">（MySalesForce）</small></td>
+              <td>MySalesForce</td>
+              <td>SALES_FORCE 的 <code>Sales_Group</code><br><small style="color:#888;">（欄名不同，需填入 Sales_Group 代碼）</small></td>
+              <td>誤填了 sector 代碼，應填 Sales_Group 代碼</td>
+            </tr>
+            <tr>
+              <td><code>Prod_Group</code></td>
+              <td>全部三種</td>
+              <td>對應表的 <code>prod_group</code><br><small style="color:#888;">（SalesByProduct 另加比對 <code>prod_divi</code>）</small></td>
+              <td>填了不存在的產品群組代碼</td>
+            </tr>
+          </table>
+
+          <div class="note"><b>修正方式</b>在 Preview 畫面點擊 Edit 修改，或修改 Excel 後重新上傳。RS Sheet 的維度欄位在 Edit 模式下提供下拉選單，選項來自 DB 清單，方便確認合法值。</div>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">一位 RS 業務員需要對應多種報表條件，要怎麼設定？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>每種條件組合填一行，Email 與 Group Name 相同時會合併計算。</p>
+          <table>
+            <tr><th>Email</th><th>Report</th><th>Region</th><th>Sector</th><th>Jan~Dec</th></tr>
+            <tr><td>john@co.com</td><td>SalesByRegion</td><td>TW01</td><td>ALL</td><td>全填 1</td></tr>
+            <tr><td>john@co.com</td><td>SalesByRegion</td><td>JP01</td><td>ALL</td><td>全填 1</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">RS 的 Jan~Dec 和 Sales ID Config 的 Jan~Dec 有什麼不同？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <ul class="steps">
+            <li><strong>Sales ID Config 的 Jan~Dec</strong>：控制該 Sales ID 在哪些月份的業績納入計算。</li>
+            <li><strong>RS 的 Jan~Dec</strong>：控制這組 RS 篩選條件在哪些月份有效（isActive）。</li>
+          </ul>
+          <p>兩者都是 isActive 旗標，概念相同，但作用對象不同。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Section 5: Group Name ════ -->
+    <div class="section" id="s-groupname">
+      <div class="section-title">5. Group Name（多重計算方式）</div>
+
+      <div class="qa-card open">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">Group Name 是什麼？一定要填嗎？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>Group Name 是用來支援<strong>同一位業務員有多種獎金計算方式</strong>的關聯鍵。</p>
+          <ul class="steps">
+            <li>只有一種計算方式 → <strong>留空即可</strong></li>
+            <li>有兩種以上計算方式 → 填入自訂名稱區分（例如 <code>CR9</code>、<code>CR4</code>）</li>
+          </ul>
+          <div class="note"><b>關聯方式</b>Commission Rate、Sales ID Config、RS 三張 Sheet 透過 <code>Email + Group Name</code> 做對應，Group Name 相同的資料視為同一組計算邏輯。</div>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">業務員負責 5 個 Sales ID，其中 2 個 CR% 9%，另外 3 個 CR% 4%，要怎麼設定？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p><strong>Commission Rate sheet（填兩行）：</strong></p>
+          <table>
+            <tr><th>Email</th><th>Group Name</th><th>Type</th><th>Threshold</th><th>Std CR%</th></tr>
+            <tr><td>john@co.com</td><td>CR9</td><td>LEADER</td><td>0.8</td><td>0.09</td></tr>
+            <tr><td>john@co.com</td><td>CR4</td><td>LEADER</td><td>0.6</td><td>0.04</td></tr>
+          </table>
+          <p style="margin-top:12px;"><strong>Sales ID Config sheet（依 Group Name 分配）：</strong></p>
+          <table>
+            <tr><th>Email</th><th>Group Name</th><th>Sales ID</th><th>Jan~Dec</th></tr>
+            <tr><td>john@co.com</td><td>CR9</td><td>S001</td><td>全填 1</td></tr>
+            <tr><td>john@co.com</td><td>CR9</td><td>S002</td><td>全填 1</td></tr>
+            <tr><td>john@co.com</td><td>CR4</td><td>S003</td><td>全填 1</td></tr>
+            <tr><td>john@co.com</td><td>CR4</td><td>S004</td><td>全填 1</td></tr>
+            <tr><td>john@co.com</td><td>CR4</td><td>S005</td><td>全填 1</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">Group Name 命名格式有限制嗎？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <p>文字欄位，長度上限 50 字元，可自由命名。建議使用簡短易辨識的英文：</p>
+          <ul class="steps">
+            <li>依費率：<code>CR9</code>、<code>CR4</code></li>
+            <li>依區域：<code>TW</code>、<code>JP</code></li>
+            <li>依產品線：<code>ProductA</code>、<code>ProductB</code></li>
+          </ul>
+          <div class="warn"><b>注意</b>Commission Rate、Sales ID Config、RS 三張 Sheet 中填入的 Group Name 必須<strong>完全一致</strong>（區分大小寫），否則系統無法正確對應。</div>
+        </div>
+      </div>
+
+      <div class="qa-card">
+        <div class="qa-q"><span class="q-badge">Q</span><span class="q-text">原本只有一種計算方式，現在要拆成兩種，需要怎麼調整？</span><span class="q-arrow">▼</span></div>
+        <div class="qa-a">
+          <ol class="steps">
+            <li>在 Commission Rate Sheet 新增第二行，填入新的 Group Name 和費率。</li>
+            <li>在 Sales ID Config 中，將原本空白 Group Name 的行改為指定 Group Name，並新增第二組 Sales ID 行。</li>
+            <li>若有 RS 設定，同樣依 Group Name 拆分兩組。</li>
+            <li>重新上傳，系統以 <code>Email + Group Name</code> 為 Key 更新資料。</li>
+          </ol>
+          <div class="warn"><b>注意</b>若原本 Group Name 為空白，上傳新資料時，空白 Group Name 的舊資料不會自動刪除。若要完整切換，請至 <strong>Data View</strong> 手動刪除舊設定，或洽系統管理員。</div>
+        </div>
+      </div>
+
+    </div><!-- /section 5 -->
+
+    <div class="page-footer">
+      TCP 業務員設定 Q&amp;A &nbsp;|&nbsp; 更新日期：2026-05-26
+    </div>
+
+  </div><!-- /container -->
+</div><!-- /main-wrapper -->
+
+<script>
+(function () {
+  var body = document.body;
+  var toggle = document.getElementById('sidebar-toggle');
+  var KEY = 'tcp-qa-sidebar';
+  if (localStorage.getItem(KEY) === '1') { body.classList.add('sidebar-collapsed'); toggle.innerHTML = '&#9776;'; }
+  else { toggle.innerHTML = '&#10005;'; }
+  toggle.addEventListener('click', function () {
+    var c = body.classList.toggle('sidebar-collapsed');
+    toggle.innerHTML = c ? '&#9776;' : '&#10005;';
+    localStorage.setItem(KEY, c ? '1' : '0');
+  });
+
+  // QA accordion
+  document.querySelectorAll('.qa-q').forEach(function (qEl) {
+    qEl.addEventListener('click', function () {
+      this.closest('.qa-card').classList.toggle('open');
+    });
+  });
+
+  // Scroll spy
+  var links = document.querySelectorAll('#sidebar .sidebar-nav a[href^="#"]');
+  var sections = [];
+  links.forEach(function (a) {
+    var id = a.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if (el) sections.push({ el: el, a: a });
+  });
+  function onScroll() {
+    var y = window.scrollY + 80;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) { if (sections[i].el.offsetTop <= y) cur = sections[i]; }
+    links.forEach(function (a) { a.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>

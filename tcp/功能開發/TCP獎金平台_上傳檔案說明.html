@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>TCP 獎金平台 — XLS 上傳檔案說明</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", Arial, sans-serif;
+      font-size: 11pt;
+      color: #1a1a1a;
+      margin: 50px auto;
+      max-width: 980px;
+      line-height: 1.8;
+    }
+    h1 { font-size: 20pt; color: #1a3c6e; border-bottom: 3px solid #1a3c6e; padding-bottom: 8px; }
+    h2 { font-size: 14pt; color: #1a3c6e; border-left: 5px solid #1a3c6e; padding-left: 10px; margin-top: 36px; }
+    h3 { font-size: 11.5pt; color: #2c5f9e; margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 10pt; }
+    th { background: #1a3c6e; color: #fff; padding: 7px 10px; text-align: left; }
+    td { border: 1px solid #ccc; padding: 6px 10px; vertical-align: top; }
+    tr:nth-child(even) td { background: #f7f9fc; }
+    .note { background: #fffbea; border-left: 4px solid #f5c518; padding: 10px 14px; margin: 10px 0; font-size: 10pt; }
+    .warn { background: #fde8e8; border-left: 4px solid #c0392b; padding: 10px 14px; margin: 10px 0; font-size: 10pt; }
+    .tip  { background: #e8f5e9; border-left: 4px solid #27ae60; padding: 10px 14px; margin: 10px 0; font-size: 10pt; }
+    .tag  { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 9pt; font-weight: bold; }
+    .req  { background: #d4edda; color: #155724; }
+    .opt  { background: #fff3cd; color: #856404; }
+    .special { background: #cce5ff; color: #004085; }
+    .meta { background: #f0f4fb; border: 1px solid #c5d3e8; border-radius: 6px; padding: 12px 18px; margin: 16px 0; font-size: 10pt; }
+    .meta td { border: none; padding: 3px 10px 3px 0; }
+    .meta td:first-child { font-weight: bold; color: #555; width: 90px; }
+    code { background: #eef; padding: 1px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 10pt; }
+    ol li, ul li { margin-bottom: 4px; }
+    .sheet-block { background: #f4f7fc; border: 1px solid #d0daea; border-radius: 4px; padding: 12px 16px; margin: 12px 0; }
+    .file-list td:first-child { font-weight: bold; color: #1a3c6e; white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<h1>TCP 獎金平台 — XLS 上傳檔案說明（簡化版）</h1>
+
+<div class="meta">
+  <table>
+    <tr><td>文件版本</td><td>v1.0</td></tr>
+    <tr><td>最後更新</td><td>2026-05-13</td></tr>
+    <tr><td>適用對象</td><td>各地區 TC 設定人員、總部設定管理員</td></tr>
+    <tr><td>檔案格式</td><td>.xls（Excel 97-2003，含多個工作表）</td></tr>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<h2>一、上傳流程概覽</h2>
+
+<ol>
+  <li>各地區負責人準備 <strong>XLS 設定檔</strong>（依下方格式填寫各 Sheet）</li>
+  <li>登入 TCP 平台 → 進入「設定上傳」頁面</li>
+  <li>選擇地區 / 上傳類型，選取對應 .xls 檔案</li>
+  <li>系統驗證格式，顯示預覽後確認匯入</li>
+  <li>匯入完成後，至「設定查詢」確認資料正確</li>
+</ol>
+
+<div class="note">
+  每年年初需上傳一次完整設定；中途費率調整使用 <strong>Sales_TCR_Change</strong> Sheet 記錄，無需重新上傳整份檔案。
+</div>
+
+<!-- ============================================================ -->
+<h2>二、上傳檔案清單</h2>
+
+<table class="file-list">
+  <tr>
+    <th>檔案名稱（範例）</th>
+    <th>適用地區 / 類型</th>
+    <th>主要特殊 Sheet</th>
+  </tr>
+  <tr>
+    <td>TCP2026_Taiwan.xls</td>
+    <td>台灣 (ATW)</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td>TCP2026_AAU.xls</td>
+    <td>澳紐 (AAU/NZ)</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td>TCP2026_India.xls</td>
+    <td>印度</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td>TCP2026_Europe.xls</td>
+    <td>歐洲 (AEU)</td>
+    <td>Target（分級獎金上下限）</td>
+  </tr>
+  <tr>
+    <td>TCP2026_AIntercon.xls</td>
+    <td>AIntercon 本部</td>
+    <td>NOA list、TWD_Change</td>
+  </tr>
+  <tr>
+    <td>TCP2026_AIntercon_EIoT.xls</td>
+    <td>AIntercon EIoT</td>
+    <td>TWD_Change</td>
+  </tr>
+  <tr>
+    <td>TCP2026_AIntercon_oversease.xls</td>
+    <td>AIntercon 海外</td>
+    <td>TWD_Change</td>
+  </tr>
+  <tr>
+    <td>TCP2026_ATR_EIoT.xls</td>
+    <td>ATR EIoT</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td>TCP2026_ATR_iA.xls</td>
+    <td>ATR iA</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td>TCP2026_All_SIoT_AIntercon.xls</td>
+    <td>SIoT / AIntercon 合併</td>
+    <td>NOA list</td>
+  </tr>
+  <tr>
+    <td>TCP2026_InterCon_AIL_ESIoT.xls</td>
+    <td>InterCon / AIL / ESIoT</td>
+    <td>NoAcct</td>
+  </tr>
+  <tr>
+    <td>TCP2026_Barry.xls</td>
+    <td>Barry 負責區域</td>
+    <td>User_Update（手動調整）</td>
+  </tr>
+  <tr>
+    <td>ATW Service Bonus.xls</td>
+    <td>ATW 服務獎金（獨立）</td>
+    <td>Service Incentive Item No、Service Incentive</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>三、通用核心 Sheet 說明</h2>
+
+<p>以下五個 Sheet 幾乎出現在所有地區的 XLS 檔中，為<strong>必填核心資料</strong>。</p>
+
+<!-- ---- Sheet 1 ---- -->
+<h3>1. Sales_TCR_Rate　<span class="tag req">必填</span>　佣金費率設定</h3>
+<p>每位業務員的佣金費率，一人一列。</p>
+<div class="sheet-block">
+<table>
+  <tr><th>欄位</th><th>說明</th><th>範例</th></tr>
+  <tr><td><code>Region_Id</code></td><td>地區代碼</td><td>AAU/NZ、TW/N 等</td></tr>
+  <tr><td><code>Sales_eMail</code></td><td>業務員 Email（唯一識別）</td><td>john.doe@advantech.com</td></tr>
+  <tr><td><code>Sales_Type</code></td><td>角色類型：<strong>IND</strong>（個人業務）、<strong>Leader</strong>（主管）、<strong>RS</strong>（區域銷售/PSM）</td><td>IND</td></tr>
+  <tr><td><code>X_Rate</code></td><td>全年標準費率（若各月相同，填此欄即可）</td><td>0.056307</td></tr>
+  <tr><td><code>X_Rate_FOB</code></td><td>FOB 報價適用費率（無則留空）</td><td>0.03</td></tr>
+  <tr><td><code>Y_Rate</code></td><td>超標後費率（無超標機制則留空）</td><td></td></tr>
+  <tr><td><code>Y_Rate_FOB</code></td><td>FOB 超標費率</td><td></td></tr>
+  <tr><td><code>X_Rate_Jan ~ X_Rate_Dec</code></td><td>各月份個別費率（若全年相同，可只填 X_Rate，此欄留空）</td><td>0.056307</td></tr>
+  <tr><td><code>X_Rate_FOB_Jan ~ X_Rate_FOB_Dec</code></td><td>各月份 FOB 費率</td><td></td></tr>
+  <tr><td><code>ThresHold</code></td><td>超標門檻金額（部分地區適用）</td><td></td></tr>
+  <tr><td><code>GP</code></td><td>毛利基礎計算旗標（部分地區適用）</td><td></td></tr>
+  <tr><td><code>Site</code></td><td>適用站台／事業部（部分地區適用）</td><td></td></tr>
+</table>
+</div>
+<div class="tip">若費率全年固定，只需填 <code>X_Rate</code>，系統會自動帶入各月欄位。若有月別差異，則需逐月填寫 <code>X_Rate_Jan ~ X_Rate_Dec</code>。</div>
+
+<!-- ---- Sheet 2 ---- -->
+<h3>2. Sales_TCR_eManager　<span class="tag req">必填</span>　業務員 ID 對應</h3>
+<p>每位業務員的 eManager 系統 Sales ID，用於與銷售資料對接。</p>
+<div class="sheet-block">
+<table>
+  <tr><th>欄位</th><th>說明</th><th>範例</th></tr>
+  <tr><td><code>Manager_eMail</code></td><td>業務員 Email（對應 Sales_TCR_Rate）</td><td>john.doe@advantech.com</td></tr>
+  <tr><td><code>Sales_Id</code></td><td>eManager 系統中的業務員數字 ID</td><td>53000102</td></tr>
+  <tr><td><code>Sales_Id_01 ~ Sales_Id_12</code></td><td>各月份啟用旗標，<strong>填 1 表示該月有效，留空表示無效</strong></td><td>1</td></tr>
+</table>
+</div>
+<div class="note">
+  Sales_Id 需從 eManager 系統確認，不可自行填寫。若業務員中途離職，將對應月份的 Sales_Id_MM 清空即可。
+</div>
+
+<!-- ---- Sheet 3 ---- -->
+<h3>3. Sales_TCR_Mapping　<span class="tag req">必填</span>　上下屬關係</h3>
+<p>定義業務員的彙報層級（誰管誰），用於主管獎金計算。</p>
+<div class="sheet-block">
+<table>
+  <tr><th>欄位</th><th>說明</th><th>範例</th></tr>
+  <tr><td><code>eMail_parent</code></td><td>直屬主管 Email</td><td>manager@advantech.com</td></tr>
+  <tr><td><code>eMail</code></td><td>部屬 Email</td><td>john.doe@advantech.com</td></tr>
+</table>
+</div>
+<div class="tip">
+  若業務員本身是最高層（無上級），則 <code>eMail_parent</code> 與 <code>eMail</code> 填<strong>相同的 Email</strong>（自己管自己）。
+</div>
+
+<!-- ---- Sheet 4 ---- -->
+<h3>4. Sales_TCR_Change　<span class="tag opt">視需要填寫</span>　費率異動記錄</h3>
+<p>記錄年中費率有調整的業務員，只記錄<strong>有變動的月份</strong>即可。</p>
+<div class="sheet-block">
+<table>
+  <tr><th>欄位</th><th>說明</th><th>範例</th></tr>
+  <tr><td><code>Region_Id</code></td><td>地區代碼</td><td>AAU/NZ</td></tr>
+  <tr><td><code>email</code></td><td>業務員 Email</td><td>john.doe@advantech.com</td></tr>
+  <tr><td><code>Sales_Id</code></td><td>業務員 ID</td><td>53000102</td></tr>
+  <tr><td><code>year_id</code></td><td>年份</td><td>2026</td></tr>
+  <tr><td><code>Jan ~ Dec</code></td><td>各月份的<strong>新費率</strong>（未異動月份留空）</td><td>0.06（代表 1 月改為此費率）</td></tr>
+</table>
+</div>
+
+<!-- ---- Sheet 5 ---- -->
+<h3>5. RS　<span class="tag req">必填（RS/PSM 適用）</span>　區域銷售目標配額</h3>
+<p>設定 RS（Region Sales）或 PSM 的銷售目標，用於判斷是否觸發 RS 獎金。</p>
+<div class="sheet-block">
+<table>
+  <tr><th>欄位</th><th>說明</th><th>範例</th></tr>
+  <tr><td><code>Report</code></td><td>彙報維度：<strong>Region</strong>（地區）或 <strong>Entity</strong>（事業體）</td><td>Region</td></tr>
+  <tr><td><code>Sales_eMail</code></td><td>RS/PSM 的 Email</td><td>allen.tsai@advantech.com</td></tr>
+  <tr><td><code>FOB_Local</code></td><td>計算基礎：<strong>Local</strong>（本幣）或 <strong>FOB</strong></td><td>Local</td></tr>
+  <tr><td><code>Region_Id</code></td><td>適用地區</td><td>AAU/NZ</td></tr>
+  <tr><td><code>Entity_Id</code></td><td>適用事業體（ALL 表示全部）</td><td>ALL</td></tr>
+  <tr><td><code>Sector</code></td><td>適用部門 / 事業群（ALL 表示全部）</td><td>IoT Automation</td></tr>
+  <tr><td><code>Prod_Group</code></td><td>適用產品群（ALL 表示全部）</td><td>ALL</td></tr>
+  <tr><td><code>Site</code></td><td>適用站台（部分地區有此欄）</td><td></td></tr>
+  <tr><td><code>Jan ~ Dec</code></td><td>各月份目標配額（填 1 表示啟用，或填具體目標金額）</td><td>1</td></tr>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<h2>四、特殊 Sheet 說明</h2>
+
+<p>以下 Sheet 僅出現在部分地區的 XLS 中。</p>
+
+<!-- ---- NOA list ---- -->
+<h3>NOA list / NoAcct　<span class="tag special">AIntercon / InterCon 系列</span></h3>
+<p>記錄無帳戶（No Account）業務員的目標金額，這些業務員在 eManager 無對應銷售資料，需手動設定每月目標。</p>
+<div class="sheet-block">
+<table>
+  <tr><th>欄位</th><th>說明</th></tr>
+  <tr><td><code>Sales_Id</code></td><td>業務員 ID</td></tr>
+  <tr><td><code>Data_type</code></td><td>資料類型標記</td></tr>
+  <tr><td><code>Sales_email</code></td><td>業務員 Email</td></tr>
+  <tr><td><code>Region_Id</code></td><td>地區代碼</td></tr>
+  <tr><td><code>M01 ~ M12</code></td><td>各月份手動目標金額</td></tr>
+</table>
+</div>
+
+<!-- ---- TWD_Change ---- -->
+<h3>TWD_Change　<span class="tag special">AIntercon 系列</span></h3>
+<p>設定特定業務員的報告幣別 / 計算幣別對應關係。</p>
+<div class="sheet-block">
+<table>
+  <tr><th>欄位</th><th>說明</th></tr>
+  <tr><td><code>AutoNum</code></td><td>流水號（系統自動產生，新增時留空）</td></tr>
+  <tr><td><code>SalesEmail</code></td><td>業務員 Email</td></tr>
+  <tr><td><code>ReportCurrency</code></td><td>原始報告幣別（如 USD）</td></tr>
+  <tr><td><code>ResultCurrency</code></td><td>目標計算幣別（如 TWD）</td></tr>
+  <tr><td><code>CreatedDate</code></td><td>建立日期</td></tr>
+</table>
+</div>
+
+<!-- ---- Target ---- -->
+<h3>Target　<span class="tag special">Europe</span></h3>
+<p>歐洲地區特有，設定分級獎金的金額門檻區間。</p>
+<div class="sheet-block">
+<table>
+  <tr><th>欄位</th><th>說明</th></tr>
+  <tr><td><code>Sales_eMail</code></td><td>業務員 Email</td></tr>
+  <tr><td><code>Rang1</code></td><td>第一級門檻金額</td></tr>
+  <tr><td><code>Rang2</code></td><td>第二級門檻金額</td></tr>
+  <tr><td><code>Bonus_Rang</code></td><td>獎金計算區間</td></tr>
+  <tr><td><code>Currency</code></td><td>幣別</td></tr>
+</table>
+</div>
+
+<!-- ---- User_Update ---- -->
+<h3>User_Update　<span class="tag special">Barry</span></h3>
+<p>手動調整特定業務員的銷售資料，覆蓋系統自動抓取的數值。</p>
+<div class="sheet-block">
+<table>
+  <tr><th>欄位</th><th>說明</th></tr>
+  <tr><td><code>Currency</code></td><td>幣別</td></tr>
+  <tr><td><code>tran_type</code></td><td>交易類型</td></tr>
+  <tr><td><code>Data_type</code></td><td>資料類型</td></tr>
+  <tr><td><code>Region_ID</code></td><td>地區代碼</td></tr>
+  <tr><td><code>Sales_eMail</code></td><td>業務員 Email</td></tr>
+  <tr><td><code>Sales_ID</code></td><td>業務員 ID</td></tr>
+  <tr><td><code>Sales_Name</code></td><td>業務員姓名</td></tr>
+  <tr><td><code>Year_ID</code></td><td>年份</td></tr>
+  <tr><td><code>Jan ~ Dec</code></td><td>各月份手動調整金額</td></tr>
+</table>
+</div>
+
+<!-- ---- ATW Service Bonus ---- -->
+<h3>ATW Service Bonus.xls　<span class="tag special">獨立服務獎金</span></h3>
+<p>與一般 TCP 獎金分開，專門處理 ATW Service 部門的服務項目獎金。</p>
+<div class="sheet-block">
+<table>
+  <tr><th>Sheet</th><th>欄位</th><th>說明</th></tr>
+  <tr>
+    <td><strong>Service Incentive Item No</strong></td>
+    <td><code>Item_No</code>、<code>Rate</code></td>
+    <td>服務項目代號與對應獎金費率（例如 AGS-EW-12 → 2%）</td>
+  </tr>
+  <tr>
+    <td><strong>Service Incentive</strong></td>
+    <td><code>Sales_Id</code>、<code>Jan ~ Dec</code></td>
+    <td>各業務員各月份獲得的服務項目獎金計點或金額</td>
+  </tr>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<h2>五、常見錯誤與注意事項</h2>
+
+<div class="warn">
+  <strong>Email 格式一致性：</strong>整份 XLS 中，同一業務員的 Email 需完全一致（大小寫、底線、網域名稱）。Sales_TCR_Rate、Sales_TCR_eManager、RS 三個 Sheet 的 Email 若不一致，會造成資料對接失敗。
+</div>
+
+<div class="warn">
+  <strong>Europe 特殊欄名：</strong>Europe 檔案部分 Sheet 名稱與標準不同（<code>Sales_TCR_rate</code>、<code>Sales_TCR_Manager</code>、<code>AEU_RS</code>、<code>Mapping</code>、<code>Change</code>），系統已針對 Europe 檔案進行識別，請勿自行改名。
+</div>
+
+<div class="note">
+  <strong>X_Rate 與月別費率：</strong>若 <code>X_Rate</code> 填了數值，且 <code>X_Rate_Jan ~ X_Rate_Dec</code> 也填了數值，系統以<strong>月別費率優先</strong>。若月別欄位留空，則使用 <code>X_Rate</code>。
+</div>
+
+<div class="note">
+  <strong>Sales_TCR_eManager 的 Sales_Id_01~12：</strong>這些欄位是「旗標」，填 <code>1</code> 代表該月份此業務員有效（納入計算），留空或填 <code>0</code> 表示該月不計算。多數情況全年填 <code>1</code> 即可。
+</div>
+
+<div class="tip">
+  <strong>Sheet_Explaination Sheet：</strong>部分 XLS 包含此 Sheet，說明哪些 Sheet 需要填寫，請在填寫前先閱讀此說明頁。
+</div>
+
+<!-- ============================================================ -->
+<h2>六、各地區 Sheet 填寫對照表</h2>
+
+<table>
+  <tr>
+    <th>地區</th>
+    <th>Sales_TCR_Rate</th>
+    <th>Sales_TCR_eManager</th>
+    <th>Sales_TCR_Mapping</th>
+    <th>Sales_TCR_Change</th>
+    <th>RS</th>
+    <th>特殊 Sheet</th>
+  </tr>
+  <tr>
+    <td>Taiwan / AAU / India / ATR</td>
+    <td>✅ 必填</td>
+    <td>✅ 必填</td>
+    <td>✅ 必填</td>
+    <td>需要時填</td>
+    <td>✅ RS 角色填</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td>Europe</td>
+    <td>✅ 必填</td>
+    <td>✅ 必填</td>
+    <td>✅ 必填（Mapping）</td>
+    <td>需要時填（Change）</td>
+    <td>✅ RS 角色填（AEU_RS）</td>
+    <td>Target</td>
+  </tr>
+  <tr>
+    <td>AIntercon 系列</td>
+    <td>✅ 必填</td>
+    <td>✅ 必填</td>
+    <td>✅ 必填</td>
+    <td>需要時填</td>
+    <td>✅ RS 角色填</td>
+    <td>NOA list、TWD_Change</td>
+  </tr>
+  <tr>
+    <td>InterCon / AIL / ESIoT</td>
+    <td>✅ 必填</td>
+    <td>✅ 必填</td>
+    <td>✅ 必填（Mapping）</td>
+    <td>需要時填</td>
+    <td>✅ RS 角色填</td>
+    <td>NoAcct</td>
+  </tr>
+  <tr>
+    <td>Barry</td>
+    <td>✅ 必填</td>
+    <td>✅ 必填</td>
+    <td>✅ 必填</td>
+    <td>需要時填</td>
+    <td>✅ RS 角色填</td>
+    <td>User_Update、TWD_Change</td>
+  </tr>
+  <tr>
+    <td>ATW Service Bonus</td>
+    <td colspan="5" style="text-align:center; color:#555;">（獨立檔案，格式完全不同）</td>
+    <td>Service Incentive Item No<br>Service Incentive</td>
+  </tr>
+</table>
+
+</body>
+</html>

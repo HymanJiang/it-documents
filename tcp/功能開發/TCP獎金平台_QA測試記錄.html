@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>TCP 業務員獎金平台 — QA 測試記錄</title>
+  <style>
+    :root {
+      --blue: #1a3c6e; --blue2: #2c5f9e; --blue-light: #eff6ff;
+      --pass: #16a34a; --pass-bg: #dcfce7;
+      --fail: #dc2626; --fail-bg: #fee2e2;
+      --block: #d97706; --block-bg: #fef3c7;
+      --skip: #6b7280; --skip-bg: #f3f4f6;
+      --pending: #9ca3af; --pending-bg: #f9fafb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Microsoft JhengHei", Arial, sans-serif;
+      font-size: 11pt; color: #1a1a1a;
+      margin: 0; padding: 32px 48px 60px;
+      background: #f5f7fa;
+    }
+    h1 { font-size: 20pt; color: var(--blue); border-bottom: 3px solid var(--blue); padding-bottom: 10px; margin-bottom: 6px; }
+    h2 { font-size: 13pt; color: var(--blue); border-left: 5px solid var(--blue); padding-left: 12px; margin: 36px 0 12px; }
+
+    .meta { background: #f0f4fb; border: 1px solid #c5d3e8; border-radius: 6px; padding: 12px 18px; margin: 16px 0 24px; font-size: 10pt; display: flex; flex-wrap: wrap; gap: 24px; }
+    .meta-item span:first-child { font-weight: 600; color: #555; margin-right: 6px; }
+
+    /* Summary bar */
+    .summary-bar { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+    .sum-card { flex: 1; min-width: 110px; border-radius: 8px; padding: 14px 18px; text-align: center; border: 1px solid transparent; }
+    .sum-card .num { font-size: 26pt; font-weight: 700; line-height: 1.1; }
+    .sum-card .lbl { font-size: 9pt; margin-top: 4px; font-weight: 500; }
+    .sum-total  { background: #f0f4fb; border-color: #c5d3e8; color: var(--blue); }
+    .sum-pass   { background: var(--pass-bg); border-color: #86efac; color: var(--pass); }
+    .sum-fail   { background: var(--fail-bg); border-color: #fca5a5; color: var(--fail); }
+    .sum-block  { background: var(--block-bg); border-color: #fcd34d; color: var(--block); }
+    .sum-pending{ background: var(--pending-bg); border-color: #e5e7eb; color: #6b7280; }
+    .sum-skip   { background: var(--skip-bg); border-color: #d1d5db; color: var(--skip); }
+
+    /* Filter */
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 18px; align-items: center; flex-wrap: wrap; }
+    .filter-bar select, .filter-bar input {
+      padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+      font-size: 10.5pt; font-family: inherit; background: #fff; color: #374151;
+    }
+    .filter-bar label { font-size: 10pt; color: #6b7280; }
+
+    /* Table */
+    .tc-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); font-size: 10pt; }
+    .tc-table thead tr { background: var(--blue); color: #fff; }
+    .tc-table thead th { padding: 10px 12px; text-align: left; font-weight: 600; font-size: 9.5pt; white-space: nowrap; }
+    .tc-table tbody tr { border-bottom: 1px solid #f3f4f6; }
+    .tc-table tbody tr:hover td { background: #fafbff; }
+    .tc-table tbody td { padding: 9px 12px; vertical-align: top; }
+
+    /* Group header row */
+    .tc-table tr.group-row td {
+      background: #e8eef6; color: var(--blue); font-weight: 700;
+      font-size: 10pt; padding: 8px 14px;
+      border-left: 4px solid var(--blue);
+    }
+
+    /* TC ID */
+    .tc-id { font-family: Consolas, monospace; font-size: 9.5pt; color: #374151; white-space: nowrap; }
+
+    /* Status badge */
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 9pt; font-weight: 600; white-space: nowrap; }
+    .b-pass    { background: var(--pass-bg);   color: var(--pass); }
+    .b-fail    { background: var(--fail-bg);   color: var(--fail); }
+    .b-block   { background: var(--block-bg);  color: var(--block); }
+    .b-skip    { background: var(--skip-bg);   color: var(--skip); }
+    .b-pending { background: var(--pending-bg);color: var(--pending); }
+
+    /* Priority */
+    .pri { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+    .pri-H { background: #ef4444; }
+    .pri-M { background: #f59e0b; }
+    .pri-L { background: #6b7280; }
+
+    /* Editable cells */
+    .editable { min-width: 80px; min-height: 28px; }
+
+    /* Print */
+    @media print {
+      body { padding: 12px 20px; background: #fff; }
+      .filter-bar, .no-print { display: none; }
+      .tc-table { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>TCP 業務員獎金平台<br><span style="font-size: 13pt; color: #555;">QA 測試記錄</span></h1>
+
+<div class="meta">
+  <div class="meta-item"><span>文件版本</span>v1.0</div>
+  <div class="meta-item"><span>測試對象</span>TCP 獎金平台（對應設計文件 v1.2）</div>
+  <div class="meta-item"><span>建立日期</span>2026-05-07</div>
+  <div class="meta-item"><span>優先度說明</span>
+    <span class="pri pri-H"></span>高（核心計算）
+    <span class="pri pri-M"></span>中（業務流程）
+    <span class="pri pri-L"></span>低（輔助功能）
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="summary-bar">
+  <div class="sum-card sum-total"><div class="num" id="cnt-total">—</div><div class="lbl">測試案例總數</div></div>
+  <div class="sum-card sum-pass"><div class="num" id="cnt-pass">—</div><div class="lbl">✅ Pass</div></div>
+  <div class="sum-card sum-fail"><div class="num" id="cnt-fail">—</div><div class="lbl">❌ Fail</div></div>
+  <div class="sum-card sum-block"><div class="num" id="cnt-block">—</div><div class="lbl">🚫 Blocked</div></div>
+  <div class="sum-card sum-skip"><div class="num" id="cnt-skip">—</div><div class="lbl">⏭ Skip</div></div>
+  <div class="sum-card sum-pending"><div class="num" id="cnt-pending">—</div><div class="lbl">⏳ 未測試</div></div>
+</div>
+
+<!-- Filter -->
+<div class="filter-bar no-print">
+  <label>篩選分類</label>
+  <select id="filter-group" onchange="applyFilter()">
+    <option value="">全部</option>
+    <option value="P">人員設定</option>
+    <option value="C">Commission Plan</option>
+    <option value="S">Sales ID</option>
+    <option value="R">CR 上傳</option>
+    <option value="NI">Normal Incentive 計算</option>
+    <option value="D">扣款機制</option>
+    <option value="E">排除清單</option>
+    <option value="M">模組開關</option>
+    <option value="A">獎金異常通知</option>
+    <option value="SP">特殊獎勵</option>
+    <option value="T">暫代設定</option>
+    <option value="Y">年度結算</option>
+    <option value="AU">稽核記錄</option>
+  </select>
+  <label>篩選結果</label>
+  <select id="filter-status" onchange="applyFilter()">
+    <option value="">全部</option>
+    <option value="pending">未測試</option>
+    <option value="pass">Pass</option>
+    <option value="fail">Fail</option>
+    <option value="block">Blocked</option>
+    <option value="skip">Skip</option>
+  </select>
+  <label>搜尋</label>
+  <input type="text" id="filter-search" placeholder="關鍵字…" oninput="applyFilter()" style="width:200px;">
+  <button onclick="resetFilter()" style="padding:6px 14px; border:1px solid #d1d5db; border-radius:6px; background:#fff; cursor:pointer; font-size:10pt;">重設</button>
+  <button onclick="window.print()" style="padding:6px 14px; border:1px solid #1a3c6e; border-radius:6px; background:#1a3c6e; color:#fff; cursor:pointer; font-size:10pt;">列印</button>
+</div>
+
+<table class="tc-table" id="tc-table">
+  <thead>
+    <tr>
+      <th style="width:90px;">TC ID</th>
+      <th style="width:36px;" title="優先度">Pri</th>
+      <th>測試情境</th>
+      <th style="width:220px;">步驟摘要</th>
+      <th style="width:200px;">預期結果</th>
+      <th style="width:100px;">結果狀態</th>
+      <th style="width:180px;">實際結果 / 備註</th>
+      <th style="width:80px;">測試人員</th>
+      <th style="width:80px;">測試日期</th>
+    </tr>
+  </thead>
+  <tbody id="tc-body"></tbody>
+</table>
+
+<script>
+const GROUPS = {
+  P:  "人員設定",
+  C:  "Commission Plan 設定",
+  S:  "Sales ID 設定",
+  R:  "每月 CR 上傳",
+  NI: "Normal Incentive 計算",
+  D:  "扣款機制",
+  E:  "排除清單",
+  M:  "模組開關",
+  A:  "獎金異常通知",
+  SP: "特殊獎勵",
+  T:  "暫代設定",
+  Y:  "年度結算",
+  AU: "稽核記錄"
+};
+
+// TC data: [id, priority(H/M/L), scenario, steps, expected]
+const TCS = [
+  // ── 人員設定 ──
+  ["P-001","H","新增業務員（基本欄位完整）","填入 AD 帳號、顯示名稱、Site（ATW）、Role（Sales）、BonusCurrency（TWD）、DefaultDisplayCurrency（TWD），儲存","業務員建立成功，IsActive = true；系統日誌記錄 Create 事件"],
+  ["P-002","M","新增業務員（重複 AD 帳號）","輸入已存在的 AD 帳號，嘗試儲存","系統顯示錯誤提示，不允許重複建立"],
+  ["P-003","M","角色設定 — Sales / Leader / BO 三種","分別建立三種角色業務員，查看角色欄位","角色正確寫入；Leader 與 BO 全年上限顯示 TCP × 3，Sales 顯示 TCP × 5"],
+  ["P-004","M","BonusCurrency 與 DefaultDisplayCurrency 設定不同","BonusCurrency = TWD，DefaultDisplayCurrency = USD，儲存後進入業務員報表","報表預設以 USD 顯示；實際計算幣別維持 TWD，不影響計算結果"],
+  ["P-005","H","業務員離職 — 同步 Job 自動停用","模擬同步 Job 偵測到業務員在內部系統停用","TCP_Salesperson.IsActive 更新為 false；DeactivatedAt 填入執行時間；DeactivatedReason 填入 Resigned"],
+  ["P-006","H","業務員離職 — Plan 自動標記 NeedsAttention","同步 Job 執行後，查看該業務員的所有 Active Plan","PlanStatus 全部更新為 NeedsAttention；StatusRemark 填入說明文字"],
+  ["P-007","H","業務員離職 — 自動建立 PendingAction 通知","同步 Job 執行後，查看 TCP_PendingAction","建立 SalesIdReassign 與 PlanReview 兩筆通知；Status = Pending；AssignedTo 正確"],
+  ["P-008","M","AssignmentType = Administrative — 不帶入 Plan","建立業務員後，將某 Sales ID 設為 Administrative，執行同步 Job","該 Sales ID 不出現在 IND / NOACC Plan 的 TCP_PlanSalesId 中"],
+
+  // ── Commission Plan ──
+  ["C-001","H","新增 IND Plan（Quota 制）","選擇業務員，Plan Type = IND，System = Quota，填入 AnnualQuota、AnnualVariablePay，儲存","Plan 建立成功；PlanStatus = Active；FXCurrency / FXRate 為 null"],
+  ["C-002","H","新增 IND Plan（Fixed 制）","Plan Type = IND，System = Fixed，不填 AnnualQuota，儲存","Plan 建立成功；OverQuotaIncentive 模組對此 Plan 不啟用"],
+  ["C-003","H","新增 IND Plan（QuotaFX 制）","Plan Type = IND，System = QuotaFX，填入 FXCurrency = USD，FXRate = 32.0000，AnnualQuota 以 USD 填寫","Plan 建立成功；FXCurrency = USD；FXRate = 32.0000"],
+  ["C-004","H","新增 LEADER Plan","Plan Type = LEADER，System = Quota，儲存","Plan 建立成功；Sales ID 頁籤顯示「完全人工維護」提示，無自動同步記錄"],
+  ["C-005","H","新增 RS Plan","Plan Type = RS，選擇報表來源（SalesByRegion + SalesByProduct），儲存","Plan 建立成功；TCP_PlanRSSource 建立 2 筆記錄；Sales ID 頁籤不顯示"],
+  ["C-006","H","新增 NOACC Plan","Plan Type = NOACC，System = Fixed，儲存","Plan 建立成功；CR 設定頁籤顯示三段（Existing / New_Y1 / New_Y2）輸入欄"],
+  ["C-007","H","一人多 Plan — 同一業務員建立 IND + LEADER Plan","同一業務員依序建立 IND 和 LEADER 兩個 Plan，查看清單","清單依業務員分組顯示，該業務員下出現兩筆 Plan；各自獨立計算"],
+  ["C-008","H","QuotaFX — FXCurrency / FXRate 必填驗證","System = QuotaFX，不填 FXCurrency 或 FXRate，嘗試儲存","系統顯示必填提示，不允許儲存"],
+  ["C-009","L","Remark 選填 — 空白可儲存","不填 Remark，其他必填欄位完整，儲存","Plan 建立成功；Remark 欄位為 null，不影響功能"],
+  ["C-010","M","QuotaFX — AnnualQuota 以外幣填寫","System = QuotaFX，FXCurrency = USD，AnnualQuota = 1000000，查看達成率計算","YTM 達成率 = YTM 出貨（USD）/ 1,000,000，以外幣計算，不乘匯率"],
+
+  // ── Sales ID ──
+  ["S-001","H","IND Plan — 同步 Job 自動帶入 Sales ID","建立 IND Plan，執行每日同步 Job，查看 Sales ID 設定頁","TCP_PlanSalesId 建立記錄；DataSource = Auto；ValidToYear / ValidToMonth = null"],
+  ["S-002","H","IND Plan — 移除 Auto Sales ID（保留顯示）","在 Sales ID 頁面點擊移除一筆 Auto 記錄","ValidToYear / ValidToMonth 填入當月；資料保留，UI 以灰底「已失效」顯示"],
+  ["S-003","H","LEADER Plan — 手動新增 Sales ID","在 LEADER Plan 的 Sales ID 頁新增，填入 SalesID、ValidFromYear=2026、ValidFromMonth=4","記錄建立；DataSource = Manual；ValidTo = null"],
+  ["S-004","H","LEADER Plan — 手動移除 Sales ID（Hard Delete）","移除一筆 DataSource = Manual 的記錄","資料從資料庫刪除；UI 不再顯示該筆記錄"],
+  ["S-005","H","Sales ID 有效期間 — 計算引擎篩選正確月份","設定 ValidFromMonth=4、ValidToMonth=9，觸發 3 月與 5 月的計算","3 月計算不使用該 Sales ID；5 月計算使用該 Sales ID；10 月不使用"],
+  ["S-006","H","年中換人 — 同 Sales ID 跨 Plan 月份分段","Sales ID X 在 Plan A 設 ValidTo=3月，在 Plan B 設 ValidFrom=4月，計算 3 月與 4 月","3 月業績歸 Plan A；4 月業績歸 Plan B；無重複計算"],
+  ["S-007","M","RS Plan — 多選報表來源","勾選 SalesByRegion + MySalesForce，儲存，查看 TCP_PlanRSSource","建立 2 筆記錄，SourceType 分別為 SalesByRegion 和 MySalesForce"],
+  ["S-008","M","AssignmentType = Administrative — 確認不進入任何 Plan","設定一個 ID 為 Administrative，執行同步 Job 後查詢所有 Plan 的 TCP_PlanSalesId","該 Sales ID 不存在於任何 Plan 的有效 Sales ID 清單中"],
+
+  // ── CR 上傳 ──
+  ["R-001","H","上傳 Excel CR — 一般 Plan 全年 12 個月","使用範本填入 1-12 月 CR%（例如全年 0.0100），上傳後確認","12 筆 TCP_MonthlyRate 記錄正確寫入；CommissionRate = 0.0100"],
+  ["R-002","H","上傳 Excel CR — NOACC Plan 三段費率","每月填入 Existing / New_Y1 / New_Y2 三欄 CR%，上傳","每月建立 3 筆記錄，CustomerType 分別對應三種類型"],
+  ["R-003","H","修改某月 CR — 向後覆蓋驗證","修改 6 月 CR% 為 0.0120，查看 7-12 月","6-12 月全部更新為 0.0120；1-5 月維持原值不變"],
+  ["R-004","H","QuotaFX Plan 上傳 CR% — 不含匯率","System = QuotaFX，上傳 CR% = 0.0100，查看計算結果","TCP_MonthlyRate.CommissionRate = 0.0100；計算引擎自動乘上 FXRate（0.0100 × 32 = 0.32）"],
+  ["R-005","M","MinAchievementRate 修改向後覆蓋","修改 4 月 MinAchievementRate 為 0.60","4-12 月門檻更新為 0.60；1-3 月維持原值"],
+  ["R-006","M","CR 值格式驗證 — 超出範圍","輸入 Fixed 制 Existing 客戶 CR% = 0.0200（超過 1% 上限）","系統顯示警告提示（超過規範上限），可強制確認但需記錄"],
+
+  // ── Normal Incentive 計算 ──
+  ["NI-001","H","Quota 制 Normal Incentive 基本計算","Shipment = 1,000,000 TWD，CR% = 0.0100，YTM 達成率 = 85%（≥ 70%）","GrossIncentive = 10,000；HeldAmount = 0；NetIncentive = 10,000"],
+  ["NI-002","H","Fixed 制 Normal Incentive 計算","Shipment = 500,000 TWD，CR% = 0.0080","GrossIncentive = 4,000；不計算 Over Quota"],
+  ["NI-003","H","QuotaFX Normal Incentive 計算","Shipment = 30,000 USD，CR% = 0.0100，FXRate = 32.0000，YTM 達成 80%","GrossIncentive = 30,000 × 0.0100 × 32 = 9,600 TWD；YTM 達成率以 USD 計算"],
+  ["NI-004","H","NOACC Normal Incentive — 三段客戶類型","Existing 出貨 200,000 / CR 0.008；New_Y1 出貨 100,000 / CR 0.025；New_Y2 出貨 80,000 / CR 0.015","GrossIncentive = 200,000×0.008 + 100,000×0.025 + 80,000×0.015 = 1,600+2,500+1,200 = 5,300"],
+  ["NI-005","H","YTM 未達門檻（70%） — 獎金暫扣","1 月 YTM 達成率 = 50%（< 70%）","GrossIncentive 計算正確；HeldAmount = GrossIncentive；NetIncentive = 0；TCP_NormalIncentive 記錄 Status = Draft"],
+  ["NI-006","H","YTM 達標後 — 暫扣獎金釋放","累積到 5 月 YTM 達到 75%（≥ 70%），前 4 月共暫扣 8,000","5 月 ReleasedAmount = 8,000（前 4 月暫扣總和）；5 月 NetIncentive = 本月 GrossIncentive + 8,000"],
+  ["NI-007","H","一人多 Plan — 獎金合計至 BonusSummary","業務員有 IND Plan 獎金 5,000 + LEADER Plan 獎金 3,000","TCP_BonusSummary.NormalIncentive = 8,000（兩個 Plan 合計）"],
+
+  // ── 扣款機制 ──
+  ["D-001","H","Overdue AR > 30 天 — 保留 100% 獎金","客戶發票逾期 45 天，對應業績獎金 3,000","HeldMultiplier = 1.0；HeldIncentiveAmount = 3,000；BonusSummary.OverdueARDeduction = -3,000"],
+  ["D-002","H","Overdue AR > 90 天 — 累計保留 200%","同一發票逾期 100 天","HeldMultiplier 更新為 2.0；HeldIncentiveAmount = 6,000（原 3,000 × 2）"],
+  ["D-003","H","Overdue AR 付清 — 釋放保留獎金","將 Status 更新為 FullyPaid，ResolvedAt 填入付款日","下月 BonusSummary 中 OverdueARDeduction 歸零；原保留獎金釋放計入 NetIncentive"],
+  ["D-004","H","壞帳認定 — 從 Overdue AR 轉入","在逾期 AR 記錄點擊「認定壞帳」，選擇 BounceCheck","TCP_BadDebt 建立記錄；OverdueARId 關聯；DeductionMultiplier = 2.0"],
+  ["D-005","H","壞帳扣款 — 2 倍計算","OriginalAmount = 100,000 TWD，CR% = 0.0100","DeductionAmount = 100,000 × 0.0100 × 2 = 2,000；BonusSummary.BadDebtDeduction = -2,000"],
+  ["D-006","H","COGS 扣款 — 訂單取消次月扣除","PT 類訂單 OrderNo=A001，COGS = 50,000，業績 80,000，CR% = 0.0100，10 月取消","11 月扣款；DeductionAmount = (80,000-50,000) × 0.0100 = 300"],
+  ["D-007","H","COGS 扣款 — 預測訂單延遲超半年","PT 類訂單下單 1 月，預計 7 月到期仍未出貨","7 月觸發扣款；Reason = ForecastDelay"],
+  ["D-008","M","COGS Reversed — 訂單後來正常出貨","將 TCP_COGS_Deduction.Status 設為 Reversed","下次計算不再扣款；ReversedAt 填入時間"],
+  ["D-009","H","Low GP 10–15% — 50% 業績認列","訂單 E2EGPPercent = 12%，OriginalIncentive = 2,000","AdjustmentRate = 0.5；AdjustedIncentive = 1,000；BonusSummary.LowGPAdjustment = -1,000"],
+  ["D-010","H","Low GP ≤ 10% — 不計入獎金","訂單 E2EGPPercent = 8%，OriginalIncentive = 1,500","AdjustmentRate = 0.0；AdjustedIncentive = 0；全額扣除"],
+  ["D-011","H","業務借貸 — 90 天到期未歸還","借出日 1 月 1 日，DueDate 4 月 1 日，到期仍 Status = Active","DueDate 月份觸發扣款；Status 更新為 Overdue；DeductionApplied = true；BonusSummary.LoanDeduction = -TotalCost"],
+  ["D-012","M","業務借貸 — 展延申請（+30 天）","填入 ExtendedDueDate = DueDate+30，填入 ApprovalRef","系統以 ExtendedDueDate 為扣款基準，原 DueDate 不觸發扣款"],
+
+  // ── 排除清單 ──
+  ["E-001","H","Low GP 排除規則 — Order 維度","新增排除規則 ScopeType=Order，ScopeValue=A001，IsActive=true，再次執行計算","訂單 A001 的低毛利不產生 TCP_LowGP_Adjustment 記錄"],
+  ["E-002","H","Low GP 排除規則 — Customer 維度","ScopeType=Customer，ScopeValue=C100，計算含 C100 客戶訂單","C100 所有訂單的低毛利均略過，不產生扣款"],
+  ["E-003","H","壞帳排除規則 — Invoice 維度","ScopeType=Invoice，ScopeValue=INV-2026-001，IsActive=true","發票 INV-2026-001 不認定壞帳扣款"],
+  ["E-004","M","壞帳排除規則 — Customer 維度","ScopeType=Customer，ScopeValue=C200","C200 的所有發票均不觸發壞帳扣款"],
+  ["E-005","H","借貨排除規則 — Item 維度","ScopeType=Item，ScopeValue=ITEM-XYZ","料號 ITEM-XYZ 的借貨記錄不觸發扣款"],
+  ["E-006","M","排除規則 IsActive=false — 不影響計算","將一條 Low GP 排除規則設為 IsActive=false，執行計算","該規則失效；對應訂單重新觸發 Low GP 扣款；規則記錄保留供稽核"],
+  ["E-007","H","事後標記 IsExcluded — Low GP 明細","找到一筆已產生的 Low GP 記錄，填入 ExclusionReason，點擊標記排除","IsExcluded = true；ExcludedBy 與 ExcludedAt 填入；下次計算不計入此筆扣款"],
+  ["E-008","H","事後標記 IsExcluded — 壞帳明細","同上，對 TCP_BadDebt 記錄操作","IsExcluded = true；不再計入 BonusSummary.BadDebtDeduction"],
+  ["E-009","M","事後標記 IsExcluded — 借貨明細","同上，對 TCP_BusinessLoan 記錄操作","IsExcluded = true；不再計入 BonusSummary.LoanDeduction"],
+
+  // ── 模組開關 ──
+  ["M-001","M","系統預設模組 — 全域啟用確認","查看 TCP_ModuleDefault，確認預設啟用模組清單","NORMAL_INCENTIVE、OVERDUE_AR、BAD_DEBT、COGS、LOW_GP 預設啟用；SERVICE_INCENTIVE 等為選配"],
+  ["M-002","H","個人模組覆蓋 — 啟用 DESIGN_IN_WIN","在特定業務員啟用 DESIGN_IN_WIN 模組","TCP_SalespersonModule 建立記錄；IsEnabled=true；該業務員下次計算包含 Design-in Win 獎勵"],
+  ["M-003","H","個人模組覆蓋 — 停用 LOW_GP","在特定業務員停用 LOW_GP 模組","TCP_SalespersonModule.IsEnabled=false；計算引擎對該業務員跳過低毛利調整"],
+  ["M-004","H","Fixed 制 — OVER_QUOTA 不適用","建立 Fixed 制 Plan，觸發年度計算","不產生 TCP_OverQuotaIncentive 記錄；BonusSummary.OverQuotaIncentive = 0"],
+  ["M-005","M","SERVICE_INCENTIVE — HQDC / BO 業務員不適用","HQDC 業務員的模組設定中嘗試啟用 SERVICE_INCENTIVE","系統顯示「不適用此 Site」提示，不允許啟用"],
+
+  // ── 獎金異常通知 ──
+  ["A-001","H","設定 ATW 獎金異常門檻與通知人員","AlertThreshold = 200,000 TWD，NotifiedTo = 兩個 AD 帳號，IsEnabled = true，儲存","TCP_BonusAlertConfig 更新成功；Currency 固定為 TWD 不可修改"],
+  ["A-002","H","獎金超過門檻 — 自動發信並建立記錄","計算引擎產生某月 GrossIncentive = 250,000 TWD（> 200,000）","TCP_BonusAlert 建立記錄；IsEmailSent = true；EmailSentAt 填入；GrossIncentive / ThresholdApplied / NotifiedTo 為觸發當下快照"],
+  ["A-003","H","通知記錄快照不受後續設定修改影響","建立通知記錄後，修改 AlertThreshold 為 300,000","原記錄的 ThresholdApplied 仍為 200,000，不隨設定變更"],
+  ["A-004","M","審閱標記功能","在通知記錄點擊「標記已審閱」，填入備註","IsReviewed = true；ReviewedBy / ReviewedAt 填入；Note 儲存備註內容"],
+
+  // ── 特殊獎勵 ──
+  ["SP-001","H","Design-in Win SampleWin — 建立與審核","新增記錄 Phase=SampleWin，BonusAmount=3000，主管點擊審核","IsApproved=true；3,000 計入當月 BonusSummary.DesignInWin"],
+  ["SP-002","M","Design-in Win AnnualShipmentMet — 3 年上限","MaxYears = 3，第 4 年嘗試再次申請","系統不允許建立第 4 年記錄，或自動標記超過年限"],
+  ["SP-003","H","ATW Service VAS3 — 5% 獎勵計算","ServiceType = VAS3，ShipmentAmount = 100,000，BonusRate = 0.05","BonusAmount = 5,000；RequiresReview = false；直接計入 BonusSummary"],
+  ["SP-004","H","ATW Service VAS4 — 需審核才發放","ServiceType = VAS4，ShipmentAmount = 50,000，尚未審核","IsApproved = false；不計入 BonusSummary；等待主管審核"],
+  ["SP-005","H","政府補助款 — GovtPayment Profit ≥ 20% 才發","SubsidyType = GovtPayment，ProfitRate = 0.18（< 20%）","IsBonusEligible = false；BonusAmount = 0；不計入獎金"],
+  ["SP-006","H","政府補助款 — GovtPayment Profit ≥ 20%","ProfitRate = 0.25（≥ 20%），Amount = 100,000","IsBonusEligible = true；BonusAmount 計算並計入 BonusSummary.GovernmentSubsidy"],
+
+  // ── 暫代設定 ──
+  ["T-001","H","新增暫代 — CR 乘以 50%","設定 TempCoverage：CoveringPlanId、SalesID、StartDate、TempQuota","CommissionRateMultiplier = 0.5；計算引擎套用 CR × 50%；IsOverQuotaEligible = false"],
+  ["T-002","M","暫代 EndDate 留空 — 不影響計算","EndDate = null，執行月度計算","系統將暫代視為持續有效；計算包含暫代業績（CR × 50%）"],
+  ["T-003","H","暫代期間 Over Quota — 不加發","暫代 Sales ID 當年達到 120% Quota，執行年度結算","TCP_OverQuotaIncentive 不含此暫代 Sales ID 的超額計算；IsOverQuotaEligible = false 生效"],
+
+  // ── 年度結算 ──
+  ["Y-001","H","Over Quota 100–120% — Sales 角色 +1%","Sales 角色，年度達成 110%，超出 100% 部分業績 = 500,000 TWD","Incentive_100to120 = 500,000 × 0.01 = 5,000"],
+  ["Y-002","H","Over Quota > 120% — Sales 角色 +0.5%","Sales 角色，超出 120% 部分業績 = 200,000 TWD","Incentive_Over120 = 200,000 × 0.005 = 1,000"],
+  ["Y-003","H","Over Quota — Leader 角色不同比率","Leader 角色，100-120% 超出 500,000，>120% 超出 200,000","Incentive_100to120 = 2,500（×0.005）；Incentive_Over120 = 600（×0.003）"],
+  ["Y-004","H","全年所得上限 TCP × 5 — Sales 角色","Sales 角色，AnnualVariablePay = 200,000，全年各項獎金合計 = 1,200,000","AnnualEarningCap = 200,000 × 5 = 1,000,000；CappedIncentive = 1,000,000（上限截斷）"],
+  ["Y-005","H","全年所得上限 TCP × 3 — Leader 角色","Leader 角色，AnnualVariablePay = 300,000，全年各項獎金合計 = 800,000","AnnualEarningCap = 300,000 × 3 = 900,000；CappedIncentive = 800,000（未超上限，全額）"],
+  ["Y-006","H","退貨追回 — 次年第一季內","Over Quota 獎金已發放，次年 2 月客戶取消退貨","系統在退貨確認月份從後續獎金追回相應金額；BonusSummary 記錄追回項目"],
+
+  // ── 稽核記錄 ──
+  ["AU-001","H","修改 Plan 設定 — AuditLog 建立","修改 TCP_CommissionPlan 的 AnnualQuota，儲存","TCP_AuditLog 建立一筆記錄；EntityType = TCP_CommissionPlan；Action = Update；OldValue / NewValue 含異動前後值（JSON）"],
+  ["AU-002","H","修改 CR% — AuditLog 含前後值","將某月 CommissionRate 從 0.0100 改為 0.0120","AuditLog.OldValue = {CommissionRate: 0.0100}；NewValue = {CommissionRate: 0.0120}；ChangedBy 填入操作者"],
+  ["AU-003","H","BonusSummary 退回草稿 — 記錄異動","Approved 狀態的 BonusSummary 退回為 Draft","AuditLog.Action = Override 或 Update；記錄退回操作者與時間"],
+  ["AU-004","M","Sales ID 移除 — AuditLog 記錄","移除一筆 Auto Sales ID（填入 ValidTo）","AuditLog 記錄此操作；可由 EntityType = TCP_PlanSalesId 查到變更記錄"],
+  ["AU-005","M","稽核紀錄查詢 — 依條件篩選","依 EntityType = TCP_CommissionPlan 篩選、指定日期範圍","篩選結果僅顯示符合條件的記錄；OldValue / NewValue 可展開查看 JSON 內容"]
+];
+
+function statusBadge(s) {
+  const map = {
+    pass:    ['Pass',    'b-pass'],
+    fail:    ['Fail',    'b-fail'],
+    block:   ['Blocked', 'b-block'],
+    skip:    ['Skip',    'b-skip'],
+    pending: ['未測試',  'b-pending'],
+  };
+  const [label, cls] = map[s] || ['未測試', 'b-pending'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function priDot(p) {
+  const c = { H: 'pri-H', M: 'pri-M', L: 'pri-L' }[p] || 'pri-L';
+  const t = { H: '高', M: '中', L: '低' }[p] || '';
+  return `<span class="pri ${c}" title="優先度：${t}"></span>${t}`;
+}
+
+// State: map TC ID → { status, actual, tester, date }
+const state = JSON.parse(localStorage.getItem('tcp-qa-state') || '{}');
+
+function saveState(id, field, value) {
+  if (!state[id]) state[id] = {};
+  state[id][field] = value;
+  localStorage.setItem('tcp-qa-state', JSON.stringify(state));
+  updateCounts();
+}
+
+function getState(id, field, def) {
+  return (state[id] && state[id][field] !== undefined) ? state[id][field] : def;
+}
+
+function renderTable(filter) {
+  const tbody = document.getElementById('tc-body');
+  tbody.innerHTML = '';
+  let currentGroup = null;
+
+  TCS.forEach(tc => {
+    const [id, pri, scenario, steps, expected] = tc;
+    const group = id.split('-')[0];
+
+    if (filter) {
+      const gMatch = !filter.group || group === filter.group;
+      const sMatch = !filter.status || getState(id, 'status', 'pending') === filter.status;
+      const kMatch = !filter.kw || (id+scenario+steps+expected).toLowerCase().includes(filter.kw);
+      if (!gMatch || !sMatch || !kMatch) return;
+    }
+
+    if (group !== currentGroup) {
+      currentGroup = group;
+      const gRow = document.createElement('tr');
+      gRow.className = 'group-row';
+      gRow.dataset.group = group;
+      gRow.innerHTML = `<td colspan="9">▸ ${GROUPS[group] || group}</td>`;
+      tbody.appendChild(gRow);
+    }
+
+    const status = getState(id, 'status', 'pending');
+    const actual = getState(id, 'actual', '');
+    const tester = getState(id, 'tester', '');
+    const date   = getState(id, 'date', '');
+
+    const tr = document.createElement('tr');
+    tr.dataset.group = group;
+    tr.dataset.id = id;
+    tr.innerHTML = `
+      <td class="tc-id">${id}</td>
+      <td>${priDot(pri)}</td>
+      <td>${scenario}</td>
+      <td style="font-size:9.5pt; color:#555;">${steps}</td>
+      <td style="font-size:9.5pt; color:#374151;">${expected}</td>
+      <td>
+        <select onchange="saveState('${id}','status',this.value); this.closest('td').querySelector('.badge-wrap').innerHTML=statusBadge(this.value);"
+          style="font-size:9pt; padding:3px 6px; border:1px solid #d1d5db; border-radius:4px; margin-bottom:4px;">
+          <option value="pending" ${status==='pending'?'selected':''}>未測試</option>
+          <option value="pass"    ${status==='pass'?'selected':''}>Pass</option>
+          <option value="fail"    ${status==='fail'?'selected':''}>Fail</option>
+          <option value="block"   ${status==='block'?'selected':''}>Blocked</option>
+          <option value="skip"    ${status==='skip'?'selected':''}>Skip</option>
+        </select>
+        <div class="badge-wrap">${statusBadge(status)}</div>
+      </td>
+      <td><textarea rows="2" style="width:100%;font-size:9pt;padding:4px;border:1px solid #e5e7eb;border-radius:4px;resize:vertical;"
+          onchange="saveState('${id}','actual',this.value)">${actual}</textarea></td>
+      <td><input type="text" value="${tester}" placeholder="人員" style="width:100%;font-size:9pt;padding:4px;border:1px solid #e5e7eb;border-radius:4px;"
+          onchange="saveState('${id}','tester',this.value)"></td>
+      <td><input type="date" value="${date}" style="width:100%;font-size:9pt;padding:4px;border:1px solid #e5e7eb;border-radius:4px;"
+          onchange="saveState('${id}','date',this.value)"></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  updateCounts();
+}
+
+function updateCounts() {
+  const counts = { pass:0, fail:0, block:0, skip:0, pending:0 };
+  TCS.forEach(([id]) => {
+    const s = getState(id, 'status', 'pending');
+    counts[s] = (counts[s]||0)+1;
+  });
+  document.getElementById('cnt-total').textContent = TCS.length;
+  document.getElementById('cnt-pass').textContent  = counts.pass;
+  document.getElementById('cnt-fail').textContent  = counts.fail;
+  document.getElementById('cnt-block').textContent = counts.block;
+  document.getElementById('cnt-skip').textContent  = counts.skip;
+  document.getElementById('cnt-pending').textContent = counts.pending;
+}
+
+function applyFilter() {
+  const group  = document.getElementById('filter-group').value;
+  const status = document.getElementById('filter-status').value;
+  const kw     = document.getElementById('filter-search').value.trim().toLowerCase();
+  renderTable({ group, status, kw });
+}
+
+function resetFilter() {
+  document.getElementById('filter-group').value = '';
+  document.getElementById('filter-status').value = '';
+  document.getElementById('filter-search').value = '';
+  renderTable();
+}
+
+renderTable();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>TCP 業務員獎金平台 — 系統設計文件</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+      font-size: 11pt;
+      color: #1a1a1a;
+      margin: 60px auto;
+      max-width: 960px;
+      line-height: 1.8;
+    }
+    h1 {
+      font-size: 22pt;
+      color: #1a3c6e;
+      border-bottom: 3px solid #1a3c6e;
+      padding-bottom: 10px;
+      margin-top: 40px;
+    }
+    h2 {
+      font-size: 15pt;
+      color: #1a3c6e;
+      border-left: 5px solid #1a3c6e;
+      padding-left: 12px;
+      margin-top: 36px;
+    }
+    h3 {
+      font-size: 12pt;
+      color: #2c5f9e;
+      margin-top: 24px;
+    }
+    h4 {
+      font-size: 11pt;
+      color: #333;
+      margin-top: 18px;
+    }
+    .meta {
+      background: #f0f4fb;
+      border: 1px solid #c5d3e8;
+      border-radius: 6px;
+      padding: 14px 20px;
+      margin: 20px 0;
+      font-size: 10pt;
+    }
+    .meta table { width: 100%; border: none; }
+    .meta td { border: none; padding: 3px 12px 3px 0; vertical-align: top; }
+    .meta td:first-child { font-weight: bold; color: #555; width: 100px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 10pt;
+    }
+    th {
+      background: #1a3c6e;
+      color: #fff;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    td {
+      border: 1px solid #ccc;
+      padding: 7px 10px;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f7f9fc; }
+
+    .group-header {
+      background: #e8eef6;
+      font-weight: bold;
+      color: #1a3c6e;
+      padding: 8px 10px;
+      margin-top: 24px;
+      border-left: 4px solid #1a3c6e;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 9pt;
+      font-weight: bold;
+    }
+    .tag-all  { background: #d4edda; color: #155724; }
+    .tag-opt  { background: #fff3cd; color: #856404; }
+    .tag-atw  { background: #cce5ff; color: #004085; }
+    .tag-quota { background: #f8d7da; color: #721c24; }
+
+    .note {
+      background: #fffbea;
+      border-left: 4px solid #f5c518;
+      padding: 10px 14px;
+      margin: 12px 0;
+      font-size: 10pt;
+    }
+    .decision {
+      background: #f0f4fb;
+      border-left: 4px solid #2c5f9e;
+      padding: 10px 14px;
+      margin: 12px 0;
+      font-size: 10pt;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: Consolas, monospace;
+      font-size: 10pt;
+    }
+    .toc {
+      background: #f7f9fc;
+      border: 1px solid #dde4ef;
+      border-radius: 6px;
+      padding: 16px 24px;
+      margin: 24px 0;
+    }
+    .toc ul { margin: 6px 0; padding-left: 20px; }
+    .toc li { margin: 4px 0; }
+    .toc a { color: #1a3c6e; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    .page-break { page-break-after: always; }
+    ul { padding-left: 24px; }
+    li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+
+<h1>TCP 業務員獎金平台<br><span style="font-size:14pt; color:#555;">系統設計文件</span></h1>
+
+<div class="meta">
+  <table>
+    <tr><td>版本</td><td>v1.2（設計階段）</td></tr>
+    <tr><td>日期</td><td>2026-05-07</td></tr>
+    <tr><td>狀態</td><td>初稿 — Group 1 / Group 2 已確認；新增 QuotaFX 制度</td></tr>
+    <tr><td>技術棧</td><td>C# ASP.NET Core / SQL Server / TypeScript</td></tr>
+    <tr><td>適用範圍</td><td>研華台灣區 ATW Sales、Aintercon HQDC、BO Sales</td></tr>
+  </table>
+</div>
+
+<div class="toc">
+  <strong>目錄</strong>
+  <ul>
+    <li><a href="#s1">一、專案背景與目標</a></li>
+    <li><a href="#s2">二、獎金規範摘要</a></li>
+    <li><a href="#s3">三、系統設計決策</a></li>
+    <li><a href="#s4">四、資料庫設計</a></li>
+    <li><a href="#s5">五、模組開關清單</a></li>
+    <li><a href="#s6">六、下一步規劃</a></li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="s1">一、專案背景與目標</h2>
+
+<h3>1.1 背景</h3>
+<p>現有 TCP（Total Compensation Package）系統已無法滿足業務需求，主要問題如下：</p>
+<ul>
+  <li><strong>死碼糾纏</strong>：程式中存在大量已不使用的獎金計算邏輯，與現行邏輯相互影響，難以安全修改。</li>
+  <li><strong>資料不完整</strong>：資料表記錄欄位不足，無法支援完整的查詢與追溯。</li>
+  <li><strong>透明度不足</strong>：業務員無法自行查驗獎金計算明細，產生信任問題。</li>
+  <li><strong>設定過於複雜</strong>：舊有 <code>Sales_Type</code> 欄位混雜多種歷史邏輯，缺乏清晰規範。</li>
+</ul>
+
+<h3>1.2 目標</h3>
+<ul>
+  <li>以全新架構重建，完全取代現有系統。</li>
+  <li>每筆獎金都有完整計算明細，業務員可自行對帳（透明化優先）。</li>
+  <li>所有規則參數化，CR%、Quota、模組開關均存資料庫，不寫死在程式中。</li>
+  <li>資料完整性：每個影響獎金的事件均留有記錄。</li>
+  <li>獨立運作，未來直接替換舊系統。</li>
+</ul>
+
+<h3>1.3 適用人員</h3>
+<table>
+  <tr><th>群組</th><th>說明</th><th>文件依據</th></tr>
+  <tr><td>ATW Sales</td><td>台灣區業務與業務主管（含 KA、Aonline）</td><td>2025 ATW Sales 獎金辦法</td></tr>
+  <tr><td>Aintercon HQDC</td><td>台灣區 Aintercon HQDC 業務與主管</td><td>2025 HQDC &amp; BO Sales 獎金辦法</td></tr>
+  <tr><td>BO Sales</td><td>台灣區 BO 業務與主管</td><td>2025 HQDC &amp; BO Sales 獎金辦法</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2 id="s2">二、獎金規範摘要</h2>
+
+<h3>2.1 薪資結構</h3>
+<p>業務薪資採用 TCP（Total Compensation Package）制度：</p>
+<p style="text-align:center; font-size:13pt; color:#1a3c6e; font-weight:bold;">
+  TCP = 底薪（Base Salary）+ 業績獎金（Commission）
+</p>
+<p>底薪為保障所得，業績獎金依 Commission Rate（CR）制度計算。</p>
+
+<h3>2.2 Commission Rate 制度</h3>
+<div class="note">
+  <strong>CR 上傳說明：</strong>所有制度的 CR% 均由負責人在系統外依薪資規範手動計算後，以每月費率表方式上傳至系統（<code>TCP_MonthlyRate</code>）。底薪為個資，不進入本系統，故系統不自動推算 CR。
+</div>
+<table>
+  <tr><th>制度</th><th>CR 設定方式</th><th>限制／說明</th></tr>
+  <tr>
+    <td><strong>Quota 制</strong></td>
+    <td>負責人依「年度 Commission ÷ 年度 Quota」於系統外算好後手動上傳<br>Commission 占 TCP 比例由各 BU 訂定，一般以 30% 為主<br><br>獎金公式：<code>出貨（本地幣別）× CR%</code></td>
+    <td>年終獎金、績效獎金、團隊獎金以 TCP 計算<br>適用 Over 100% Quota 加發機制</td>
+  </tr>
+  <tr>
+    <td><strong>固定制</strong></td>
+    <td>主管依業務任務給予固定 CR%，手動上傳<br><br>獎金公式：<code>出貨（本地幣別）× CR%</code></td>
+    <td>既有客戶 CR ≤ 1%<br>新客戶第一年 CR ≤ 3%<br>新客戶第二年 CR ≤ 2%<br>年終獎金、績效以底薪計算<br>不適用 Over 100% Quota 加發機制</td>
+  </tr>
+  <tr>
+    <td><strong>Quota 固定匯率制</strong><br><span style="font-size:9pt; color:#888;">（QuotaFX）</span></td>
+    <td>CR% 同 Quota 制，由負責人手動上傳；<strong>另外在方案上額外填寫固定匯率</strong><br><br>獎金公式：<code>出貨（外幣）× CR% × 固定匯率 → 本地幣別</code><br><br>適用情境：業務員銷售對象以國外為主，業績資料以外幣計算，為避免浮動匯率侵蝕獎金，鎖定固定匯率保護業務員收益</td>
+    <td>年度 Quota 以外幣設定（供 YTM 達成率計算）<br>業績欄位在報表中顯示外幣，不換算為本地幣別<br>最終獎金發放為業務員本地幣別<br>適用 Over 100% Quota 加發機制（達成率以外幣計算）</td>
+  </tr>
+</table>
+
+<h3>2.3 獎金三大類</h3>
+
+<h4>① Normal Incentive（每月發放）</h4>
+<ul>
+  <li>計算公式：<code>Normal Incentive = Shipment × Commission Rate</code></li>
+  <li>發放門檻：YTM 業績達成率 ≥ 門檻值才發放，<strong>預設 70%，可依方案調整</strong></li>
+  <li>若 YTM 未達門檻，當月獎金保留至達標後釋放</li>
+  <li>業績達成率以淨銷售（扣除銷售折讓）為準</li>
+</ul>
+
+<h4>② Special Product Selling Incentive</h4>
+<table>
+  <tr><th>項目</th><th>條件</th><th>獎金</th></tr>
+  <tr>
+    <td>Design-in Win — 樣品階段</td>
+    <td>主管確認已 design-in win 且取得客戶樣品訂單</td>
+    <td>NT$3,000</td>
+  </tr>
+  <tr>
+    <td>Design-in Win — 出貨達標</td>
+    <td>年底符合出貨數量或金額</td>
+    <td>NT$10,000（最多領 3 年）</td>
+  </tr>
+  <tr>
+    <td>Design-in Win — 大案獎勵</td>
+    <td>NT$500 萬以上</td>
+    <td>1%，單案上限 NT$10,000</td>
+  </tr>
+</table>
+
+<h4>③ Over 100% Quota Incentive（僅 Quota 制，年結）</h4>
+<table>
+  <tr><th>角色</th><th>100%–120% 超出部分</th><th>&gt;120% 超出部分</th></tr>
+  <tr><td>Sales</td><td>+1%</td><td>+0.5%</td></tr>
+  <tr><td>Sales Manager / BO 通路主管</td><td>+0.5%</td><td>+0.3%</td></tr>
+</table>
+<ul>
+  <li>每年結算一次，發放時須在職</li>
+  <li>客戶若於次年第一季前取消訂單退貨，則追回獎金</li>
+  <li>業務需擔負全年度 Quota 才可適用</li>
+</ul>
+
+<h3>2.4 全年所得上限（Quota 制）</h3>
+<table>
+  <tr><th>角色</th><th>上限</th><th>計算基礎</th></tr>
+  <tr><td>Sales</td><td>TCP × 5 倍</td><td>（底薪 + Commission）× 12 月 × 5</td></tr>
+  <tr><td>Sales Manager</td><td>TCP × 3 倍</td><td>（底薪 + Commission）× 12 月 × 3</td></tr>
+</table>
+<p>全年所得包含：底薪、Normal Incentive、Special Product Selling Incentive、Over 100% Quota Incentive 及 KPI 獎金。</p>
+
+<h3>2.5 ATW Service 方案獎金</h3>
+<table>
+  <tr><th>產品方案</th><th>料號</th><th>業務激勵獎金</th></tr>
+  <tr><td>Lite</td><td>AGS-OS-LT-12</td><td>無</td></tr>
+  <tr><td>Standard</td><td>AGS-OS-12/24/36</td><td>無</td></tr>
+  <tr><td>2Y Onsite</td><td>AGS-OS-24</td><td>NT$100 / 台</td></tr>
+  <tr><td>綜和服務</td><td>AGS-OS-VAS3</td><td>5%</td></tr>
+  <tr><td>跨區 Onsite</td><td>AGS-OS-VAS4</td><td>審核後 8%</td></tr>
+  <tr><td>Service 良品銷售</td><td>AGS-OS-OA1</td><td>審核後 8%</td></tr>
+  <tr><td>延長保固</td><td>AGS-EW</td><td>2%</td></tr>
+  <tr><td>延長保固（延伸）</td><td>AGS-OEW</td><td>3%</td></tr>
+</table>
+
+<h3>2.6 主要扣款機制</h3>
+<table>
+  <tr><th>機制</th><th>條件</th><th>處理方式</th></tr>
+  <tr><td>Overdue AR（&gt;30 天）</td><td>應收帳款逾期超過 30 天</td><td>保留 100% 相關獎金至付款</td></tr>
+  <tr><td>Overdue AR（90–180 天）</td><td>逾期 90 天以上</td><td>額外保留 100%，共保留 200%</td></tr>
+  <tr><td>壞帳</td><td>支票跳票或確定收不回</td><td>扣除原銷售額 2 倍業績獎金</td></tr>
+  <tr><td>COGS 扣款（PT 類）</td><td>訂單取消：次月扣除<br>訂單延遲超過半年未出貨：到期月扣除</td><td>（業績 − 品項成本）× CR</td></tr>
+  <tr><td>低毛利（E2E GP 10–15%）</td><td>訂單毛利率 10%–15%</td><td>只認列 50% 業績獎金</td></tr>
+  <tr><td>低毛利（E2E GP ≤10%）</td><td>訂單毛利率 ≤ 10%</td><td>不計入獎金</td></tr>
+  <tr><td>業務借貸（ATW）</td><td>借貨超過 90 天未歸還或賣出</td><td>從業績獎金扣除成本 100%</td></tr>
+</table>
+
+<h3>2.7 政府專案補助款（ATW 專屬）</h3>
+<table>
+  <tr><th>交易類型</th><th>業績認列</th><th>獎金認列</th></tr>
+  <tr><td>研華實出硬體（invoice to SI）</td><td>認列</td><td>認列</td></tr>
+  <tr><td>SI 整合 PAPS、SW</td><td>不認列</td><td>不認列</td></tr>
+  <tr><td>專案產品報告交付政府</td><td>不認列</td><td>不認列</td></tr>
+  <tr><td>政府撥款（進度款）</td><td>不認列</td><td>認列</td></tr>
+  <tr><td>政府撥款（按完成項目付 SI）</td><td>不認列</td><td>Profit ≥ 20% 時認列</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2 id="s3">三、系統設計決策</h2>
+
+<h3>3.1 設計決策：CR 由外部手動上傳</h3>
+<div class="decision">
+  <strong>設計決策：CR% 不在系統內計算</strong><br>
+  底薪（Base Salary）屬於個人薪資資料，不存入本系統。由於 Quota 制的 CR 需依底薪推算，固定制的 CR 亦由主管依薪資任務設定，<strong>所有制度的 CR% 均由負責人在系統外算好，以每月費率表方式手動上傳</strong>至 <code>TCP_MonthlyRate</code>。<br>
+  <code>AnnualVariablePay</code> 欄位僅作為全年所得上限（TCP × 5 或 × 3）的參考依據，不用於推算 CR。
+</div>
+
+<h3>3.2 設計原則</h3>
+<ul>
+  <li><strong>透明化優先</strong>：每筆獎金必須有完整計算明細，業務員可自行對帳。</li>
+  <li><strong>規則參數化</strong>：CR%、Quota、門檻值、模組開關全存資料庫，不寫死於程式。</li>
+  <li><strong>資料完整性</strong>：每個影響獎金的事件均需留有記錄（含異動前後值）。</li>
+  <li><strong>模組化設計</strong>：每種獎懲機制獨立，可彈性啟用/停用。</li>
+</ul>
+
+<h3>3.3 核心概念：一人多 Plan</h3>
+<p>每位業務員（AD 帳號）可擁有多個獎金方案（Commission Plan），每個 Plan 是一條獨立的計算線：</p>
+<pre style="background:#f4f4f4; padding:16px; border-radius:4px; font-family:Consolas,monospace; font-size:10pt;">
+業務員（Salesperson）
+  └── Plan A：IND，Quota 制，Sector A
+  └── Plan B：NOACC，Fixed 制，新客戶開發
+  └── Plan C：LEADER，Quota 制，管轄下屬業績
+        ↓
+每個 Plan 各自擁有：
+  • 每月 CR 設定
+  • 年度 Quota / Variable Pay
+  • 適用的業績來源（Sales ID 清單 / 報表）
+</pre>
+
+<h3>3.4 Plan Type 定義</h3>
+<div class="decision">
+  <strong>設計決策：TCP_PlanSalesId 為所有 Plan 的統一 Sales ID 來源</strong><br>
+  IND / NOACC 由同步 Job 從 TCP_SalesId 自動帶入，並可人工調整；LEADER 完全人工維護。計算引擎一律從 TCP_PlanSalesId 讀取有效範圍內的 Sales ID，不直接讀取 TCP_SalesId。
+</div>
+<table>
+  <tr><th>Type</th><th>業績來源</th><th>特殊邏輯</th></tr>
+  <tr>
+    <td><strong>IND</strong></td>
+    <td>TCP_PlanSalesId（由同步 Job 從 TCP_SalesId 自動帶入，可人工調整）</td>
+    <td>同步時只帶入 <code>AssignmentType = Active</code> 的 Sales ID；人工可移除不應計入獎金的 ID</td>
+  </tr>
+  <tr>
+    <td><strong>LEADER</strong></td>
+    <td>TCP_PlanSalesId（完全人工維護）</td>
+    <td>設定者手動指定要納入計算的 Sales ID 清單與有效月份</td>
+  </tr>
+  <tr>
+    <td><strong>RS</strong></td>
+    <td>Sales by Region / Sales by Product / My Sales Force 報表（可任意組合）</td>
+    <td>同一 CR% 適用所有選用報表；不使用 TCP_PlanSalesId</td>
+  </tr>
+  <tr>
+    <td><strong>NOACC</strong></td>
+    <td>TCP_PlanSalesId（由同步 Job 從 TCP_SalesId 自動帶入，可人工調整）</td>
+    <td>Sales ID 來源邏輯同 IND；CR 計算依客戶新舊分三段：<br>既有客戶 ≤ 1%<br>新客戶第一年 ≤ 3%<br>新客戶第二年 ≤ 2%<br>（新舊判斷來自現有交易記錄）</td>
+  </tr>
+</table>
+
+<h3>3.5 業務員角色</h3>
+<div class="decision">
+  <strong>設計決策：正規化角色欄位</strong><br>
+  新系統將正式記錄業務員角色，預設為 Sales，其他角色須額外設定。角色影響 Over Quota 計算比率及全年所得上限。
+</div>
+<table>
+  <tr><th>Role</th><th>Over Quota 100–120%</th><th>Over Quota &gt;120%</th><th>全年上限</th></tr>
+  <tr><td>Sales（預設）</td><td>+1%</td><td>+0.5%</td><td>TCP × 5</td></tr>
+  <tr><td>Leader / Sales Manager</td><td>+0.5%</td><td>+0.3%</td><td>TCP × 3</td></tr>
+  <tr><td>BO</td><td>+0.5%</td><td>+0.3%</td><td>TCP × 3</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2 id="s4">四、資料庫設計</h2>
+
+<p>共分七個群組，以下列出每張表的欄位定義。</p>
+
+<!-- ─── Group 1 ─── -->
+<div class="group-header">Group 1 — 人員設定</div>
+
+<h3>TCP_Salesperson（業務員主表）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td>自動遞增主鍵</td></tr>
+  <tr><td>ADAccount</td><td>nvarchar(100)</td><td>AD 電子郵件，唯一值</td></tr>
+  <tr><td>DisplayName</td><td>nvarchar(100)</td><td>顯示名稱</td></tr>
+  <tr><td>EmployeeId</td><td>nvarchar(20)</td><td>員工編號（選填）</td></tr>
+  <tr><td>Role</td><td>nvarchar(20)</td><td>Sales（預設）/ Leader / BO</td></tr>
+  <tr><td>BonusCurrency</td><td>nvarchar(10)</td><td>獎金實際發放幣別：TWD / USD / EUR（影響財務計算）</td></tr>
+  <tr><td>DefaultDisplayCurrency</td><td>nvarchar(10)</td><td>進入該業務員報表時的預設顯示幣別（影響 UI，可與 BonusCurrency 不同）</td></tr>
+  <tr><td>Site</td><td>nvarchar(20)</td><td>管理歸屬區域，作為權限控制主要對象：ATW / HQDC / BO</td></tr>
+  <tr><td>IsActive</td><td>bit</td><td>是否啟用</td></tr>
+  <tr><td>DeactivatedAt</td><td>datetime</td><td>停用時間（離職/轉職時由每日同步 Job 自動填入）</td></tr>
+  <tr><td>DeactivatedReason</td><td>nvarchar(50)</td><td>停用原因：Resigned / Transferred / Other</td></tr>
+  <tr><td>CreatedAt</td><td>datetime</td><td>建立時間</td></tr>
+  <tr><td>UpdatedAt</td><td>datetime</td><td>最後更新時間</td></tr>
+</table>
+
+<h3>TCP_SalesId（業務員的 Sales ID 同步快取）</h3>
+<div class="note">
+  <strong>設計說明：</strong>此表的基本資料（SalesID、Year）由每日同步 Job 從公司內部系統自動寫入，作為同步來源快取。<br>
+  <strong>計算引擎不直接讀取此表</strong>，而是透過同步 Job 將資料帶入 TCP_PlanSalesId 後，由 TCP_PlanSalesId 作為實際計算依據。<br>
+  <strong>AssignmentType</strong>：控制同步 Job 是否將此 Sales ID 帶入 IND / NOACC Plan 的 TCP_PlanSalesId；只有 <code>Active</code> 的 ID 會被同步帶入。
+</div>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td>→ TCP_Salesperson</td></tr>
+  <tr><td>SalesID</td><td>nvarchar(50)</td><td>Sales ID 字串</td></tr>
+  <tr><td>Year</td><td>int</td><td>適用年份（ID 可能每年異動）</td></tr>
+  <tr><td>AssignmentType</td><td>nvarchar(20)</td><td><strong>Active</strong>（計入 IND 業績，預設）/ <strong>Administrative</strong>（僅行政歸屬，不計入任何獎金）</td></tr>
+  <tr><td>IsActive</td><td>bit</td><td></td></tr>
+  <tr><td>LastSyncedAt</td><td>datetime</td><td>最後一次從內部系統同步的時間</td></tr>
+  <tr><td>SyncSource</td><td>nvarchar(50)</td><td>資料來源識別（內部系統名稱）</td></tr>
+</table>
+
+<h3>TCP_PendingAction（待處理通知）</h3>
+<div class="note">當每日同步 Job 偵測到業務員停用時，自動建立此表的記錄，通知相關負責人處理 Sales ID 歸屬及 Plan 狀態。</div>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>ActionType</td><td>nvarchar(50)</td><td>SalesIdReassign / PlanReview / Other</td></tr>
+  <tr><td>RelatedSalespersonId</td><td>int FK</td><td>→ TCP_Salesperson（觸發通知的業務員，例如離職者）</td></tr>
+  <tr><td>AssignedTo</td><td>nvarchar(100)</td><td>通知對象（Gatekeeper 或主管 AD 帳號）</td></tr>
+  <tr><td>Status</td><td>nvarchar(20)</td><td>Pending / Resolved</td></tr>
+  <tr><td>CreatedAt</td><td>datetime</td><td></td></tr>
+  <tr><td>ResolvedAt</td><td>datetime</td><td>處理完成時間</td></tr>
+  <tr><td>Note</td><td>nvarchar(500)</td><td>通知說明（系統自動產生）</td></tr>
+</table>
+
+<!-- ─── Group 2 ─── -->
+<div class="group-header">Group 2 — 獎金方案設定</div>
+
+<h3>TCP_CommissionPlan（獎金方案，一人多筆）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td>→ TCP_Salesperson</td></tr>
+  <tr><td>Year</td><td>int</td><td>適用年份</td></tr>
+  <tr><td>Remark</td><td>nvarchar(200) NULL</td><td>備註（選填；方案識別以業務員 + PlanType + Year 為主）</td></tr>
+  <tr><td>PlanType</td><td>nvarchar(20)</td><td>IND / LEADER / RS / NOACC</td></tr>
+  <tr><td>CommissionSystemType</td><td>nvarchar(20)</td><td>Quota / Fixed / QuotaFX</td></tr>
+  <tr><td>AnnualQuota</td><td>decimal(18,2)</td><td>年度 Quota（Quota 制 / QuotaFX 適用）；QuotaFX 時以外幣填寫（對應 FXCurrency）</td></tr>
+  <tr><td>AnnualVariablePay</td><td>decimal(18,2)</td><td>年度 Variable Pay，由負責人填寫，預設值 1,000,000（TWD）；<strong>僅用於計算全年所得上限（TCP × 5 或 × 3），不用於推算 CR</strong></td></tr>
+  <tr><td>Currency</td><td>nvarchar(10)</td><td>計算幣別（QuotaFX 時為本地幣別，外幣另以 FXCurrency 指定）</td></tr>
+  <tr><td>FXCurrency</td><td>nvarchar(10)</td><td>【QuotaFX 專用】固定匯率的外幣幣別（USD / EUR 等），即業績計算使用的幣別；非 QuotaFX 時為 null</td></tr>
+  <tr><td>FXRate</td><td>decimal(10,4)</td><td>【QuotaFX 專用】固定匯率（1 FXCurrency = X 本地幣別，例：32.0000 表示 1 USD = 32 TWD）；非 QuotaFX 時為 null</td></tr>
+  <tr><td>SortOrder</td><td>int</td><td>顯示排序</td></tr>
+  <tr><td>PlanStatus</td><td>nvarchar(20)</td><td>Active / NeedsAttention（業務員離職時自動標記）/ Closed</td></tr>
+  <tr><td>StatusRemark</td><td>nvarchar(300)</td><td>狀態說明（例：業務員已離職，Sales ID 待重新指派）</td></tr>
+  <tr><td>IsActive</td><td>bit</td><td></td></tr>
+  <tr><td>CreatedBy</td><td>nvarchar(100)</td><td>建立者 AD 帳號</td></tr>
+  <tr><td>CreatedAt</td><td>datetime</td><td></td></tr>
+  <tr><td>UpdatedAt</td><td>datetime</td><td></td></tr>
+</table>
+
+<h3>TCP_PlanSalesId（Plan 綁定的 Sales ID，IND / NOACC / LEADER 用）</h3>
+<div class="note">
+  <strong>所有 Plan Type（RS 除外）的業績計算唯一依據。</strong>計算引擎依 ValidFromYear/Month 與 ValidToYear/Month 篩選當月有效的 Sales ID。<br>
+  <strong>IND / NOACC：</strong>由每日同步 Job 從 TCP_SalesId（AssignmentType = Active）自動帶入（DataSource = Auto），可人工移除不應計入的 ID（直接刪除該筆記錄）；同步 Job 偵測 Sales ID 消失時，將對應記錄標記 ValidToYear / ValidToMonth 並保留顯示。<br>
+  <strong>LEADER：</strong>完全人工維護（DataSource = Manual），設定者自行指定 Sales ID 與有效月份範圍。
+</div>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>PlanId</td><td>int FK</td><td>→ TCP_CommissionPlan</td></tr>
+  <tr><td>SalesID</td><td>nvarchar(50)</td><td>綁定的 Sales ID</td></tr>
+  <tr><td>ValidFromYear</td><td>int</td><td>生效起始年份</td></tr>
+  <tr><td>ValidFromMonth</td><td>int</td><td>生效起始月份（1–12）</td></tr>
+  <tr><td>ValidToYear</td><td>int</td><td>結束年份；null = 至今有效</td></tr>
+  <tr><td>ValidToMonth</td><td>int</td><td>結束月份（1–12）；null = 至今有效</td></tr>
+  <tr><td>DataSource</td><td>nvarchar(20)</td><td>Auto（同步 Job 帶入）/ Manual（人工維護）；同步 Job 只處理 Auto 記錄，不異動 Manual 記錄</td></tr>
+  <tr><td>Note</td><td>nvarchar(200)</td><td>備註（人工調整原因）</td></tr>
+  <tr><td>CreatedAt</td><td>datetime</td><td></td></tr>
+  <tr><td>CreatedBy</td><td>nvarchar(100)</td><td></td></tr>
+</table>
+
+<h3>TCP_PlanRSSource（RS Plan 的報表來源）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>PlanId</td><td>int FK</td><td>→ TCP_CommissionPlan（PlanType = RS）</td></tr>
+  <tr><td>SourceType</td><td>nvarchar(50)</td><td>SalesByRegion / SalesByProduct / MySalesForce</td></tr>
+</table>
+
+<h3>TCP_TempCoverage（暫代設定）</h3>
+<div class="note">用於同仁離職或轉職時，由現有業務暫時支援的期間設定。暫代與正式 Plan 分開計算，暫代期間達成 Over 100% 不另外加發 Over 100% 獎金。</div>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>CoveringPlanId</td><td>int FK</td><td>→ TCP_CommissionPlan（執行暫代的業務員 Plan）</td></tr>
+  <tr><td>SalesID</td><td>nvarchar(50)</td><td>被暫代的 Sales ID</td></tr>
+  <tr><td>StartDate</td><td>datetime</td><td>暫代開始日</td></tr>
+  <tr><td>EndDate</td><td>datetime</td><td>暫代結束日，由人工填寫。新人到職後有試用期，期間不一定計算獎金，故不自動推算，須由負責人確認新人正式開始領獎金後再填入</td></tr>
+  <tr><td>TempQuota</td><td>decimal(18,2)</td><td>暫代期間的 Quota 分配</td></tr>
+  <tr><td>CommissionRateMultiplier</td><td>decimal(4,2)</td><td>固定 0.5（依規範：原 CR × 50%）</td></tr>
+  <tr><td>IsOverQuotaEligible</td><td>bit</td><td>固定 false（暫代 Sales ID 達成 Over 100% 不加發）</td></tr>
+  <tr><td>CreatedBy</td><td>nvarchar(100)</td><td></td></tr>
+  <tr><td>Note</td><td>nvarchar(300)</td><td></td></tr>
+</table>
+
+<h3>TCP_MonthlyRate（每月 CR 設定）</h3>
+<div class="note">
+  <strong>NOACC：</strong>同一個月會有最多三筆記錄，分別對應 Existing、New_Y1、New_Y2 三種客戶類型。<br>
+  <strong>UI 操作行為：</strong>新建 Plan 時系統自動預帶 12 筆（1–12 月）。當使用者修改某月的 CR% 後，該月之後的所有月份自動覆蓋為相同值；之前的月份不受影響。
+</div>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>PlanId</td><td>int FK</td><td>→ TCP_CommissionPlan</td></tr>
+  <tr><td>Year</td><td>int</td><td></td></tr>
+  <tr><td>Month</td><td>int</td><td>1–12</td></tr>
+  <tr><td>CustomerType</td><td>nvarchar(20)</td><td>null（一般）/ Existing / New_Y1 / New_Y2（NOACC 用）</td></tr>
+  <tr><td>CommissionRate</td><td>decimal(6,4)</td><td>CR%（例：0.01 代表 1%）；由負責人依系統外計算結果手動上傳，系統不自動推算</td></tr>
+  <tr><td>OverQuotaRate</td><td>decimal(6,4)</td><td>Over Quota 加成率（Quota 制適用）</td></tr>
+  <tr><td>MinAchievementRate</td><td>decimal(6,4)</td><td>Normal Incentive 發放的 YTM 最低達成率門檻，預設 0.70（70%）；可依方案需求調整，修改邏輯同 CR%（修改後自動向後覆蓋）</td></tr>
+</table>
+
+<!-- ─── Group 3 ─── -->
+<div class="group-header">Group 3 — 模組開關與通知設定</div>
+
+<h3>TCP_BonusAlertConfig（獎金異常通知設定，依 Site）</h3>
+<div class="note">
+  當某月獎金計算結果超過門檻時，系統自動發送通知信並寫入 <code>TCP_BonusAlert</code>。門檻幣別依各 Site 固定幣別（ATW = TWD；HQDC / BO 依各自幣別），不開放使用者修改；通知對象可各自設定。
+</div>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>Site</td><td>nvarchar(20)</td><td>ATW / HQDC / BO</td></tr>
+  <tr><td>AlertThreshold</td><td>decimal(18,2)</td><td>觸發通知的單月獎金金額門檻</td></tr>
+  <tr><td>Currency</td><td>nvarchar(10)</td><td>門檻幣別，依 Site 固定設定，不開放使用者異動</td></tr>
+  <tr><td>NotifiedTo</td><td>nvarchar(500)</td><td>通知對象，以分號分隔的 AD 帳號或 Email 清單；各 Site 可各自設定</td></tr>
+  <tr><td>IsEnabled</td><td>bit</td><td>是否啟用此 Site 的獎金異常通知</td></tr>
+  <tr><td>UpdatedBy</td><td>nvarchar(100)</td><td>最後修改者 AD 帳號</td></tr>
+  <tr><td>UpdatedAt</td><td>datetime</td><td></td></tr>
+</table>
+
+<h3>TCP_ModuleDefault（模組系統預設值）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>ModuleCode</td><td>nvarchar(50)</td><td>模組代碼（見第五節清單）</td></tr>
+  <tr><td>Site</td><td>nvarchar(20)</td><td>null = 全域；ATW / HQDC / BO = 指定單位</td></tr>
+  <tr><td>IsEnabledByDefault</td><td>bit</td><td>預設是否啟用</td></tr>
+  <tr><td>Description</td><td>nvarchar(300)</td><td>模組說明</td></tr>
+</table>
+
+<h3>TCP_SalespersonModule（業務員個人模組開關）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td>→ TCP_Salesperson</td></tr>
+  <tr><td>Year</td><td>int</td><td>適用年份</td></tr>
+  <tr><td>ModuleCode</td><td>nvarchar(50)</td><td>覆蓋 TCP_ModuleDefault 的設定</td></tr>
+  <tr><td>IsEnabled</td><td>bit</td><td></td></tr>
+  <tr><td>SetBy</td><td>nvarchar(100)</td><td>設定者 AD 帳號</td></tr>
+  <tr><td>SetAt</td><td>datetime</td><td></td></tr>
+  <tr><td>Note</td><td>nvarchar(300)</td><td>設定原因說明</td></tr>
+</table>
+
+<!-- ─── Group 4 ─── -->
+<div class="group-header">Group 4 — 每月業績與計算</div>
+
+<h3>TCP_MonthlyPerformance（每月出貨業績）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>PlanId</td><td>int FK</td><td>→ TCP_CommissionPlan</td></tr>
+  <tr><td>Year</td><td>int</td><td></td></tr>
+  <tr><td>Month</td><td>int</td><td>1–12</td></tr>
+  <tr><td>Shipment_TWD</td><td>decimal(18,2)</td><td>當月出貨（台幣）</td></tr>
+  <tr><td>Shipment_USD</td><td>decimal(18,2)</td><td>當月出貨（美元）</td></tr>
+  <tr><td>Shipment_EUR</td><td>decimal(18,2)</td><td>當月出貨（歐元）</td></tr>
+  <tr><td>YTMShipment</td><td>decimal(18,2)</td><td>年度累計出貨（計算幣別）</td></tr>
+  <tr><td>YTMAchievementRate</td><td>decimal(6,4)</td><td>YTM 業績達成率</td></tr>
+  <tr><td>DataSource</td><td>nvarchar(20)</td><td>Auto（系統自動）/ Manual（人工調整）</td></tr>
+  <tr><td>LastUpdated</td><td>datetime</td><td></td></tr>
+</table>
+
+<h3>TCP_NormalIncentive（Normal Incentive 計算明細）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>PlanId</td><td>int FK</td><td>→ TCP_CommissionPlan</td></tr>
+  <tr><td>Year</td><td>int</td><td></td></tr>
+  <tr><td>Month</td><td>int</td><td></td></tr>
+  <tr><td>Shipment</td><td>decimal(18,2)</td><td>淨出貨（扣除銷售折讓後）</td></tr>
+  <tr><td>CommissionRate</td><td>decimal(6,4)</td><td>本月適用 CR%</td></tr>
+  <tr><td>GrossIncentive</td><td>decimal(18,2)</td><td>計算所得金額（Shipment × CR）</td></tr>
+  <tr><td>HeldAmount</td><td>decimal(18,2)</td><td>因 YTM &lt; 70% 暫扣金額</td></tr>
+  <tr><td>ReleasedAmount</td><td>decimal(18,2)</td><td>本月從暫扣池釋放的金額</td></tr>
+  <tr><td>NetIncentive</td><td>decimal(18,2)</td><td>本月實際可發放金額</td></tr>
+  <tr><td>Status</td><td>nvarchar(20)</td><td>Draft / Approved / Paid</td></tr>
+  <tr><td>CalculatedAt</td><td>datetime</td><td>計算時間</td></tr>
+</table>
+
+<div class="note">NOACC 類型的 Plan 另有 <strong>TCP_NormalIncentiveDetail</strong>，記錄每種 CustomerType 的子計算明細（CustomerType、Shipment、CommissionRate、SubIncentive）。</div>
+
+<!-- ─── Group 5 ─── -->
+<div class="group-header">Group 5 — 獎勵明細</div>
+
+<h3>TCP_DesignInWin（Design-in Win 獎勵）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td></td></tr>
+  <tr><td>Year, Month</td><td>int</td><td>認列月份</td></tr>
+  <tr><td>CustomerId, CustomerName</td><td>nvarchar</td><td>客戶資訊</td></tr>
+  <tr><td>ProjectName</td><td>nvarchar(200)</td><td>專案名稱</td></tr>
+  <tr><td>Phase</td><td>nvarchar(20)</td><td>SampleWin / AnnualShipmentMet</td></tr>
+  <tr><td>SampleOrderDate</td><td>datetime</td><td>樣品訂單日期</td></tr>
+  <tr><td>ShipmentAmount</td><td>decimal(18,2)</td><td>出貨金額（年度達標用）</td></tr>
+  <tr><td>MaxYears</td><td>int</td><td>最多領幾年（上限 3）</td></tr>
+  <tr><td>BonusAmount</td><td>decimal(18,2)</td><td>3,000 或 10,000</td></tr>
+  <tr><td>IsApproved</td><td>bit</td><td></td></tr>
+  <tr><td>ApprovedBy, ApprovedAt</td><td>nvarchar / datetime</td><td></td></tr>
+  <tr><td>Note</td><td>nvarchar(500)</td><td></td></tr>
+</table>
+
+<h3>TCP_ServiceIncentive（ATW Service 獎勵）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td></td></tr>
+  <tr><td>Year, Month</td><td>int</td><td></td></tr>
+  <tr><td>OrderNo, ItemNo</td><td>nvarchar</td><td>訂單資訊</td></tr>
+  <tr><td>ServiceType</td><td>nvarchar(20)</td><td>2Y_ONSITE / VAS3 / VAS4 / OA1 / EW / OEW</td></tr>
+  <tr><td>ShipmentAmount</td><td>decimal(18,2)</td><td></td></tr>
+  <tr><td>BonusRate</td><td>decimal(6,4)</td><td>依 ServiceType 決定（0.05 / 0.08 / 0.02 / 0.03）</td></tr>
+  <tr><td>BonusAmount</td><td>decimal(18,2)</td><td>固定金額或 Rate × Shipment</td></tr>
+  <tr><td>RequiresReview</td><td>bit</td><td>VAS4、OA1 需審核後發放</td></tr>
+  <tr><td>IsApproved</td><td>bit</td><td></td></tr>
+  <tr><td>ApprovedBy, ApprovedAt</td><td>nvarchar / datetime</td><td></td></tr>
+</table>
+
+<h3>TCP_GovernmentSubsidy（政府補助款，ATW 專屬）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td></td></tr>
+  <tr><td>Year, Month</td><td>int</td><td></td></tr>
+  <tr><td>SubsidyType</td><td>nvarchar(50)</td><td>HWShipment / SIIntegration / ProjectDelivery / GovtPayment</td></tr>
+  <tr><td>Amount</td><td>decimal(18,2)</td><td>補助金額</td></tr>
+  <tr><td>IsBonusEligible</td><td>bit</td><td>是否核發獎金</td></tr>
+  <tr><td>ProfitRate</td><td>decimal(6,4)</td><td>Profit 達成率（GovtPayment 類型需 ≥ 20%）</td></tr>
+  <tr><td>BonusAmount</td><td>decimal(18,2)</td><td>實際獎金金額</td></tr>
+  <tr><td>Note</td><td>nvarchar(500)</td><td></td></tr>
+</table>
+
+<!-- ─── Group 6 ─── -->
+<div class="group-header">Group 6 — 扣款明細</div>
+
+<h3>TCP_OverdueAR（逾期應收帳款）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td></td></tr>
+  <tr><td>Year, Month</td><td>int</td><td>開始影響獎金的月份</td></tr>
+  <tr><td>CustomerId, CustomerName</td><td>nvarchar</td><td></td></tr>
+  <tr><td>InvoiceNo</td><td>nvarchar(50)</td><td>發票號碼</td></tr>
+  <tr><td>OverdueAmount</td><td>decimal(18,2)</td><td>逾期金額</td></tr>
+  <tr><td>Currency</td><td>nvarchar(10)</td><td></td></tr>
+  <tr><td>OverdueSince</td><td>datetime</td><td>逾期起始日</td></tr>
+  <tr><td>OverdueDays</td><td>int</td><td>逾期天數</td></tr>
+  <tr><td>HeldMultiplier</td><td>decimal(4,2)</td><td>1.0（&gt;30天）/ 2.0（&gt;90天）</td></tr>
+  <tr><td>HeldIncentiveAmount</td><td>decimal(18,2)</td><td>保留的獎金金額</td></tr>
+  <tr><td>IsBadDebt</td><td>bit</td><td>是否已轉為壞帳</td></tr>
+  <tr><td>Status</td><td>nvarchar(20)</td><td>Active / PartiallyPaid / FullyPaid</td></tr>
+  <tr><td>ResolvedAt</td><td>datetime</td><td>付清日期</td></tr>
+  <tr><td>Note</td><td>nvarchar(500)</td><td></td></tr>
+</table>
+
+<h3>TCP_BadDebt（壞帳）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td></td></tr>
+  <tr><td>OverdueARId</td><td>int FK</td><td>→ TCP_OverdueAR（由逾期轉入）</td></tr>
+  <tr><td>CustomerId, CustomerName</td><td>nvarchar</td><td></td></tr>
+  <tr><td>OriginalAmount</td><td>decimal(18,2)</td><td>原始銷售金額</td></tr>
+  <tr><td>Currency</td><td>nvarchar(10)</td><td></td></tr>
+  <tr><td>BadDebtDate</td><td>datetime</td><td>認定壞帳日期</td></tr>
+  <tr><td>Reason</td><td>nvarchar(50)</td><td>BounceCheck / ConfirmedLoss</td></tr>
+  <tr><td>DeductionMultiplier</td><td>decimal(4,2)</td><td>固定 2.0（扣 2 倍業績獎金）</td></tr>
+  <tr><td>DeductionAmount</td><td>decimal(18,2)</td><td>應扣金額</td></tr>
+  <tr><td>IsResolved</td><td>bit</td><td></td></tr>
+  <tr><td>ResolvedAt</td><td>datetime</td><td></td></tr>
+  <tr><td>IsExcluded</td><td>bit</td><td>是否已從壞帳扣款中排除（事後人工標記）</td></tr>
+  <tr><td>ExclusionReason</td><td>nvarchar(300)</td><td>排除原因說明</td></tr>
+  <tr><td>ExcludedBy</td><td>nvarchar(100)</td><td>排除操作者 AD 帳號</td></tr>
+  <tr><td>ExcludedAt</td><td>datetime</td><td></td></tr>
+</table>
+
+<h3>TCP_COGS_Deduction（COGS 扣款）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>PlanId</td><td>int FK</td><td>→ TCP_CommissionPlan</td></tr>
+  <tr><td>Year, Month</td><td>int</td><td>扣款月份</td></tr>
+  <tr><td>OrderNo, ItemNo</td><td>nvarchar</td><td></td></tr>
+  <tr><td>ProductType</td><td>nvarchar(20)</td><td>PT / Standard</td></tr>
+  <tr><td>COGS_Amount</td><td>decimal(18,2)</td><td>品項成本（來自 SAP 物料主檔）</td></tr>
+  <tr><td>CommissionRate</td><td>decimal(6,4)</td><td>適用 CR%</td></tr>
+  <tr><td>DeductionAmount</td><td>decimal(18,2)</td><td>（業績 − COGS）× CR</td></tr>
+  <tr><td>Reason</td><td>nvarchar(50)</td><td>OrderCancel / ForecastDelay / OrderDelay</td></tr>
+  <tr><td>ReportedBy</td><td>nvarchar(50)</td><td>SCM 提報人員</td></tr>
+  <tr><td>ReportedAt</td><td>datetime</td><td></td></tr>
+  <tr><td>Status</td><td>nvarchar(20)</td><td>Active / Reversed</td></tr>
+  <tr><td>ReversedAt</td><td>datetime</td><td>歸還日期</td></tr>
+  <tr><td>Note</td><td>nvarchar(500)</td><td></td></tr>
+</table>
+
+<h3>TCP_LowGP_Adjustment（低毛利調整）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>PlanId</td><td>int FK</td><td></td></tr>
+  <tr><td>Year, Month</td><td>int</td><td></td></tr>
+  <tr><td>OrderNo</td><td>nvarchar(50)</td><td></td></tr>
+  <tr><td>E2ESalesAmount</td><td>decimal(18,2)</td><td>End-to-End 銷售金額</td></tr>
+  <tr><td>E2ECostAmount</td><td>decimal(18,2)</td><td>COGS + Landing Cost</td></tr>
+  <tr><td>E2EGPPercent</td><td>decimal(6,4)</td><td>（E2E Sales − E2E Cost）÷ E2E Sales</td></tr>
+  <tr><td>OriginalIncentive</td><td>decimal(18,2)</td><td>調整前獎金</td></tr>
+  <tr><td>AdjustmentRate</td><td>decimal(4,2)</td><td>0.5（GP 10–15%）/ 0.0（GP ≤10%）</td></tr>
+  <tr><td>AdjustedIncentive</td><td>decimal(18,2)</td><td>調整後獎金</td></tr>
+  <tr><td>DataSource</td><td>nvarchar(20)</td><td>eManager</td></tr>
+  <tr><td>Status</td><td>nvarchar(20)</td><td>Active / Reversed</td></tr>
+  <tr><td>Note</td><td>nvarchar(500)</td><td></td></tr>
+  <tr><td>IsExcluded</td><td>bit</td><td>是否已從低毛利調整中排除（事後人工標記）</td></tr>
+  <tr><td>ExclusionReason</td><td>nvarchar(300)</td><td>排除原因說明</td></tr>
+  <tr><td>ExcludedBy</td><td>nvarchar(100)</td><td>排除操作者 AD 帳號</td></tr>
+  <tr><td>ExcludedAt</td><td>datetime</td><td></td></tr>
+</table>
+
+<h3>TCP_BusinessLoan（業務借貸，ATW 專屬）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td></td></tr>
+  <tr><td>LoanDate</td><td>datetime</td><td>借出日</td></tr>
+  <tr><td>DueDate</td><td>datetime</td><td>到期日（預設借出日 +90 天）</td></tr>
+  <tr><td>ExtendedDueDate</td><td>datetime</td><td>申請展延後的到期日（最多 +30 天，需最高主管簽核）</td></tr>
+  <tr><td>ProductNo</td><td>nvarchar(50)</td><td>產品料號</td></tr>
+  <tr><td>Quantity</td><td>int</td><td>數量</td></tr>
+  <tr><td>UnitCost</td><td>decimal(18,2)</td><td>單位成本（倉庫以成本 100% 計算）</td></tr>
+  <tr><td>TotalCost</td><td>decimal(18,2)</td><td>總成本</td></tr>
+  <tr><td>Status</td><td>nvarchar(20)</td><td>Active / Returned / Sold / Overdue（逾期視同購買）</td></tr>
+  <tr><td>DeductionApplied</td><td>bit</td><td>是否已從獎金扣除</td></tr>
+  <tr><td>DeductionMonth</td><td>int</td><td>扣款月份</td></tr>
+  <tr><td>ReturnedAt</td><td>datetime</td><td>歸還或賣出日期</td></tr>
+  <tr><td>ApprovalRef</td><td>nvarchar(100)</td><td>展延簽核單號</td></tr>
+  <tr><td>Note</td><td>nvarchar(500)</td><td></td></tr>
+  <tr><td>IsExcluded</td><td>bit</td><td>是否已從借貨扣款中排除（事後人工標記）</td></tr>
+  <tr><td>ExclusionReason</td><td>nvarchar(300)</td><td>排除原因說明</td></tr>
+  <tr><td>ExcludedBy</td><td>nvarchar(100)</td><td>排除操作者 AD 帳號</td></tr>
+  <tr><td>ExcludedAt</td><td>datetime</td><td></td></tr>
+</table>
+
+<h3>TCP_LowGP_ExclusionRule（低毛利排除規則）</h3>
+<div class="note">事前設定的排除清單，計算引擎在產生低毛利調整記錄前，先比對此表；符合規則的訂單或客戶直接略過，不產生扣款。</div>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>ScopeType</td><td>nvarchar(20)</td><td>排除維度：Order（特定訂單）/ Customer（特定客戶所有訂單）</td></tr>
+  <tr><td>ScopeValue</td><td>nvarchar(100)</td><td>對應的 OrderNo 或 CustomerId</td></tr>
+  <tr><td>Reason</td><td>nvarchar(300)</td><td>排除原因（例：主管事先核准的低毛利特案）</td></tr>
+  <tr><td>ApprovedBy</td><td>nvarchar(100)</td><td>核准者 AD 帳號</td></tr>
+  <tr><td>ApprovedAt</td><td>datetime</td><td></td></tr>
+  <tr><td>IsActive</td><td>bit</td><td>是否仍有效（停用後保留記錄供稽核）</td></tr>
+  <tr><td>Note</td><td>nvarchar(300)</td><td></td></tr>
+</table>
+
+<h3>TCP_BadDebt_ExclusionRule（壞帳排除規則）</h3>
+<div class="note">事前設定的排除清單，計算引擎在認定壞帳扣款前，先比對此表；符合規則的發票或客戶直接略過，不產生扣款。</div>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>ScopeType</td><td>nvarchar(20)</td><td>排除維度：Invoice（特定發票）/ Customer（特定客戶）</td></tr>
+  <tr><td>ScopeValue</td><td>nvarchar(100)</td><td>對應的 InvoiceNo 或 CustomerId</td></tr>
+  <tr><td>Reason</td><td>nvarchar(300)</td><td>排除原因</td></tr>
+  <tr><td>ApprovedBy</td><td>nvarchar(100)</td><td>核准者 AD 帳號</td></tr>
+  <tr><td>ApprovedAt</td><td>datetime</td><td></td></tr>
+  <tr><td>IsActive</td><td>bit</td><td>是否仍有效</td></tr>
+  <tr><td>Note</td><td>nvarchar(300)</td><td></td></tr>
+</table>
+
+<h3>TCP_BusinessLoan_ExclusionRule（借貨排除規則）</h3>
+<div class="note">事前設定的排除清單，計算引擎在產生借貨扣款前，先比對此表；符合規則的料號或業務員直接略過，不產生扣款。</div>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>ScopeType</td><td>nvarchar(20)</td><td>排除維度：Item（特定料號）/ Salesperson（特定業務員）</td></tr>
+  <tr><td>ScopeValue</td><td>nvarchar(100)</td><td>對應的 ItemNo 或 SalespersonId</td></tr>
+  <tr><td>Reason</td><td>nvarchar(300)</td><td>排除原因</td></tr>
+  <tr><td>ApprovedBy</td><td>nvarchar(100)</td><td>核准者 AD 帳號</td></tr>
+  <tr><td>ApprovedAt</td><td>datetime</td><td></td></tr>
+  <tr><td>IsActive</td><td>bit</td><td>是否仍有效</td></tr>
+  <tr><td>Note</td><td>nvarchar(300)</td><td></td></tr>
+</table>
+
+<!-- ─── Group 7 ─── -->
+<div class="group-header">Group 7 — 結算與稽核</div>
+
+<h3>TCP_OverQuotaIncentive（Over 100% Quota 年度獎金）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td></td></tr>
+  <tr><td>Year</td><td>int</td><td></td></tr>
+  <tr><td>TotalShipment</td><td>decimal(18,2)</td><td>年度總出貨</td></tr>
+  <tr><td>AnnualQuota</td><td>decimal(18,2)</td><td>年度 Quota</td></tr>
+  <tr><td>AchievementRate</td><td>decimal(6,4)</td><td>達成率（%）</td></tr>
+  <tr><td>Incentive_100to120</td><td>decimal(18,2)</td><td>100%–120% 段獎金</td></tr>
+  <tr><td>Incentive_Over120</td><td>decimal(18,2)</td><td>&gt;120% 段獎金</td></tr>
+  <tr><td>TotalIncentive</td><td>decimal(18,2)</td><td>小計</td></tr>
+  <tr><td>AnnualEarningCap</td><td>decimal(18,2)</td><td>全年所得上限（TCP × 5 或 × 3）</td></tr>
+  <tr><td>CappedIncentive</td><td>decimal(18,2)</td><td>實際發放（min(TotalIncentive, Cap)）</td></tr>
+  <tr><td>IsApproved</td><td>bit</td><td></td></tr>
+  <tr><td>ApprovedBy, ApprovedAt</td><td>nvarchar / datetime</td><td></td></tr>
+  <tr><td>IsPaid</td><td>bit</td><td></td></tr>
+  <tr><td>Note</td><td>nvarchar(500)</td><td></td></tr>
+</table>
+
+<h3>TCP_BonusSummary（每月獎金總表，最終發放依據）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>SalespersonId</td><td>int FK</td><td></td></tr>
+  <tr><td>Year, Month</td><td>int</td><td></td></tr>
+  <tr><td>NormalIncentive</td><td>decimal(18,2)</td><td>各 Plan 合計</td></tr>
+  <tr><td>DesignInWin</td><td>decimal(18,2)</td><td></td></tr>
+  <tr><td>ServiceIncentive</td><td>decimal(18,2)</td><td></td></tr>
+  <tr><td>GovernmentSubsidy</td><td>decimal(18,2)</td><td></td></tr>
+  <tr><td>OverdueARDeduction</td><td>decimal(18,2)</td><td>負值</td></tr>
+  <tr><td>BadDebtDeduction</td><td>decimal(18,2)</td><td>負值</td></tr>
+  <tr><td>COGSDeduction</td><td>decimal(18,2)</td><td>負值</td></tr>
+  <tr><td>LowGPAdjustment</td><td>decimal(18,2)</td><td>負值</td></tr>
+  <tr><td>LoanDeduction</td><td>decimal(18,2)</td><td>負值</td></tr>
+  <tr><td>OverQuotaIncentive</td><td>decimal(18,2)</td><td>年結月份才有值</td></tr>
+  <tr><td>TotalBonus</td><td>decimal(18,2)</td><td>最終發放金額（BonusCurrency）</td></tr>
+  <tr><td>Status</td><td>nvarchar(20)</td><td>Draft / Approved / Paid</td></tr>
+  <tr><td>ApprovedBy, ApprovedAt</td><td>nvarchar / datetime</td><td></td></tr>
+  <tr><td>PaidMonth</td><td>int</td><td>實際入薪月份（次月薪資）</td></tr>
+  <tr><td>Note</td><td>nvarchar(500)</td><td></td></tr>
+</table>
+
+<h3>TCP_BonusAlert（獎金異常通知記錄）</h3>
+<div class="note">
+  當計算引擎產生的單月獎金超過 <code>TCP_BonusAlertConfig</code> 的門檻時，系統自動建立此記錄並發送通知信。<code>ThresholdApplied</code> 與 <code>NotifiedTo</code> 為觸發當下的快照，避免日後修改設定影響歷史記錄的可追溯性。
+</div>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>int PK</td><td></td></tr>
+  <tr><td>PlanId</td><td>int FK</td><td>→ TCP_CommissionPlan</td></tr>
+  <tr><td>Year</td><td>int</td><td></td></tr>
+  <tr><td>Month</td><td>int</td><td></td></tr>
+  <tr><td>GrossIncentive</td><td>decimal(18,2)</td><td>當月計算獎金（觸發當下快照）</td></tr>
+  <tr><td>ThresholdApplied</td><td>decimal(18,2)</td><td>觸發當時使用的門檻值快照</td></tr>
+  <tr><td>Currency</td><td>nvarchar(10)</td><td>金額幣別</td></tr>
+  <tr><td>NotifiedTo</td><td>nvarchar(500)</td><td>實際發送通知的收件人清單快照</td></tr>
+  <tr><td>IsEmailSent</td><td>bit</td><td>是否已成功發送通知信</td></tr>
+  <tr><td>EmailSentAt</td><td>datetime</td><td></td></tr>
+  <tr><td>IsReviewed</td><td>bit</td><td>是否已有人確認審閱</td></tr>
+  <tr><td>ReviewedBy</td><td>nvarchar(100)</td><td>審閱者 AD 帳號</td></tr>
+  <tr><td>ReviewedAt</td><td>datetime</td><td></td></tr>
+  <tr><td>Note</td><td>nvarchar(500)</td><td>審閱備註</td></tr>
+  <tr><td>CreatedAt</td><td>datetime</td><td></td></tr>
+</table>
+
+<h3>TCP_AuditLog（所有異動記錄）</h3>
+<table>
+  <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+  <tr><td>Id</td><td>bigint PK</td><td></td></tr>
+  <tr><td>EntityType</td><td>nvarchar(100)</td><td>異動的資料表名稱</td></tr>
+  <tr><td>EntityId</td><td>int</td><td>異動記錄的主鍵</td></tr>
+  <tr><td>Action</td><td>nvarchar(20)</td><td>Create / Update / Delete / Approve / Reject / Override</td></tr>
+  <tr><td>OldValue</td><td>nvarchar(max)</td><td>異動前值（JSON 格式）</td></tr>
+  <tr><td>NewValue</td><td>nvarchar(max)</td><td>異動後值（JSON 格式）</td></tr>
+  <tr><td>ChangedBy</td><td>nvarchar(100)</td><td>操作者 AD 帳號</td></tr>
+  <tr><td>ChangedAt</td><td>datetime</td><td>操作時間</td></tr>
+  <tr><td>Remark</td><td>nvarchar(500)</td><td>異動原因說明</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="page-break"></div>
+<h2 id="s5">五、模組開關清單</h2>
+
+<table>
+  <tr><th>ModuleCode</th><th>中文說明</th><th>ATW 預設</th><th>HQDC 預設</th><th>BO 預設</th></tr>
+  <tr>
+    <td>NORMAL_INCENTIVE</td><td>每月業績獎金</td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+  </tr>
+  <tr>
+    <td>OVER_QUOTA</td><td>Over 100% Quota 獎金</td>
+    <td><span class="tag tag-quota">Quota制適用</span></td>
+    <td><span class="tag tag-quota">Quota制適用</span></td>
+    <td><span class="tag tag-quota">Quota制適用</span></td>
+  </tr>
+  <tr>
+    <td>OVERDUE_AR</td><td>逾期 AR 扣款</td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+  </tr>
+  <tr>
+    <td>BAD_DEBT</td><td>壞帳扣款</td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+  </tr>
+  <tr>
+    <td>COGS</td><td>訂單取消 / 延遲成本扣款</td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+  </tr>
+  <tr>
+    <td>LOW_GP</td><td>低毛利調整</td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+    <td><span class="tag tag-all">✅ 啟用</span></td>
+  </tr>
+  <tr>
+    <td>DESIGN_IN_WIN</td><td>Design-in Win 獎勵</td>
+    <td><span class="tag tag-opt">⬜ 選配</span></td>
+    <td><span class="tag tag-opt">⬜ 選配</span></td>
+    <td><span class="tag tag-opt">⬜ 選配</span></td>
+  </tr>
+  <tr>
+    <td>SERVICE_INCENTIVE</td><td>ATW Service 獎勵</td>
+    <td><span class="tag tag-opt">⬜ 選配</span></td>
+    <td><span class="tag tag-opt">— 不適用</span></td>
+    <td><span class="tag tag-opt">— 不適用</span></td>
+  </tr>
+  <tr>
+    <td>GOVT_SUBSIDY</td><td>政府補助款</td>
+    <td><span class="tag tag-opt">⬜ 選配</span></td>
+    <td><span class="tag tag-opt">— 不適用</span></td>
+    <td><span class="tag tag-opt">— 不適用</span></td>
+  </tr>
+  <tr>
+    <td>BUSINESS_LOAN</td><td>業務借貸</td>
+    <td><span class="tag tag-opt">⬜ 選配</span></td>
+    <td><span class="tag tag-opt">— 不適用</span></td>
+    <td><span class="tag tag-opt">— 不適用</span></td>
+  </tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="s6">六、下一步規劃</h2>
+
+<table>
+  <tr><th>階段</th><th>項目</th><th>狀態</th></tr>
+  <tr><td>設計</td><td>獎金規範研讀與理解</td><td>✅ 完成</td></tr>
+  <tr><td>設計</td><td>系統設計決策確認（Plan Type、角色、模組）</td><td>✅ 完成</td></tr>
+  <tr><td>設計</td><td>資料庫架構設計</td><td>✅ 完成</td></tr>
+  <tr><td>設計</td><td>API 端點設計</td><td>⏳ 進行中</td></tr>
+  <tr><td>設計</td><td>前端頁面規劃</td><td>⏳ 待開始</td></tr>
+  <tr><td>設計</td><td>Excel 上傳格式設計</td><td>⏳ 待開始</td></tr>
+  <tr><td>實作</td><td>產出 SQL 建表語法</td><td>⏳ 待開始</td></tr>
+  <tr><td>實作</td><td>專案初始化 / 清理舊 TCP 程式碼</td><td>⏳ 待開始</td></tr>
+  <tr><td>實作</td><td>資料存取層（Repository）</td><td>⏳ 待開始</td></tr>
+  <tr><td>實作</td><td>計算引擎（Normal / COGS / LowGP / OverQuota）</td><td>⏳ 待開始</td></tr>
+  <tr><td>實作</td><td>前端介面</td><td>⏳ 待開始</td></tr>
+  <tr><td>實作</td><td>Excel 匯入功能</td><td>⏳ 待開始</td></tr>
+  <tr><td>驗收</td><td>與現有系統數字比對驗證</td><td>⏳ 待開始</td></tr>
+  <tr><td>上線</td><td>切換正式環境，停用舊系統</td><td>⏳ 待開始</td></tr>
+</table>
+
+<hr style="margin-top:48px; border-color:#ccc;">
+<p style="color:#888; font-size:9pt; text-align:center;">
+  TCP 業務員獎金平台系統設計文件 v1.0 ｜ 2026-03-28 ｜ 研華公司內部文件
+</p>
+
+</body>
+</html>

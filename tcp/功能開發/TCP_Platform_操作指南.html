@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TCP Platform 操作指南</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #222; font-size: 14px; }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    position: fixed; top: 0; left: 0;
+    width: 260px; height: 100vh;
+    background: #00315a; color: #e8f0f8;
+    overflow-y: auto; overflow-x: hidden;
+    transition: width 0.28s ease;
+    z-index: 1000; display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  body.sidebar-collapsed #sidebar { width: 0; }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: #2a6096; border-radius: 2px; }
+  .sidebar-inner { min-width: 260px; padding: 0 0 40px; }
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 18px 16px 14px; border-bottom: 1px solid #1a4a6e; white-space: nowrap;
+  }
+  .sidebar-brand-icon { width: 30px; height: 30px; background: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sidebar-brand-icon svg { width: 18px; height: 18px; }
+  .sidebar-brand-text { font-size: 13px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .sidebar-brand-sub  { font-size: 10px; color: #7ab0d4; font-weight: 400; }
+  .sidebar-nav { padding: 10px 0; }
+  .sidebar-nav a { display: block; padding: 6px 16px 6px 20px; font-size: 13px; color: #b8d4ea; text-decoration: none; white-space: nowrap; border-left: 3px solid transparent; transition: background 0.15s, color 0.15s, border-color 0.15s; line-height: 1.5; }
+  .sidebar-nav a:hover { background: #1a4a6e; color: #fff; }
+  .sidebar-nav a.active { background: #1a4a6e; color: #fff; border-left-color: #5bb0e8; }
+  .sidebar-nav .nav-section { padding: 10px 16px 3px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #5a8aaa; font-weight: 600; white-space: nowrap; }
+  .sidebar-nav .nav-sub { padding-left: 32px; font-size: 12px; }
+
+  /* ── Toggle ── */
+  #sidebar-toggle {
+    position: fixed; top: 14px; left: 268px; z-index: 1001;
+    background: #00467f; color: #fff; border: none; border-radius: 5px;
+    width: 30px; height: 30px; cursor: pointer; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    transition: left 0.28s ease, background 0.15s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+  #sidebar-toggle:hover { background: #0059a0; }
+  body.sidebar-collapsed #sidebar-toggle { left: 8px; }
+
+  /* ── Main ── */
+  #main-wrapper { margin-left: 260px; transition: margin-left 0.28s ease; min-width: 0; }
+  body.sidebar-collapsed #main-wrapper { margin-left: 0; }
+  .header { background: #00467f; color: #fff; padding: 16px 48px 14px 58px; }
+  body.sidebar-collapsed .header { padding-left: 52px; }
+  .header h1 { margin: 0 0 4px; font-size: 22px; }
+  .header p  { margin: 0; font-size: 12px; opacity: 0.8; }
+  .container { max-width: 980px; margin: 28px auto; padding: 0 24px 60px; }
+
+  h2 { color: #00467f; border-bottom: 2px solid #00467f; padding-bottom: 6px; margin-top: 48px; font-size: 18px; scroll-margin-top: 20px; }
+  h3 { color: #1a5276; margin-top: 28px; font-size: 15px; scroll-margin-top: 20px; }
+  h4 { color: #555; margin-top: 16px; font-size: 13px; font-weight: 700; }
+  p  { line-height: 1.7; margin: 8px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin-bottom: 5px; line-height: 1.6; }
+
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 18px; font-size: 13px; }
+  th { background: #00467f; color: #fff; padding: 7px 12px; text-align: left; white-space: nowrap; }
+  td { border: 1px solid #d5dce8; padding: 6px 10px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0f4fa; }
+  td.empty { color: #aaa; font-style: italic; }
+  code { background: #eef2f8; border-radius: 3px; padding: 1px 5px; font-size: 12px; font-family: Consolas, monospace; color: #c0392b; }
+
+  .note { background: #e8f0fe; border-left: 4px solid #3b82f6; padding: 10px 14px; margin: 10px 0; font-size: 13px; line-height: 1.6; border-radius: 0 4px 4px 0; }
+  .tip  { background: #e6f4ea; border-left: 4px solid #22a360; padding: 10px 14px; margin: 10px 0; font-size: 13px; line-height: 1.6; border-radius: 0 4px 4px 0; }
+  .warn { background: #fff8e1; border-left: 4px solid #f0ad4e; padding: 10px 14px; margin: 10px 0; font-size: 13px; line-height: 1.6; border-radius: 0 4px 4px 0; }
+
+  /* ── Platform Nav Map ── */
+  .nav-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin: 20px 0; }
+  .nav-card {
+    background: #fff; border: 1.5px solid #cdd8e8; border-radius: 8px;
+    padding: 16px 18px; text-decoration: none; color: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .nav-card:hover { border-color: #00467f; box-shadow: 0 2px 8px rgba(0,70,127,0.12); }
+  .nav-card-icon { font-size: 22px; margin-bottom: 8px; }
+  .nav-card-title { font-weight: 700; color: #00467f; font-size: 14px; margin-bottom: 4px; }
+  .nav-card-desc  { font-size: 12px; color: #666; line-height: 1.5; }
+
+  /* ── Flow Chart ── */
+  .flow-wrap { margin: 20px 0 28px; overflow-x: auto; }
+  .flow { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
+  .flow-node {
+    border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 600;
+    border: 2px solid; min-width: 240px; max-width: 380px; line-height: 1.5;
+    position: relative;
+  }
+  .flow-node small { font-weight: 400; font-size: 11px; display: block; margin-top: 2px; }
+  .flow-node.start   { background: #00467f; color: #fff; border-color: #00467f; }
+  .flow-node.action  { background: #e8f0fe; color: #1a3a6e; border-color: #4a86d4; }
+  .flow-node.system  { background: #f0f4fa; color: #444; border-color: #9ab0cc; }
+  .flow-node.check   { background: #fff8e1; color: #7a5c00; border-color: #d4a700; border-style: dashed; }
+  .flow-node.success { background: #e6f4ea; color: #1e5c35; border-color: #22a360; }
+  .flow-node.error   { background: #fee2e2; color: #9b1c1c; border-color: #ef4444; }
+  .flow-arrow { color: #888; font-size: 18px; padding: 2px 0 2px 24px; line-height: 1; }
+  .flow-branch { display: flex; align-items: flex-start; gap: 0; margin: 0; padding: 0 0 0 24px; }
+  .flow-branch-left  { display: flex; flex-direction: column; align-items: flex-start; }
+  .flow-branch-right { display: flex; flex-direction: column; align-items: flex-start; padding-left: 40px; }
+  .flow-branch-label { font-size: 11px; font-weight: 600; color: #888; margin-bottom: 4px; }
+
+  /* ── Step List ── */
+  .step-list { list-style: none; padding: 0; margin: 12px 0; counter-reset: step; }
+  .step-list li {
+    counter-increment: step;
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid #eef1f5;
+    font-size: 13px; line-height: 1.6;
+  }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before {
+    content: counter(step);
+    flex-shrink: 0;
+    width: 24px; height: 24px;
+    background: #00467f; color: #fff;
+    border-radius: 50%; text-align: center; line-height: 24px;
+    font-size: 12px; font-weight: 700;
+  }
+  .step-list li .step-content { flex: 1; }
+  .step-list li .step-title { font-weight: 700; color: #00467f; }
+
+  /* ── Screen mockup ── */
+  .screen-box {
+    border: 2px solid #c0cfe0; border-radius: 8px; overflow: hidden;
+    margin: 14px 0; font-size: 12px;
+  }
+  .screen-title-bar {
+    background: #e4eaf2; padding: 6px 12px;
+    font-size: 11px; font-weight: 700; color: #555;
+    border-bottom: 1px solid #c0cfe0; display: flex; align-items: center; gap: 6px;
+  }
+  .screen-body { background: #fff; padding: 12px 14px; }
+  .screen-toolbar { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .fake-select { border: 1px solid #ccc; border-radius: 4px; padding: 4px 10px; font-size: 12px; background: #fff; color: #333; min-width: 80px; }
+  .fake-btn { border: none; border-radius: 4px; padding: 4px 12px; font-size: 12px; cursor: default; font-weight: 600; }
+  .fake-btn.primary { background: #00467f; color: #fff; }
+  .fake-btn.secondary { background: #e8eef5; color: #333; border: 1px solid #ccc; }
+  .fake-btn.success { background: #22a360; color: #fff; }
+  .fake-btn.danger  { background: #ef4444; color: #fff; }
+  .fake-tab-bar { display: flex; border-bottom: 2px solid #dee2e6; margin-bottom: 10px; gap: 0; flex-wrap: wrap; }
+  .fake-tab { padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: default; border-radius: 4px 4px 0 0; color: #666; }
+  .fake-tab.active { background: #00467f; color: #fff; }
+  .fake-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .fake-table th { background: #f0f4fa; color: #333; padding: 5px 8px; text-align: left; border: 1px solid #dde3ea; }
+  .fake-table td { padding: 4px 8px; border: 1px solid #dde3ea; }
+  .fake-table tr:nth-child(even) td { background: #f8fafc; }
+  .fake-drop { border: 2px dashed #aac4e0; border-radius: 8px; text-align: center; padding: 20px; color: #6699bb; font-size: 12px; margin: 10px 0; background: #f4f8fc; }
+  .fake-cell-error { background: #dc3545 !important; color: #fff !important; }
+  .badge { display: inline-block; border-radius: 3px; padding: 1px 7px; font-size: 11px; font-weight: 700; margin-right: 4px; }
+  .badge-blue   { background: #d0e8ff; color: #004080; }
+  .badge-green  { background: #d4edda; color: #155724; }
+  .badge-yellow { background: #fff3cd; color: #856404; }
+  .badge-red    { background: #f8d7da; color: #721c24; }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<div id="sidebar">
+  <div class="sidebar-inner">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#00467f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <div>
+        <div class="sidebar-brand-text">TCP Platform</div>
+        <div class="sidebar-brand-sub">操作指南</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">快速導覽</div>
+      <a href="#platform-nav">1. 平台功能導覽</a>
+
+      <div class="nav-section">Upload</div>
+      <a href="#upload-flow">2. Upload 操作流程</a>
+      <a href="#upload-steps" class="nav-sub">2.1 步驟說明</a>
+      <a href="#upload-preview" class="nav-sub">2.2 Preview 與編輯</a>
+      <a href="#upload-confirm" class="nav-sub">2.3 Confirm 與匯入</a>
+
+      <div class="nav-section">Data View</div>
+      <a href="#dv-flow">3. Data View 操作流程</a>
+      <a href="#dv-tabs" class="nav-sub">3.1 各 Tab 說明</a>
+      <a href="#dv-edit" class="nav-sub">3.2 Edit / Delete</a>
+      <a href="#dv-overview" class="nav-sub">3.3 Overview Tab</a>
+
+      <div class="nav-section">Org Hierarchy</div>
+      <a href="#org-flow">4. Org Hierarchy 操作流程</a>
+      <a href="#org-import" class="nav-sub">4.1 Excel 批次匯入</a>
+
+      <div class="nav-section">Excel 欄位說明</div>
+      <a href="#field-rate">5.1 Commission Rate</a>
+      <a href="#field-sid">5.2 Sales ID Config</a>
+      <a href="#field-rs">5.3 RS</a>
+      <a href="#field-mapping">5.4 Mapping</a>
+      <a href="#field-groupname">5.5 Group Name</a>
+    </nav>
+  </div>
+</div>
+
+<button id="sidebar-toggle" title="展開/收縮目錄">&#9776;</button>
+
+<!-- ══ MAIN ══ -->
+<div id="main-wrapper">
+  <div class="header">
+    <h1>TCP Platform — 操作指南</h1>
+    <p>版本: v2.0 &nbsp;|&nbsp; 更新日期: 2026-05-26 &nbsp;|&nbsp; 適用對象: 系統管理員 / 業務操作人員</p>
+  </div>
+
+  <div class="container">
+
+    <!-- ════════════════════════════════
+         1. 平台功能導覽
+    ════════════════════════════════ -->
+    <h2 id="platform-nav">1. 平台功能導覽</h2>
+    <p>TCP Platform 以 Hub 首頁（<code>/Admin/TcpPlatform</code>）為入口，提供以下四個功能頁面。</p>
+
+    <div class="nav-map">
+      <div class="nav-card">
+        <div class="nav-card-icon">📤</div>
+        <div class="nav-card-title">Upload</div>
+        <div class="nav-card-desc">上傳年度業務員設定 Excel（Commission Rate / Sales ID Config / RS / Mapping）。支援預覽編輯、逐 Sheet 確認後匯入。</div>
+      </div>
+      <div class="nav-card">
+        <div class="nav-card-icon">🔍</div>
+        <div class="nav-card-title">Data View</div>
+        <div class="nav-card-desc">查詢目前 DB 中的設定資料，可直接逐筆 Edit / Delete，並在 Overview Tab 查看整合 Quota 資訊。</div>
+      </div>
+      <div class="nav-card">
+        <div class="nav-card-icon">🌳</div>
+        <div class="nav-card-title">Org Hierarchy</div>
+        <div class="nav-card-desc">管理業務組織樹狀結構，支援新增/編輯/刪除/移動節點，及 Excel 批次匯入。</div>
+      </div>
+      <div class="nav-card">
+        <div class="nav-card-icon">📊</div>
+        <div class="nav-card-title">（規劃中）</div>
+        <div class="nav-card-desc">Incentive &amp; Penalty、Manual Adjustment 等功能正在規劃中。</div>
+      </div>
+    </div>
+
+    <div class="tip"><strong>何時用 Upload？何時用 Data View？</strong><br>
+      年度初次建立資料或大量更新 → 用 <strong>Upload</strong>（Excel 批次匯入）。<br>
+      查詢現況或個別修改幾筆資料 → 用 <strong>Data View</strong>（直接在畫面上 Edit/Delete）。
+    </div>
+
+    <!-- ════════════════════════════════
+         2. Upload 操作流程
+    ════════════════════════════════ -->
+    <h2 id="upload-flow">2. Upload 操作流程</h2>
+
+    <div class="flow-wrap">
+      <div class="flow">
+        <div class="flow-node start">進入 Upload 頁</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node action">選擇 <strong>Year</strong> 與 <strong>Site</strong><small>Year 依目前月份自動推薦；Site 選完後頁面就緒</small></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node action">拖放或點擊選取 Excel 檔案（.xlsx / .xls）<small>檔案選定後自動上傳至 ParsePreview</small></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node system">系統解析 Excel（Parsing file...）<small>顯示全頁 Loading 遮罩，解析完成前無法操作</small></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node check">預覽結果是否有紅色錯誤儲存格（Cell Errors）？<small>Tab 上出現 ⚠ 圖示代表該 Sheet 有錯誤</small></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-branch">
+          <div class="flow-branch-left">
+            <div class="flow-branch-label">有錯誤 ⚠</div>
+            <div class="flow-node error">修正錯誤資料<small>點擊 Edit 按鈕修改儲存格，或重新製作 Excel</small></div>
+          </div>
+          <div class="flow-branch-right">
+            <div class="flow-branch-label">無錯誤 ✓</div>
+            <div class="flow-node success">可選擇 Skip Review 快速匯入<small>確認 Modal 後直接寫入 DB</small></div>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node action">逐一 <strong>Confirm</strong> 每個 Sheet Tab<small>Confirm 前系統再次驗證；通過後 Tab 鎖定</small></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node action">全部 Sheet 確認後，點擊綠色 <strong>Import</strong> 按鈕</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node success">匯入完成 ✓<small>可在 Upload History 查看本次上傳記錄</small></div>
+      </div>
+    </div>
+
+    <!-- 2.1 步驟說明 -->
+    <h3 id="upload-steps">2.1 步驟說明</h3>
+
+    <ul class="step-list">
+      <li>
+        <div class="step-content">
+          <div class="step-title">選擇 Year 與 Site</div>
+          Year 下拉依目前月份自動提供選項（1–3 月含上一年；10–12 月含下一年）。Site 選單從 DB 動態載入，<strong>必選</strong>，選完後 Drop Zone 才會就緒。
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <div class="step-title">準備 Excel 檔案</div>
+          格式必須符合標準範本（可從頁面下載 <strong>Download Template</strong>）。需包含 4 個 Sheet：<code>Commission Rate</code>、<code>Sales ID Config</code>、<code>RS</code>、<code>Mapping</code>（Sheet 名稱不分大小寫，支援別名）。
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <div class="step-title">拖放或點擊上傳</div>
+          將 Excel 拖入 Drop Zone，或點擊選取檔案。上傳後自動呼叫 ParsePreview（不寫入 DB）。
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <div class="step-title">確認 Preview 資料</div>
+          系統顯示 4 個 Sheet Tab。有錯誤的 Tab 會出現 ⚠ 圖示，錯誤儲存格以紅底白字標記。常見錯誤：Sales ID 不存在系統中、RS Report 名稱填錯、RS 維度值不在 DB 選項內。
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <div class="step-title">（視需要）編輯資料</div>
+          點擊每行的 <strong>Edit</strong> 按鈕可修改儲存格。RS Sheet 的 Report、FOB_Local 為靜態下拉；Region / Entity / Sector / Prod_Group 為動態下拉（依 Report 選項過濾）。
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <div class="step-title">Confirm 每個 Sheet</div>
+          每個 Tab 右下角有 <strong>Confirm This Sheet</strong> 按鈕。Confirm 前系統會再次驗證所有資料；有錯誤則無法 Confirm。Confirm 後 Tab 鎖定（Edit 按鈕消失）。
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <div class="step-title">Import</div>
+          全部 Sheet 確認後，頁面底部出現綠色大按鈕 <strong>Import All Confirmed Data</strong>。點擊後寫入 DB。若無任何錯誤，也可點擊 <strong>Skip Review &amp; Import</strong> 跳過逐 Sheet 確認。
+        </div>
+      </li>
+    </ul>
+
+    <!-- 2.2 Preview 與編輯 -->
+    <h3 id="upload-preview">2.2 Preview 畫面說明</h3>
+
+    <div class="screen-box">
+      <div class="screen-title-bar">
+        <span>◉</span> Upload — Preview
+      </div>
+      <div class="screen-body">
+        <div class="fake-tab-bar">
+          <div class="fake-tab active">Commission Rate</div>
+          <div class="fake-tab" style="color:#dc3545;">⚠ Sales ID Config</div>
+          <div class="fake-tab">Mapping</div>
+          <div class="fake-tab" style="color:#dc3545;">⚠ RS</div>
+        </div>
+        <table class="fake-table">
+          <tr><th>Actions</th><th>Email</th><th>Group Name</th><th>Type</th><th>Threshold</th><th>Std CR%</th></tr>
+          <tr><td><span class="fake-btn secondary">Edit</span></td><td>alice@co.com</td><td></td><td>IND</td><td>0.7</td><td>0.05</td></tr>
+          <tr><td><span class="fake-btn secondary">Edit</span></td><td>bob@co.com</td><td></td><td>LEADER</td><td>0.8</td><td>0.06</td></tr>
+        </table>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">
+          <span class="fake-btn secondary">Skip Review &amp; Import</span>
+          <span class="fake-btn primary">Confirm This Sheet ›</span>
+        </div>
+      </div>
+    </div>
+
+    <ul>
+      <li><strong>紅底 Tab</strong> ⚠：該 Sheet 有無效儲存格，需修正後才能 Confirm。</li>
+      <li><strong>Actions 欄</strong>：位於第一欄，Confirm 後消失（Tab 鎖定）。</li>
+      <li><strong>分頁</strong>：每頁顯示 20 筆，可換頁瀏覽。</li>
+      <li><strong>排序</strong>：預設依 Email 升冪排列。</li>
+    </ul>
+
+    <!-- 2.3 Confirm 與匯入 -->
+    <h3 id="upload-confirm">2.3 Confirm 驗證規則</h3>
+    <p>點擊 Confirm 時，系統會重新驗證該 Sheet 所有資料：</p>
+    <table>
+      <tr><th>Sheet</th><th>驗證內容</th></tr>
+      <tr><td>Commission Rate</td><td>格式驗證（數值欄位不含非法字元）</td></tr>
+      <tr><td>Sales ID Config</td><td>Sales ID 必須存在於系統 idmap 中</td></tr>
+      <tr><td>RS</td><td>Report 值 ∈ {SalesByRegion, SalesByProduct, MySalesForce}（含別名）；FOB_Local ∈ {Local, FOB}；Region / Entity / Sector / Prod_Group 值必須在 DB 對應清單內</td></tr>
+      <tr><td>Mapping</td><td>格式驗證</td></tr>
+    </table>
+    <div class="warn"><strong>注意：</strong>Skip Review &amp; Import 按鈕在有任何錯誤時自動 disabled，必須所有 Sheet 無錯誤才能使用。</div>
+
+    <!-- ════════════════════════════════
+         3. Data View 操作流程
+    ════════════════════════════════ -->
+    <h2 id="dv-flow">3. Data View 操作流程</h2>
+
+    <div class="flow-wrap">
+      <div class="flow">
+        <div class="flow-node start">進入 Data View 頁</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node action">選擇 <strong>Year</strong> 與 <strong>Site</strong><small>Site 選完後自動查詢，無需點按鈕</small></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node system">系統載入 5 個 Tab 資料<small>Summary Bar 顯示各類筆數統計</small></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node action">（選用）輸入 Email 關鍵字即時篩選<small>同步過濾全部 5 個 Tab</small></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node check">選擇 Tab：Commission Rate / Sales ID Config / Mapping / RS / Overview</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-branch">
+          <div class="flow-branch-left">
+            <div class="flow-branch-label">Edit（Rate / SID / RS）</div>
+            <div class="flow-node action">修改欄位值 → Save<small>RS 維度欄使用下拉選單</small></div>
+          </div>
+          <div class="flow-branch-right">
+            <div class="flow-branch-label">Delete（全部 Tab）</div>
+            <div class="flow-node error">確認刪除 → 該筆記錄從 DB 移除<small>Mapping 只能刪除，不能 Edit</small></div>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node success">操作完成，資料即時更新</div>
+      </div>
+    </div>
+
+    <!-- 3.1 各 Tab 說明 -->
+    <h3 id="dv-tabs">3.1 各 Tab 說明</h3>
+    <table>
+      <tr><th>Tab</th><th>資料來源</th><th>可執行操作</th><th>備註</th></tr>
+      <tr><td><strong>Commission Rate</strong></td><td>TCP_Sales_TCR_Rate</td><td>Edit / Delete</td><td>顯示完整 CR% 欄位及門檻值</td></tr>
+      <tr><td><strong>Sales ID Config</strong></td><td>TCP_Sales_TCR_SalesIDConfig</td><td>Edit / Delete</td><td>Jan~Dec 以 ✔/○ 圖示顯示啟用狀態</td></tr>
+      <tr><td><strong>Mapping</strong></td><td>TCP_Sales_TCR_Mapping</td><td>Delete only</td><td>觀看權限對應，不支援 Edit</td></tr>
+      <tr><td><strong>RS</strong></td><td>TCP_Sales_RS</td><td>Edit / Delete</td><td>Jan~Dec 以 ✔/○ 圖示顯示</td></tr>
+      <tr><td><strong>Overview</strong></td><td>Rate + Quota（跨庫）</td><td>唯讀</td><td>IND/NOACC/Leader 顯示 Quota Total；RS 顯示 —；可 toggle 月份明細</td></tr>
+    </table>
+
+    <!-- 3.2 Edit/Delete -->
+    <h3 id="dv-edit">3.2 Edit / Delete 操作</h3>
+
+    <div class="screen-box">
+      <div class="screen-title-bar"><span>◉</span> Data View — Sales ID Config Tab</div>
+      <div class="screen-body">
+        <div class="screen-toolbar">
+          <span style="font-size:12px;color:#666;">Year:</span>
+          <span class="fake-select">2026</span>
+          <span style="font-size:12px;color:#666;">Site:</span>
+          <span class="fake-select">ACL</span>
+          <span style="font-size:12px;color:#666;">Email Filter:</span>
+          <input style="border:1px solid #ccc;border-radius:4px;padding:4px 8px;font-size:12px;" placeholder="輸入 Email 篩選..." />
+        </div>
+        <div class="fake-tab-bar">
+          <div class="fake-tab">Commission Rate</div>
+          <div class="fake-tab active">Sales ID Config</div>
+          <div class="fake-tab">Mapping</div>
+          <div class="fake-tab">RS</div>
+          <div class="fake-tab">Overview</div>
+        </div>
+        <table class="fake-table">
+          <tr><th>Actions</th><th>Email</th><th>Sales ID</th><th>Jan</th><th>Feb</th><th>Mar</th><th>...</th><th>Dec</th></tr>
+          <tr><td><span class="fake-btn secondary" style="font-size:10px;">Edit</span> <span class="fake-btn danger" style="font-size:10px;">Del</span></td><td>alice@co.com</td><td>S001</td><td style="color:#22a360;text-align:center">✔</td><td style="color:#22a360;text-align:center">✔</td><td style="color:#ccc;text-align:center">○</td><td>...</td><td style="color:#22a360;text-align:center">✔</td></tr>
+          <tr><td><span class="fake-btn secondary" style="font-size:10px;">Edit</span> <span class="fake-btn danger" style="font-size:10px;">Del</span></td><td>alice@co.com</td><td>S002</td><td style="color:#22a360;text-align:center">✔</td><td style="color:#22a360;text-align:center">✔</td><td style="color:#22a360;text-align:center">✔</td><td>...</td><td style="color:#22a360;text-align:center">✔</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <ul>
+      <li>點擊 <strong>Edit</strong>：該行切換為編輯模式，可修改各欄位值，完成後點 <strong>Save</strong>。</li>
+      <li>點擊 <strong>Delete</strong>：彈出確認對話框，確認後從 DB 刪除該筆記錄（無法還原）。</li>
+      <li>編輯時月份欄（Jan~Dec）顯示為 checkbox，勾選 = 啟用（1），未勾選 = 停用（0）。</li>
+    </ul>
+
+    <!-- 3.3 Overview Tab -->
+    <h3 id="dv-overview">3.3 Overview Tab</h3>
+    <p>Overview Tab 整合 Commission Rate 與 Quota 資料，提供一覽視圖。</p>
+
+    <div class="screen-box">
+      <div class="screen-title-bar"><span>◉</span> Data View — Overview Tab</div>
+      <div class="screen-body">
+        <div class="fake-tab-bar">
+          <div class="fake-tab">Commission Rate</div>
+          <div class="fake-tab">Sales ID Config</div>
+          <div class="fake-tab">Mapping</div>
+          <div class="fake-tab">RS</div>
+          <div class="fake-tab active">Overview</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <span class="fake-btn secondary" style="font-size:11px;">Toggle Monthly Detail</span>
+        </div>
+        <table class="fake-table">
+          <tr><th>Email</th><th>Type</th><th>Group</th><th>Std CR%</th><th>Threshold</th><th>Quota Total</th></tr>
+          <tr><td>alice@co.com</td><td><span class="badge badge-blue">IND</span></td><td></td><td>5%</td><td>70%</td><td style="color:#22a360;font-weight:700;">1,200,000</td></tr>
+          <tr><td>bob@co.com</td><td><span class="badge badge-yellow">LEADER</span></td><td>GroupA</td><td>6%</td><td>80%</td><td style="color:#22a360;font-weight:700;">3,500,000</td></tr>
+          <tr><td>carol@co.com</td><td><span class="badge badge-red">RS</span></td><td></td><td>4%</td><td>60%</td><td style="color:#aaa;">—</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <ul>
+      <li><strong>Quota Total</strong>：IND / NOACC / Leader 顯示從 Quota_Sales_Force 查出的年度 Quota；RS 類型顯示「—」（Quota 來源不同，請至各報表確認）。</li>
+      <li><strong>Toggle Monthly Detail</strong>：點擊可展開/收合每月 CR% 明細欄位。</li>
+      <li>Summary Bar 中點擊 <strong>Overview ›</strong> 可快速跳至此 Tab。</li>
+    </ul>
+
+    <!-- ════════════════════════════════
+         4. Org Hierarchy 操作流程
+    ════════════════════════════════ -->
+    <h2 id="org-flow">4. Org Hierarchy 操作流程</h2>
+
+    <div class="flow-wrap">
+      <div class="flow">
+        <div class="flow-node start">進入 Org Hierarchy 頁</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node action">選擇 <strong>Site</strong><small>選完後自動載入該 Site 的組織樹，無需按載入按鈕</small></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node system">顯示樹狀結構（可展開/收合各節點）</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node check">選擇操作類型</div>
+      </div>
+    </div>
+
+    <table>
+      <tr><th>操作</th><th>說明</th><th>限制</th></tr>
+      <tr><td><strong>Add Root Node</strong></td><td>新增最頂層節點（無父節點）</td><td>–</td></tr>
+      <tr><td><strong>Add Child</strong></td><td>在選取的節點下新增子節點</td><td>–</td></tr>
+      <tr><td><strong>Edit</strong></td><td>修改節點的 Display Name / Role Name / Sort Order</td><td>–</td></tr>
+      <tr><td><strong>Move</strong></td><td>將節點移至不同的父節點下</td><td>不能移到自身的後代節點（防止循環）</td></tr>
+      <tr><td><strong>Delete</strong></td><td>刪除節點</td><td>有子節點時拒絕刪除，須先移除所有子節點</td></tr>
+      <tr><td><strong>View Sales IDs</strong></td><td>查看該節點及其所有子孫節點的業務員 Sales IDs</td><td>–</td></tr>
+    </table>
+
+    <h3 id="org-import">4.1 Excel 批次匯入</h3>
+
+    <ul class="step-list">
+      <li>
+        <div class="step-content">
+          <div class="step-title">下載範本</div>
+          點擊 <strong>Download Template</strong>，系統產生含現有資料的 Excel 範本（可作為基礎修改）。
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <div class="step-title">填寫 Excel</div>
+          必填欄位：Email。選填：Display_Name、Role_Name、Parent_Email（填上一層的 Email；空白 = Root）、Sort_Order。Email 須存在於 EZUser 系統中。
+        </div>
+      </li>
+      <li>
+        <div class="step-content">
+          <div class="step-title">上傳</div>
+          點擊 <strong>Import Excel</strong> 上傳填寫好的檔案，系統依 Email 建立樹狀關係。
+        </div>
+      </li>
+    </ul>
+
+    <div class="note"><strong>Org Hierarchy 無年份概念</strong>：組織樹資料不依年份切換，所有年度共用同一份組織架構。</div>
+
+    <!-- ════════════════════════════════
+         5. Excel 欄位說明
+    ════════════════════════════════ -->
+    <h2 id="field-rate">5.1 Commission Rate — 欄位說明</h2>
+
+    <p>Commission Rate Sheet 使用<strong>雙行表頭</strong>（第一行分組名稱，第二行子欄位名稱）。</p>
+
+    <h4>Commission Type 四種類型</h4>
+    <table>
+      <tr><th>類型</th><th>適用對象</th><th>Sales ID 來源</th><th>需要設定 Sales ID Config？</th></tr>
+      <tr>
+        <td><span class="badge badge-blue">IND</span></td>
+        <td>一般個人業務員</td>
+        <td>系統自動同步（eManager）</td>
+        <td>不需要（自動使用本人 Sales ID）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-green">NOACC</span></td>
+        <td>無個人帳號的業務員，邏輯同 IND</td>
+        <td>系統自動同步（eManager）</td>
+        <td>不需要（但支援 Delta 調整）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-yellow">LEADER</span></td>
+        <td>主管或多 Sales ID 負責人</td>
+        <td>完全依照 Sales ID Config 設定</td>
+        <td><strong>必須設定</strong>（Full-truth 模式）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-red">RS</span></td>
+        <td>Report-based 業務員，依報表維度計算</td>
+        <td>不使用 Sales ID</td>
+        <td>不適用（改設定 RS Sheet）</td>
+      </tr>
+    </table>
+
+    <h4>門檻欄位說明</h4>
+    <table>
+      <tr><th>欄位</th><th>說明</th><th>填寫格式</th></tr>
+      <tr><td>Achievement Rate Threshold</td><td>年度累積達成率門檻，達到才套用 Standard CR%</td><td>小數，e.g. <code>0.7</code> = 70%</td></tr>
+      <tr><td>Achievement Rate Threshold(Monthly)</td><td>月度達成率門檻，啟用 Monthly CR% 的前提</td><td>同上；<strong>與 Monthly CR%.Commission Rate 同時填才生效</strong></td></tr>
+      <tr><td>GP</td><td>毛利率門檻（視業務邏輯使用）</td><td>小數；選填</td></tr>
+    </table>
+
+    <h4>CR% 欄位結構</h4>
+    <table>
+      <tr><th>區塊</th><th>欄位</th><th>說明</th></tr>
+      <tr><td rowspan="2">Standard CR%</td><td>Commission Rate</td><td>全年預設值，當月無個別設定時沿用</td></tr>
+      <tr><td>Jan ~ Dec</td><td>各月份個別覆蓋值，留空 = 沿用 Commission Rate</td></tr>
+      <tr><td rowspan="2">Monthly CR%</td><td>Commission Rate</td><td>未達月門檻時的預設費率</td></tr>
+      <tr><td>Jan ~ Dec</td><td>各月份個別覆蓋值，留空 = 沿用 Monthly Commission Rate</td></tr>
+    </table>
+
+    <div class="warn"><strong>Monthly CR% 注意：</strong>Achievement Rate Threshold(Monthly) 和 Monthly CR%.Commission Rate 必須<strong>同時填寫</strong>，任一留空則整個 Monthly CR% 區塊不儲存。</div>
+
+    <!-- 5.2 Sales ID Config -->
+    <h2 id="field-sid">5.2 Sales ID Config — 欄位說明與匯入邏輯</h2>
+
+    <p>Jan~Dec 欄位代表該 Sales ID 在該月是否啟用計算業績（isActive）：<code>1</code> 或任意非空值 = 啟用；<code>0</code> 或留空 = 停用。</p>
+
+    <h4>匯入邏輯依 Commission Type 不同</h4>
+    <table>
+      <tr><th>Commission Type</th><th>情況</th><th>動作</th></tr>
+      <tr>
+        <td rowspan="3"><span class="badge badge-blue">IND</span> / <span class="badge badge-green">NOACC</span><br><small>Delta 模式</small></td>
+        <td>該 Email 出現，至少一月 = 1</td><td>INSERT / UPDATE 該 Sales_Id</td>
+      </tr>
+      <tr><td>該 Email 出現，所有月份空白</td><td>DELETE 該 Sales_Id（表示要移除）</td></tr>
+      <tr><td>該 Email 未出現在 Sheet</td><td>不動（系統 Job 維護基底，不受影響）</td></tr>
+      <tr>
+        <td rowspan="3"><span class="badge badge-yellow">LEADER</span><br><small>Full-truth 模式</small></td>
+        <td>該 Email 出現，至少一月 = 1</td><td>INSERT / UPDATE 該 Sales_Id</td>
+      </tr>
+      <tr><td>該 Email 出現，所有月份空白</td><td>IGNORE（忽略，不刪不改）</td></tr>
+      <tr><td>該 Email 未出現在 Sheet</td><td>DELETE 該 Email 所有舊有 Sales_Id</td></tr>
+    </table>
+
+    <div class="tip"><strong>實務建議：</strong>LEADER 類型每次上傳，等同重新宣告所有有效 Sales ID；未列出的會被刪除。確保每次都帶完整清單。</div>
+
+    <h4>常見情境</h4>
+    <table>
+      <tr><th>情境</th><th>設定方式</th></tr>
+      <tr><td>全年啟用</td><td>Jan~Dec 全填 <code>1</code></td></tr>
+      <tr><td>下半年才啟用</td><td>Jan~Jun 填 <code>0</code>，Jul~Dec 填 <code>1</code></td></tr>
+      <tr><td>7月換新 Sales ID</td><td>舊 Sales ID：Jan~Jun 填 <code>1</code>，Jul~Dec 填 <code>0</code>；新 Sales ID：Jan~Jun 填 <code>0</code>，Jul~Dec 填 <code>1</code></td></tr>
+      <tr><td>IND 要移除某 Sales ID</td><td>填一行該 Sales ID，Jan~Dec 全空白（觸發 DELETE）</td></tr>
+    </table>
+
+    <!-- 5.3 RS -->
+    <h2 id="field-rs">5.3 RS — 欄位說明與驗證規則</h2>
+
+    <p>RS Sheet 設定 RS 類型業務員的業績計算維度，每行代表一組篩選條件組合。</p>
+
+    <h4>欄位說明</h4>
+    <table>
+      <tr><th>欄位</th><th>說明</th><th>備註</th></tr>
+      <tr><td>Email</td><td>業務員 Email</td><td>必填</td></tr>
+      <tr><td>Group Name</td><td>對應 Commission Rate 的群組</td><td>選填</td></tr>
+      <tr><td>Report</td><td>報表類型</td><td>見下方別名表，系統自動正規化</td></tr>
+      <tr><td>FOB_Local</td><td>交貨方式</td><td><code>Local</code> 或 <code>FOB</code></td></tr>
+      <tr><td>Region</td><td>業務負責區域</td><td>值須存在於對應報表的 DB 清單</td></tr>
+      <tr><td>Entity</td><td>法人實體別</td><td>同上</td></tr>
+      <tr><td>Sector</td><td>產業別</td><td>同上</td></tr>
+      <tr><td>Prod_Group</td><td>產品群組</td><td>同上</td></tr>
+      <tr><td>Jan ~ Dec</td><td>各月是否啟用此條件（isActive）</td><td><code>1</code>=啟用，<code>0</code>/空白=停用</td></tr>
+    </table>
+
+    <h4>Report 欄位別名（不分大小寫）</h4>
+    <table>
+      <tr><th>接受輸入</th><th>正規化標準值</th><th>對應資料表</th></tr>
+      <tr><td>Region / Sales by Region / SalesByRegion</td><td><code>SalesByRegion</code></td><td>Sales_Sector</td></tr>
+      <tr><td>Product / Sales by Product / SalesByProduct</td><td><code>SalesByProduct</code></td><td>SALES_PRODUCT</td></tr>
+      <tr><td>My Sales Force / MySalesForce</td><td><code>MySalesForce</code></td><td>SALES_FORCE</td></tr>
+    </table>
+
+    <div class="note"><strong>上傳驗證：</strong>ParsePreview 時系統會確認 Report、FOB_Local 值是否合法，以及 Region/Entity/Sector/Prod_Group 是否存在於對應資料表。不合法的值以紅底標記，必須修正後才能 Confirm。</div>
+
+    <!-- 5.4 Mapping -->
+    <h2 id="field-mapping">5.4 Mapping — 欄位說明</h2>
+
+    <p>設定<strong>業績觀看權限</strong>：誰可以看到誰的業績資料（與管理階層無關）。</p>
+    <table>
+      <tr><th>欄位</th><th>說明</th><th>範例</th></tr>
+      <tr><td>Email</td><td>觀看者（要開放觀看權限的人）</td><td>manager@co.com</td></tr>
+      <tr><td>Sales Email</td><td>被觀看的業務員 Email</td><td>sales@co.com</td></tr>
+    </table>
+
+    <div class="tip"><strong>範例：</strong>主管 A 要看業務員 B 和 C → 填兩行：Email = A，Sales Email 分別填 B、C。</div>
+    <div class="warn"><strong>移除觀看權限：</strong>系統匯入只做 UPSERT，不會自動刪除舊記錄。若需移除特定筆，請至 <strong>Data View → Mapping Tab</strong> 逐筆 Delete，或於下次上傳後在 Upload History 刪除整批再重傳。</div>
+
+    <!-- 5.5 Group Name -->
+    <h2 id="field-groupname">5.5 Group Name — 多重計算方式</h2>
+
+    <p>Group Name 是讓同一位業務員支援多種獎金計算方式的關聯鍵。Commission Rate、Sales ID Config、RS 三張 Sheet 透過 <code>Email + Group Name</code> 做對應。</p>
+
+    <table>
+      <tr><th>情境</th><th>設定方式</th></tr>
+      <tr><td>業務員只有一種計算方式</td><td>Group Name 留空即可</td></tr>
+      <tr><td>業務員有兩種計算方式</td><td>Commission Rate 填兩行，Group Name 分別填不同名稱（e.g. <code>GroupA</code> / <code>GroupB</code>）；Sales ID Config 對應各自 Group Name 分配 Sales ID</td></tr>
+    </table>
+
+    <div class="warn"><strong>注意：</strong>三張 Sheet 中填入的 Group Name 必須<strong>完全一致</strong>（區分大小寫），否則系統無法正確對應。建議統一使用簡短的英文命名，例如 <code>CR9</code>、<code>TW</code>、<code>ProductA</code>。</div>
+
+    <h4>範例：業務員負責 5 個 Sales ID，2 個 CR% 9%，3 個 CR% 4%</h4>
+    <p><strong>Commission Rate sheet：</strong></p>
+    <table>
+      <tr><th>Email</th><th>Group Name</th><th>Type</th><th>Threshold</th><th>Std CR%</th></tr>
+      <tr><td>john@co.com</td><td>CR9</td><td>LEADER</td><td>0.8</td><td>0.09</td></tr>
+      <tr><td>john@co.com</td><td>CR4</td><td>LEADER</td><td>0.6</td><td>0.04</td></tr>
+    </table>
+    <p><strong>Sales ID Config sheet：</strong></p>
+    <table>
+      <tr><th>Email</th><th>Group Name</th><th>Sales ID</th><th>Jan~Dec</th></tr>
+      <tr><td>john@co.com</td><td>CR9</td><td>S001</td><td>全填 1</td></tr>
+      <tr><td>john@co.com</td><td>CR9</td><td>S002</td><td>全填 1</td></tr>
+      <tr><td>john@co.com</td><td>CR4</td><td>S003</td><td>全填 1</td></tr>
+      <tr><td>john@co.com</td><td>CR4</td><td>S004</td><td>全填 1</td></tr>
+      <tr><td>john@co.com</td><td>CR4</td><td>S005</td><td>全填 1</td></tr>
+    </table>
+
+  </div><!-- /container -->
+</div><!-- /main-wrapper -->
+
+<script>
+(function () {
+  var body = document.body;
+  var toggle = document.getElementById('sidebar-toggle');
+  var KEY = 'tcp-guide-sidebar';
+  if (localStorage.getItem(KEY) === '1') { body.classList.add('sidebar-collapsed'); toggle.innerHTML = '&#9776;'; }
+  else { toggle.innerHTML = '&#10005;'; }
+  toggle.addEventListener('click', function () {
+    var c = body.classList.toggle('sidebar-collapsed');
+    toggle.innerHTML = c ? '&#9776;' : '&#10005;';
+    localStorage.setItem(KEY, c ? '1' : '0');
+  });
+  var links = document.querySelectorAll('#sidebar .sidebar-nav a[href^="#"]');
+  var sections = [];
+  links.forEach(function (a) {
+    var id = a.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if (el) sections.push({ el: el, a: a });
+  });
+  function onScroll() {
+    var y = window.scrollY + 80;
+    var cur = sections[0];
+    for (var i = 0; i < sections.length; i++) { if (sections[i].el.offsetTop <= y) cur = sections[i]; }
+    links.forEach(function (a) { a.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>

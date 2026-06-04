@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TCP Platform 系統架構文件</title>
+<style>
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; padding: 0; background: #f5f7fa; color: #222; }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 260px;
+    height: 100vh;
+    background: #00315a;
+    color: #e8f0f8;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.28s ease;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  body.sidebar-collapsed #sidebar { width: 0; }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: #2a6096; border-radius: 2px; }
+
+  .sidebar-inner { min-width: 260px; padding: 0 0 40px; }
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 16px 14px;
+    border-bottom: 1px solid #1a4a6e;
+    white-space: nowrap;
+  }
+  .sidebar-brand-icon {
+    width: 30px; height: 30px;
+    background: #fff;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sidebar-brand-icon svg { width: 18px; height: 18px; }
+  .sidebar-brand-text { font-size: 13px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .sidebar-brand-sub  { font-size: 10px; color: #7ab0d4; font-weight: 400; }
+
+  .sidebar-nav { padding: 12px 0; }
+  .sidebar-nav a {
+    display: block;
+    padding: 6px 16px 6px 20px;
+    font-size: 13px;
+    color: #b8d4ea;
+    text-decoration: none;
+    white-space: nowrap;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    line-height: 1.5;
+  }
+  .sidebar-nav a:hover { background: #1a4a6e; color: #fff; }
+  .sidebar-nav a.active { background: #1a4a6e; color: #fff; border-left-color: #5bb0e8; }
+  .sidebar-nav .nav-section {
+    padding: 10px 16px 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5a8aaa;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .sidebar-nav .nav-sub { padding-left: 32px; font-size: 12px; }
+
+  /* ── Toggle Button ── */
+  #sidebar-toggle {
+    position: fixed;
+    top: 14px;
+    left: 268px;
+    z-index: 1001;
+    background: #00467f;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    width: 30px; height: 30px;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    transition: left 0.28s ease, background 0.15s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    line-height: 1;
+  }
+  #sidebar-toggle:hover { background: #0059a0; }
+  body.sidebar-collapsed #sidebar-toggle { left: 8px; }
+
+  /* ── Main Wrapper ── */
+  #main-wrapper {
+    margin-left: 260px;
+    transition: margin-left 0.28s ease;
+    min-width: 0;
+  }
+  body.sidebar-collapsed #main-wrapper { margin-left: 0; }
+
+  /* ── Header ── */
+  .header { background: #00467f; color: #fff; padding: 16px 48px 14px 58px; }
+  body.sidebar-collapsed .header { padding-left: 52px; }
+  .header h1 { margin: 0 0 4px; font-size: 22px; }
+  .header p  { margin: 0; font-size: 12px; opacity: 0.8; }
+
+  /* ── Content ── */
+  .container { max-width: 1060px; margin: 28px auto; padding: 0 24px 60px; }
+  h2 { color: #00467f; border-bottom: 2px solid #00467f; padding-bottom: 6px; margin-top: 48px; font-size: 20px; scroll-margin-top: 20px; }
+  h3 { color: #1a5276; margin-top: 28px; font-size: 16px; scroll-margin-top: 20px; }
+  h4 { color: #555; margin-top: 18px; font-size: 14px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 20px; font-size: 13px; }
+  th { background: #00467f; color: #fff; padding: 7px 12px; text-align: left; white-space: nowrap; }
+  td { border: 1px solid #d5dce8; padding: 6px 12px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0f4fa; }
+  code { background: #eef2f8; border-radius: 3px; padding: 1px 5px; font-size: 12px; font-family: Consolas, monospace; }
+  pre  { background: #1e2a38; color: #cce; border-radius: 6px; padding: 16px 20px; font-size: 12px; overflow-x: auto; line-height: 1.6; }
+  .badge { display: inline-block; border-radius: 3px; padding: 1px 8px; font-size: 11px; font-weight: bold; margin-right: 4px; }
+  .badge-green  { background: #d4edda; color: #155724; }
+  .badge-blue   { background: #d0e8ff; color: #004080; }
+  .badge-yellow { background: #fff3cd; color: #856404; }
+  .badge-red    { background: #f8d7da; color: #721c24; }
+  .badge-gray   { background: #e9ecef; color: #495057; }
+  .note { background: #fff8e1; border-left: 4px solid #f0ad4e; padding: 10px 16px; margin: 14px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
+  .info { background: #e8f4fd; border-left: 4px solid #2980b9; padding: 10px 16px; margin: 14px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
+  ul li { margin-bottom: 4px; }
+  .meta { font-size: 12px; color: #888; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<div id="sidebar">
+  <div class="sidebar-inner">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#00467f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+      </div>
+      <div>
+        <div class="sidebar-brand-text">TCP Platform</div>
+        <div class="sidebar-brand-sub">系統架構文件 v2.0</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <a href="#overview">1. 系統概覽</a>
+      <a href="#tech">2. 技術棧與架構分層</a>
+
+      <div class="nav-section">功能模組</div>
+      <a href="#modules">3. 功能模組</a>
+      <a href="#upload" class="nav-sub">3.1 Upload</a>
+      <a href="#orghierarchy" class="nav-sub">3.2 Org Hierarchy</a>
+      <a href="#dataview" class="nav-sub">3.3 Data View</a>
+
+      <div class="nav-section">資料 &amp; 邏輯</div>
+      <a href="#datamodel">4. 資料模型 (DB Tables)</a>
+      <a href="#commission-types">5. Commission Type</a>
+      <a href="#salesid-logic">6. Sales_ID_Config 邏輯</a>
+      <a href="#rs-alias">7. RS Report 別名系統</a>
+      <a href="#cell-errors">8. CellErrors 驗證機制</a>
+
+      <div class="nav-section">規格 &amp; 建置</div>
+      <a href="#template">9. Upload Template 規格</a>
+      <a href="#ui-conventions">10. UI 開發慣例</a>
+      <a href="#migration">11. DB Migration 腳本</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ══════════════ TOGGLE ══════════════ -->
+<button id="sidebar-toggle" title="展開/收縮目錄">&#9776;</button>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<div id="main-wrapper">
+
+  <div class="header">
+    <h1>TCP Platform — 系統架構文件</h1>
+    <p>版本: v2.0 &nbsp;|&nbsp; 更新日期: 2026-05-25 &nbsp;|&nbsp; 適用專案: eManagerCoreAdmin (TcpPlatform branch)</p>
+  </div>
+
+  <div class="container">
+
+    <!-- ============================================================ -->
+    <h2 id="overview">1. 系統概覽</h2>
+
+    <p>TCP Platform 是 eManagerCoreAdmin 後台系統中的 TCP 獎金平台管理模組，提供以下功能：</p>
+    <ul>
+      <li><strong>Upload</strong>：上傳年度業務員設定 Excel，包含 Commission Rate、Sales ID Config、RS、Mapping 四個 Sheet。支援預覽編輯、逐 Sheet Confirm、Cell Error 紅底高亮。</li>
+      <li><strong>Org Hierarchy</strong>：管理業務組織樹狀結構，支援新增/編輯/刪除/移動節點，及 Excel 批次匯入。</li>
+      <li><strong>Data View</strong>：以 Year + Site 查詢目前 DB 中的設定資料，提供 5 個 Tab（Commission Rate / Sales ID Config / Mapping / RS / Overview），支援 Edit / Delete 操作及 Quota 整合顯示。</li>
+      <li><strong>Incentive &amp; Penalty</strong>（規劃中）：激勵與懲罰設定。</li>
+      <li><strong>Manual Adjustment</strong>（規劃中）：人工調整。</li>
+    </ul>
+    <p>入口頁面：<code>/Admin/TcpPlatform</code></p>
+
+    <!-- ============================================================ -->
+    <h2 id="tech">2. 技術棧與架構分層</h2>
+
+    <table>
+      <tr><th>層次</th><th>技術 / 框架</th><th>說明</th></tr>
+      <tr><td>Web Framework</td><td>ASP.NET Core 3.1 MVC</td><td>Razor Views，RuntimeCompilation 啟用（開發模式下免重啟）</td></tr>
+      <tr><td>ORM / DB</td><td>Dapper + SQL Server</td><td>透過 IMFGDatabaseHelper 取得 IDbConnection，依 yearId 選擇 DB</td></tr>
+      <tr><td>Excel 讀取</td><td>ExcelDataReader</td><td>ParsePreview / Import 解析 .xls/.xlsx/.xlsm/.xlsb</td></tr>
+      <tr><td>Excel 寫出</td><td>EPPlus 7.0.9 (NonCommercial)</td><td>GetTemplate / GetImportTemplate 產生 .xlsx 範本</td></tr>
+      <tr><td>前端框架</td><td>Bootstrap 4 + jQuery + Font Awesome 4</td><td>Kendo UI 用於部分元件</td></tr>
+      <tr><td>DI 容器</td><td>ASP.NET Core 內建 DI</td><td>Startup.cs 中以 AddScoped 註冊 Repository 與 Service</td></tr>
+    </table>
+
+    <h3>檔案目錄結構（TCP 相關）</h3>
+    <pre>
+eManagerCoreAdmin.Models/
+  DataModels/Tcp/
+    TCP_Upload_Log.cs
+    TCP_Sales_TCR_Rate.cs
+    TCP_Sales_TCR_SalesIDConfig.cs
+    TCP_Sales_TCR_Mapping.cs
+    TCP_Sales_RS.cs
+    TCP_Sales_Org_Node.cs
+  DTO/Tcp/
+    TcpUploadDto.cs       (Preview / Import / DataView / Quota DTOs)
+    TcpOrgDto.cs          (Org tree / upsert / move DTOs)
+
+eManagerCoreAdmin.DataAccess/Repository/Tcp/
+  ITcpUploadRepository.cs / TcpUploadRepository.cs
+  ITcpOrgRepository.cs   / TcpOrgRepository.cs
+
+eManagerCoreAdmin.Service/Service/Tcp/
+  ITcpUploadService.cs   / TcpUploadService.cs
+  ITcpOrgService.cs      / TcpOrgService.cs
+
+eManagerCoreAdmin/Areas/Admin/
+  Controllers/TcpPlatform/TcpPlatformController.cs   (Page Controller)
+  Controllers/Api/TcpUploadController.cs             (API Controller — Upload + DataView)
+  Controllers/Api/TcpOrgController.cs                (API Controller)
+  Views/TcpPlatform/
+    Index.cshtml           (Overview 卡片頁)
+    Upload.cshtml          (Upload 頁)
+    OrgHierarchy.cshtml    (Org Hierarchy 頁)
+    DataView.cshtml        (Data View 頁)
+
+wwwroot/js/
+  TcpUpload/Index.js      (Upload 頁前端邏輯)
+  TcpOrg/Index.js         (Org Hierarchy 頁前端邏輯)
+  TcpDataView/Index.js    (Data View 頁前端邏輯)
+    </pre>
+
+    <!-- ============================================================ -->
+    <h2 id="modules">3. 功能模組</h2>
+
+    <h3 id="upload">3.1 Upload — 設定檔上傳</h3>
+
+    <h4>流程說明</h4>
+    <ol>
+      <li>使用者選擇 <strong>Year</strong>（下拉，當年 ± 上一年 1-3月 / 下一年 10-12月）與 <strong>Site</strong>（從 DB 動態載入）。</li>
+      <li>拖放或點擊 Drop Zone 選擇 Excel 檔案，前端呼叫 <code>POST /api/TcpUpload/ParsePreview</code>。</li>
+      <li>Server 解析並回傳各 Sheet 預覽資料（不寫 DB）；回傳包含 <code>CellErrors</code> 清單，前端標記紅底錯誤儲存格、Tab 驚嘆號 icon。</li>
+      <li>使用者可在預覽中編輯資料列（依欄位型別顯示不同輸入控制項）。RS Sheet 的 Report / FOB_Local 使用靜態 select；Region / Entity / Sector / Prod_Group 使用動態 select（選項來自 <code>GetRsOptions</code> 快取）。</li>
+      <li>逐一 Confirm 每個 Sheet 前先執行 <code>validateSheetBeforeConfirm()</code> 重驗，有錯誤則阻擋。Confirm 後 Tab 鎖定、隱藏 Actions 欄。</li>
+      <li>全部確認後，或點擊 <strong>Skip Review &amp; Import</strong>（需無錯誤），前端呼叫 <code>POST /api/TcpUpload/ImportFromPreview</code> 寫入 DB。</li>
+      <li>上傳紀錄可在 <strong>Upload History</strong> Modal 查看，支援按 YearId + Site 篩選及刪除。</li>
+    </ol>
+
+    <h4>API 端點（Upload）</h4>
+    <table>
+      <tr><th>Method</th><th>路徑</th><th>說明</th></tr>
+      <tr><td>GET</td><td>/api/TcpUpload/GetSites?yearId={y}</td><td>取得 Site 清單（來自 TCP_Site 表）</td></tr>
+      <tr><td>POST</td><td>/api/TcpUpload/ParsePreview</td><td>解析 Excel，回傳預覽（不寫 DB）；含 Sales ID 驗證、CellErrors</td></tr>
+      <tr><td>POST</td><td>/api/TcpUpload/Import</td><td>直接從檔案匯入（不經預覽）</td></tr>
+      <tr><td>POST</td><td>/api/TcpUpload/ImportFromPreview</td><td>從前端編輯後的預覽資料匯入；type-aware SalesIDConfig 邏輯</td></tr>
+      <tr><td>GET</td><td>/api/TcpUpload/GetLogs?yearId={y}&amp;site={s}</td><td>取得上傳紀錄列表</td></tr>
+      <tr><td>GET</td><td>/api/TcpUpload/GetTemplate</td><td>下載標準上傳範本 .xlsx</td></tr>
+      <tr><td>DELETE</td><td>/api/TcpUpload/DeleteLog/{logId}?yearId={y}</td><td>刪除上傳紀錄及所有關聯明細（Rate/SalesIDConfig/Mapping/RS）</td></tr>
+      <tr><td>GET</td><td>/api/TcpUpload/GetRsOptions?yearId={y}&amp;report={r}</td><td>取得指定 Report 的維度選項清單（供 RS Edit Dropdown 使用）</td></tr>
+    </table>
+
+    <h4>Sheet 識別（SheetAliases）</h4>
+    <table>
+      <tr><th>Excel Sheet 名稱（不分大小寫）</th><th>系統識別名稱</th></tr>
+      <tr><td>Commission Rate</td><td>Commission_Rate</td></tr>
+      <tr><td>Sales ID Config</td><td>Sales_ID_Config</td></tr>
+      <tr><td>Mapping</td><td>Mapping</td></tr>
+      <tr><td>RS</td><td>RS</td></tr>
+    </table>
+
+    <h4>Commission Rate Sheet — 雙行表頭解析</h4>
+    <p>Commission Rate Sheet 使用兩行表頭（第 1 行為分組名稱，第 2 行為子欄位名稱）。解析後欄位名稱格式為 <code>GroupName.SubName</code>，例如：</p>
+    <ul>
+      <li><code>Standard CR%.Commission Rate</code></li>
+      <li><code>Standard CR%.Jan</code> ~ <code>Standard CR%.Dec</code></li>
+      <li><code>Monthly CR%.Commission Rate</code></li>
+      <li><code>Monthly CR%.Jan</code> ~ <code>Monthly CR%.Dec</code></li>
+    </ul>
+    <p>單獨欄位（Site、Email、Group Name 等）直接使用第 1 行名稱。</p>
+
+    <h4>前端編輯欄位型別對應（buildCellInput）</h4>
+    <table>
+      <tr><th>欄位條件</th><th>輸入控制項</th></tr>
+      <tr><td>Commission Type</td><td><code>&lt;select&gt;</code>：IND / NOACC / Leader / RS</td></tr>
+      <tr><td>欄名符合 <code>GroupName.Jan</code> 等月份子欄，或 <code>.Commission Rate</code></td><td><code>&lt;input type="number"&gt;</code>（CR% 數值）</td></tr>
+      <tr><td>純月份欄位（Jan~Dec，Sales ID Config / RS 的 isActive）</td><td><code>&lt;input type="checkbox"&gt;</code></td></tr>
+      <tr><td>GP 或含 threshold 字樣的欄位</td><td><code>&lt;input type="number"&gt;</code></td></tr>
+      <tr><td>RS Sheet — Report</td><td><code>&lt;select&gt;</code> 靜態：SalesByRegion / SalesByProduct / MySalesForce</td></tr>
+      <tr><td>RS Sheet — FOB_Local</td><td><code>&lt;select&gt;</code> 靜態：Local / FOB</td></tr>
+      <tr><td>RS Sheet — Region / Entity / Sector / Prod_Group</td><td><code>&lt;select&gt;</code> 動態（來自 rsOptions 快取，依目前 Report 過濾）；Report 切換時自動重建</td></tr>
+      <tr><td>Site 欄位</td><td>唯讀文字 + hidden input 保留原值</td></tr>
+      <tr><td>其餘</td><td><code>&lt;input type="text"&gt;</code></td></tr>
+    </table>
+
+    <div class="note">Checkbox 儲存時，勾選 → "1"，未勾選 → ""（空字串）。isActive 月份欄位在 View mode 以 ✔ / ○ 圖示顯示，不顯示原始 1/0 文字。</div>
+
+    <h4>Preview Table 完整功能</h4>
+    <table>
+      <tr><th>功能</th><th>說明</th></tr>
+      <tr><td>Drop Zone</td><td>拖放或點擊選檔，自動呼叫 ParsePreview</td></tr>
+      <tr><td>ParsePreview Loading</td><td>全頁灰底 overlay（pageLoadingOverlay）顯示 "Parsing file..."</td></tr>
+      <tr><td>Preview Tab</td><td>每個 Sheet 一個 Tab，可分頁（PAGE_SIZE=20）</td></tr>
+      <tr><td>欄位排序</td><td>Preview 預設依 Email 欄 ascending 排序</td></tr>
+      <tr><td>Cell Error 紅底</td><td>cellErrorMap 比對，<code>.cell-error { background:#dc3545; color:#fff; }</code></td></tr>
+      <tr><td>Tab Error Icon</td><td>sheetsWithErrors 判斷，Tab 前置 <code>fa-exclamation-circle</code>（font-size:135%）</td></tr>
+      <tr><td>Row Hover</td><td><code>tbody tr:hover td { background: #dce8f8; }</code></td></tr>
+      <tr><td>Actions 欄</td><td>位於第一欄，包含 Edit / Delete 按鈕</td></tr>
+      <tr><td>Confirm Tab</td><td>先呼叫 validateSheetBeforeConfirm()，有錯誤則阻擋；Confirm 後 confirmedTabs[tabId]=true</td></tr>
+      <tr><td>Sheet 鎖定</td><td>Confirm 後 buildDataTable(locked=true) 隱藏 Actions 欄</td></tr>
+      <tr><td>Import Ready Bar</td><td>全部確認後，卡片底部出現綠色大按鈕（pulse 動畫）</td></tr>
+      <tr><td>Skip Review</td><td>有錯誤時 disabled；無錯誤時可跳過，彈出 Modal 確認</td></tr>
+      <tr><td>Auto-jump</td><td>Confirm 後自動跳到第一個未確認的 Tab</td></tr>
+      <tr><td>Upload History</td><td>Modal 顯示上傳記錄，支援刪除整批</td></tr>
+    </table>
+
+    <!-- ============================================================ -->
+    <h3 id="orghierarchy">3.2 Org Hierarchy — 組織樹管理</h3>
+
+    <h4>功能說明</h4>
+    <ul>
+      <li>樹狀結構以 <code>TCP_Sales_Org_Node</code> 自我參照（<code>Parent_Id</code>）儲存。</li>
+      <li>操作：新增 Root Node、新增子節點、編輯節點、刪除（不可刪有子節點）、移動節點（防止移到自身後代）。</li>
+      <li>查看節點下所有 Sales IDs（<code>GetDescendantSalesIds</code>）。</li>
+      <li>Excel 批次匯入：下載範本（含現有資料）→ 填寫 → 上傳替換或補充。</li>
+      <li><strong>無年份概念</strong>：Controller 固定使用 <code>DateTime.Now.Year</code>，不需使用者選擇年度。</li>
+      <li><strong>Site 自動載入</strong>：切換 Site 下拉後自動呼叫 GetTree，無需按 Load 按鈕。</li>
+    </ul>
+
+    <h4>API 端點</h4>
+    <table>
+      <tr><th>Method</th><th>路徑</th><th>說明</th></tr>
+      <tr><td>GET</td><td>/api/TcpOrg/GetTree?site={s}</td><td>取得樹狀結構（遞迴組成，回傳 children 巢狀 JSON）</td></tr>
+      <tr><td>POST</td><td>/api/TcpOrg/AddNode</td><td>新增節點</td></tr>
+      <tr><td>PUT</td><td>/api/TcpOrg/UpdateNode</td><td>更新節點</td></tr>
+      <tr><td>PUT</td><td>/api/TcpOrg/MoveNode</td><td>移動節點（含防循環驗證）</td></tr>
+      <tr><td>DELETE</td><td>/api/TcpOrg/Delete/{id}</td><td>刪除節點（有子節點時拒絕）</td></tr>
+      <tr><td>GET</td><td>/api/TcpOrg/GetDescendantSalesIds/{id}</td><td>取得子樹所有成員的 Sales IDs</td></tr>
+      <tr><td>GET</td><td>/api/TcpOrg/DownloadTemplate?site={s}</td><td>下載 Excel 範本（含現有資料）</td></tr>
+      <tr><td>POST</td><td>/api/TcpOrg/Import</td><td>批次匯入 Excel</td></tr>
+      <tr><td>GET</td><td>/api/TcpOrg/SearchEmployees?keyword={k}</td><td>搜尋員工（EZUser），keyword ≥ 2 字元</td></tr>
+    </table>
+
+    <h4>Excel 匯入欄位</h4>
+    <table>
+      <tr><th>欄位</th><th>說明</th></tr>
+      <tr><td>Email*</td><td>必填，須存在於 EZUser 系統</td></tr>
+      <tr><td>Display_Name</td><td>顯示名稱</td></tr>
+      <tr><td>Role_Name</td><td>角色名稱（e.g. Leader / Member）</td></tr>
+      <tr><td>Parent_Email</td><td>父節點 Email，須在同一檔案中，空值 = Root</td></tr>
+      <tr><td>Sort_Order</td><td>排序序號</td></tr>
+    </table>
+
+    <!-- ============================================================ -->
+    <h3 id="dataview">3.3 Data View — 資料檢視與維護</h3>
+
+    <h4>功能說明</h4>
+    <p>Data View 頁面讓管理員直接查詢並維護 DB 中的設定資料，不需重新上傳整份 Excel。</p>
+    <ul>
+      <li><strong>Year 下拉</strong>：與 Upload 一致（當年 ± 上一年 1-3月 / 下一年 10-12月）。</li>
+      <li><strong>Site 必選</strong>：選完 Site 自動觸發 Search，不需按按鈕。</li>
+      <li><strong>Email Filter</strong>：Search 後出現，client-side 即時篩選，同步過濾全部 5 個 Tab。</li>
+      <li><strong>Summary Bar</strong>：顯示人數 · Rate/SID/Mapping/RS 各筆數；點 "Overview ›" 跳到 Overview Tab。</li>
+    </ul>
+
+    <h4>5 個 Tab</h4>
+    <table>
+      <tr><th>Tab</th><th>資料來源</th><th>操作</th><th>說明</th></tr>
+      <tr><td>Commission Rate</td><td>TCP_Sales_TCR_Rate</td><td>Edit / Delete</td><td>顯示完整 CR% 欄位</td></tr>
+      <tr><td>Sales ID Config</td><td>TCP_Sales_TCR_SalesIDConfig</td><td>Edit / Delete</td><td>Jan~Dec 顯示 ✔/○ 月份圖示</td></tr>
+      <tr><td>Mapping</td><td>TCP_Sales_TCR_Mapping</td><td>Delete only</td><td>主管 ↔ 下屬對應關係</td></tr>
+      <tr><td>RS</td><td>TCP_Sales_RS</td><td>Edit / Delete</td><td>Jan~Dec 顯示 ✔/○ 月份圖示</td></tr>
+      <tr><td>Overview</td><td>Rate + Quota（跨庫整合）</td><td>唯讀</td><td>Rate 橫向整合 Quota，預設隱藏月份明細，可 toggle；IND/NOACC/Leader 顯示 Quota Total，RS 顯示 —</td></tr>
+    </table>
+
+    <h4>API 端點（DataView）</h4>
+    <table>
+      <tr><th>Method</th><th>路徑</th><th>說明</th></tr>
+      <tr><td>GET</td><td>/api/TcpUpload/DataView/Rate?yearId={y}&amp;site={s}</td><td>查詢 Commission Rate 清單</td></tr>
+      <tr><td>PUT</td><td>/api/TcpUpload/DataView/Rate</td><td>更新單筆 Rate</td></tr>
+      <tr><td>DELETE</td><td>/api/TcpUpload/DataView/Rate/{id}?yearId={y}</td><td>刪除單筆 Rate</td></tr>
+      <tr><td>GET</td><td>/api/TcpUpload/DataView/SalesIDConfig?yearId={y}&amp;site={s}</td><td>查詢 SalesIDConfig 清單</td></tr>
+      <tr><td>PUT</td><td>/api/TcpUpload/DataView/SalesIDConfig</td><td>更新單筆 SalesIDConfig</td></tr>
+      <tr><td>DELETE</td><td>/api/TcpUpload/DataView/SalesIDConfig/{id}?yearId={y}</td><td>刪除單筆 SalesIDConfig</td></tr>
+      <tr><td>GET</td><td>/api/TcpUpload/DataView/Mapping?yearId={y}&amp;site={s}</td><td>查詢 Mapping 清單</td></tr>
+      <tr><td>DELETE</td><td>/api/TcpUpload/DataView/Mapping/{id}?yearId={y}</td><td>刪除單筆 Mapping</td></tr>
+      <tr><td>GET</td><td>/api/TcpUpload/DataView/RS?yearId={y}&amp;site={s}</td><td>查詢 RS 清單</td></tr>
+      <tr><td>PUT</td><td>/api/TcpUpload/DataView/RS</td><td>更新單筆 RS</td></tr>
+      <tr><td>DELETE</td><td>/api/TcpUpload/DataView/RS/{id}?yearId={y}</td><td>刪除單筆 RS</td></tr>
+      <tr><td>GET</td><td>/api/TcpUpload/GetQuotas?yearId={y}&amp;site={s}</td><td>查詢 Rate + Quota 整合資料（Overview Tab 用）</td></tr>
+      <tr><td>GET</td><td>/api/TcpUpload/GetRsOptions?yearId={y}&amp;report={r}</td><td>取得 RS 維度選項（Upload 及 DataView RS Edit 共用）</td></tr>
+    </table>
+
+    <h4>Quota 查詢邏輯（GetQuotas）</h4>
+    <table>
+      <tr><th>Commission Type</th><th>Sales ID 來源</th><th>Quota 資料表</th><th>篩選條件</th></tr>
+      <tr><td>IND</td><td><code>idmap</code>（regular MFG DB）<code>id_email → Id_SAP</code></td><td><code>Quota_Sales_Force</code>（ACLSTNR11 / IEAIMFGDatabaseHelper）</td><td>Tran_type='General'</td></tr>
+      <tr><td>NOACC / Leader</td><td><code>TCP_Sales_TCR_SalesIDConfig</code></td><td>同上</td><td>同上</td></tr>
+      <tr><td>RS</td><td><code>TCP_Sales_RS</code> Email，依 Report 對應不同資料表</td><td>SalesByRegion → <code>Sales_Sector</code><br>SalesByProduct → <code>SALES_PRODUCT</code><br>MySalesForce → <code>SALES_FORCE</code></td><td>Tran_type='Quota'；完整維度 LEFT JOIN；加總 Total</td></tr>
+    </table>
+
+    <div class="info">
+      RS Quota 由 3 個 local async FetchRsQuota 並行查詢，各對應一種 Report。查詢結果為 0 時轉換為 null，代表「查無資料」。Overview Tab 中 RS 人員的 Quota 欄位顯示「—」。
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="datamodel">4. 資料模型 (DB Tables)</h2>
+
+    <h3>TCP_Upload_Log</h3>
+    <table>
+      <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+      <tr><td>Id</td><td>uniqueidentifier</td><td>PK，上傳批次 ID</td></tr>
+      <tr><td>FileName</td><td>nvarchar</td><td>原始檔案名稱</td></tr>
+      <tr><td>YearId</td><td>int</td><td>年度</td></tr>
+      <tr><td>Site</td><td>nvarchar</td><td>Site 代碼</td></tr>
+      <tr><td>UploadDate</td><td>datetime</td><td>上傳時間</td></tr>
+      <tr><td>UploadUser</td><td>nvarchar</td><td>上傳者 Email</td></tr>
+      <tr><td>Status</td><td>nvarchar</td><td>Processing / Success / Failed</td></tr>
+      <tr><td>ErrorMessage</td><td>nvarchar(max)</td><td>錯誤訊息（最多顯示前 20 筆）</td></tr>
+    </table>
+
+    <h3>TCP_Sales_TCR_Rate</h3>
+    <table>
+      <tr><th>欄位群組</th><th>欄位</th><th>說明</th></tr>
+      <tr><td>識別</td><td>Id, LogId, Site, Email, Group_Name</td><td>PK；LogId 關聯 Upload_Log；Group_Name 用於同人不同 Commission 結構</td></tr>
+      <tr><td>基本</td><td>Commission_Type, Ach_Threshold, Ach_Threshold_Monthly, GP</td><td>Commission 類型、KPI 門檻</td></tr>
+      <tr><td>Standard CR%</td><td>Standard_CR, Standard_CR_Jan ~ Standard_CR_Dec</td><td>標準佣金率（全年及月別覆蓋）</td></tr>
+      <tr><td>Monthly CR%</td><td>Monthly_CR, Monthly_CR_Jan ~ Monthly_CR_Dec</td><td>月度佣金率（僅在 Ach_Threshold_Monthly 且 Monthly_CR 都有值時才儲存）</td></tr>
+      <tr><td>稽核</td><td>CreateDate, CreateUser</td><td></td></tr>
+    </table>
+    <p>MERGE Key：<code>(Email, ISNULL(Group_Name,''), Site)</code></p>
+
+    <h3>TCP_Sales_TCR_SalesIDConfig</h3>
+    <table>
+      <tr><th>欄位</th><th>說明</th></tr>
+      <tr><td>Id, LogId, Email, Group_Name, Sales_Id</td><td>PK；MERGE Key = (Email, ISNULL(Group_Name,''), Sales_Id)</td></tr>
+      <tr><td>Jan ~ Dec</td><td>int (0 or 1)，該月是否使用此 Sales_Id 計算獎金</td></tr>
+      <tr><td>CreateDate, CreateUser</td><td>稽核欄位</td></tr>
+    </table>
+
+    <h3>TCP_Sales_TCR_Mapping</h3>
+    <table>
+      <tr><th>欄位</th><th>說明</th></tr>
+      <tr><td>Id, LogId, Email, Sales_Email</td><td>PK；MERGE Key = (Email, Sales_Email)。主管 Email → 下屬 Sales Email 的對應關係</td></tr>
+      <tr><td>CreateDate, CreateUser</td><td>稽核欄位</td></tr>
+    </table>
+
+    <h3>TCP_Sales_RS</h3>
+    <table>
+      <tr><th>欄位</th><th>說明</th></tr>
+      <tr><td>Id, LogId, Email, Group_Name</td><td>PK</td></tr>
+      <tr><td>Report, FOB_Local, Region, Entity, Sector, Prod_Group</td><td>RS 維度設定；MERGE Key = Email + Group_Name + 這 6 個維度欄位</td></tr>
+      <tr><td>Jan ~ Dec</td><td>int，各月是否啟用</td></tr>
+      <tr><td>CreateDate, CreateUser</td><td>稽核欄位</td></tr>
+    </table>
+
+    <h3>TCP_Sales_Org_Node</h3>
+    <table>
+      <tr><th>欄位</th><th>說明</th></tr>
+      <tr><td>Id</td><td>uniqueidentifier PK</td></tr>
+      <tr><td>Site</td><td>Site 代碼</td></tr>
+      <tr><td>Email</td><td>業務員 Email（lower-cased）</td></tr>
+      <tr><td>Display_Name, Role_Name</td><td>顯示名稱、角色名稱</td></tr>
+      <tr><td>Parent_Id</td><td>自我參照 FK，null = Root 節點</td></tr>
+      <tr><td>Sort_Order</td><td>排序（同層節點使用）</td></tr>
+      <tr><td>CreateDate, CreateUser, UpdateDate, UpdateUser</td><td>稽核欄位</td></tr>
+    </table>
+
+    <!-- ============================================================ -->
+    <h2 id="commission-types">5. Commission Type 說明</h2>
+
+    <table>
+      <tr><th>類型</th><th>說明</th><th>Sales ID 來源</th><th>Sales_ID_Config 用途</th></tr>
+      <tr>
+        <td><span class="badge badge-blue">IND</span></td>
+        <td>個人業務員，每月佣金以自身 Sales ID 業績計算</td>
+        <td>系統每日 Job 從 eManager 自動同步</td>
+        <td>Delta 模式：僅紀錄要「調整」的部分（移除或新增）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-green">NOACC</span></td>
+        <td>無專屬帳戶業務員，佣金邏輯同 IND</td>
+        <td>同 IND，系統自動同步</td>
+        <td>Delta 模式（同 IND）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-yellow">LEADER</span></td>
+        <td>主管層，佣金以其負責範圍內多個 Sales ID 業績加總計算</td>
+        <td>完全依照 Sales_ID_Config 設定</td>
+        <td>Full-truth 模式：列表即為全部有效清單</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-red">RS</span></td>
+        <td>Report-based Salesperson，依報表維度（Region/Entity 等）計算</td>
+        <td>不使用 Sales ID</td>
+        <td>不適用，RS Sheet 另行設定維度</td>
+      </tr>
+    </table>
+
+    <!-- ============================================================ -->
+    <h2 id="salesid-logic">6. Sales_ID_Config 匯入邏輯</h2>
+
+    <div class="info">
+      Sales_ID_Config Sheet 的匯入行為依 Commission Rate Sheet 中對應人員的 Commission_Type 決定，不同模式有不同的增刪語意。Type 對應由 <code>BuildTypeMap(preview)</code> 從同批次 Commission_Rate sheet 建立 <code>"email|groupname" → type</code> 對照表，在 <code>ImportSalesIDConfig</code> 中分流。
+    </div>
+
+    <h3>IND / NOACC：Delta（差異）模式</h3>
+    <table>
+      <tr><th>情況</th><th>動作</th></tr>
+      <tr><td>該 Email 出現在 Sales_ID_Config，且至少一個月份 = 1</td><td>INSERT（新 Sales_Id）或 UPDATE（更新月份）</td></tr>
+      <tr><td>該 Email 出現在 Sales_ID_Config，但所有月份皆為空</td><td>DELETE 該 Sales_Id（表示要移除這個 Sales_Id）</td></tr>
+      <tr><td>該 Email 未出現在 Sales_ID_Config</td><td>不動（系統 Job 維護原有基底）</td></tr>
+    </table>
+    <p>邏輯說明：IND/NOACC 人員的 Sales ID 基底由系統 Job 每日從 eManager 同步，上傳只記錄「例外」：要移除的列全部清空月份，要新增的填新 Sales Id。未列出的 Sales Id 不受影響。</p>
+
+    <h3>LEADER：Full-truth（全真）模式</h3>
+    <table>
+      <tr><th>情況</th><th>動作</th></tr>
+      <tr><td>該 Email 出現在 Sales_ID_Config，且至少一個月份 = 1</td><td>INSERT（新 Sales_Id）或 UPDATE（更新月份）</td></tr>
+      <tr><td>該 Email 出現在 Sales_ID_Config，但所有月份皆為空</td><td>IGNORE（忽略，不刪不加）</td></tr>
+      <tr><td>該 Email 未出現在 Sales_ID_Config</td><td>DELETE 該 Email 所有既有 Sales_Id（不在清單即視為失效）</td></tr>
+    </table>
+    <p>邏輯說明：LEADER 的 Sales ID 完全依照本次上傳的 Sheet 決定，未列出的 Sales Id 全部刪除。列出但全月份空值視為人工錯誤，忽略不處理。</p>
+
+    <h3>RS</h3>
+    <p>RS 類型不使用 Sales_ID_Config。其業績計算依 RS Sheet 設定的維度（Region/Entity/Sector/Prod_Group 等）從報表系統拉取。</p>
+
+    <!-- ============================================================ -->
+    <h2 id="rs-alias">7. RS Report 別名系統</h2>
+
+    <p>RS Sheet 的 Report 欄位接受多種寫法（不分大小寫），系統統一正規化為標準值後再進行 enum 驗證與 DB 比對。</p>
+
+    <h3>別名對應表</h3>
+    <table>
+      <tr><th>接受輸入（不分大小寫）</th><th>正規化標準值</th></tr>
+      <tr><td>Region / Sales by Region / SalesByRegion</td><td>SalesByRegion</td></tr>
+      <tr><td>Product / Sales by Product / SalesByProduct</td><td>SalesByProduct</td></tr>
+      <tr><td>My Sales Force / MySalesForce</td><td>MySalesForce</td></tr>
+    </table>
+
+    <h3>實作位置</h3>
+    <table>
+      <tr><th>層次</th><th>實作</th><th>套用位置</th></tr>
+      <tr><td>Service（C#）</td><td><code>NormalizeRsReport(string raw)</code> + 靜態 <code>RsReportAliases</code> Dictionary（OrdinalIgnoreCase）</td><td>ParsePreview 中 enum 驗證、rowsByReport grouping、CheckRsCol、ParseRSRow 共 4 處</td></tr>
+      <tr><td>前端（JS）</td><td><code>normalizeRsReport(raw)</code> + <code>RS_REPORT_MAP</code> object（key 全小寫）</td><td>Preview 儲存格顯示、Confirm 重驗、RS Edit Dropdown</td></tr>
+    </table>
+
+    <h3>RS ParsePreview 兩層驗證</h3>
+    <ol>
+      <li><strong>硬編碼 enum 驗證</strong>：Report ∈ {SalesByRegion, SalesByProduct, MySalesForce}；FOB_Local ∈ {Local, FOB}。不符合者加入 CellErrors。</li>
+      <li><strong>DB 維度比對</strong>：依 Report 類型查對應資料表，比對所有維度欄位是否存在：
+        <ul>
+          <li>SalesByRegion → <code>Sales_Sector</code>（region_id, entity_id, sector, prod_group）</li>
+          <li>SalesByProduct → <code>SALES_PRODUCT</code>（同上 + prod_divi）</li>
+          <li>MySalesForce → <code>SALES_FORCE</code>（Sales_Group 代替 sector）</li>
+        </ul>
+      </li>
+    </ol>
+
+    <!-- ============================================================ -->
+    <h2 id="cell-errors">8. CellErrors 與 Preview 驗證機制</h2>
+
+    <h3>CellErrors DTO</h3>
+    <pre>
+public class TcpPreviewCellError
+{
+    public string Sheet { get; set; }   // e.g. "RS"
+    public string Column { get; set; }  // e.g. "Report"
+    public List&lt;string&gt; Values { get; set; } // 錯誤的儲存格值清單
+}
+
+// TcpPreviewResponseDto 新增：
+public List&lt;TcpPreviewCellError&gt; CellErrors { get; set; } = new();
+    </pre>
+
+    <h3>Service（ParsePreview）回填位置</h3>
+    <table>
+      <tr><th>錯誤類型</th><th>Sheet</th><th>Column</th></tr>
+      <tr><td>Sales ID 不存在於 idmap</td><td>Sales_ID_Config</td><td>Sales_Id</td></tr>
+      <tr><td>RS Report 非法值</td><td>RS</td><td>Report</td></tr>
+      <tr><td>RS FOB_Local 非法值</td><td>RS</td><td>FOB_Local</td></tr>
+      <tr><td>RS 維度欄位不在 DB 清單</td><td>RS</td><td>對應欄名（Region / Entity / Sector / Prod_Group）</td></tr>
+    </table>
+
+    <h3>前端處理</h3>
+    <pre>
+// renderPreview 後建立 cellErrorMap
+cellErrorMap = {};    // { "SheetName|ColName" → { "value_lc": true } }
+sheetsWithErrors = {}; // { sheetName: true }
+
+(data.cellErrors || []).forEach(function(e) {
+    sheetsWithErrors[e.sheet] = true;
+    var key = e.sheet + '|' + e.column;
+    if (!cellErrorMap[key]) cellErrorMap[key] = {};
+    (e.values || []).forEach(function(v) {
+        if (v) cellErrorMap[key][v.toLowerCase()] = true;
+    });
+});
+    </pre>
+
+    <ul>
+      <li>紅底白字 CSS：<code>.cell-error { background:#dc3545 !important; color:#fff !important; }</code></li>
+      <li>Tab 上顯示驚嘆號 icon：<code>fa-exclamation-circle tab-error-icon</code>（font-size:135%）</li>
+      <li>Skip Review 按鈕在有任何錯誤時 disabled</li>
+    </ul>
+
+    <h3>Confirm 前重驗（validateSheetBeforeConfirm）</h3>
+    <p>點擊 Confirm 前掃描目前所有 rows，對照 cellErrorMap + rsOptions 重新驗證：</p>
+    <ul>
+      <li>一般 Sheet：比對 cellErrorMap 是否有錯誤值</li>
+      <li>RS Sheet：額外驗 Report enum、FOB_Local enum、4 個維度是否在 rsOptions 選項內</li>
+      <li>更新 cellErrorMap、sheetsWithErrors、Tab error icon、btnImport disabled 狀態</li>
+      <li>有錯誤則 toastr.error 並阻擋 Confirm</li>
+    </ul>
+
+    <!-- ============================================================ -->
+    <h2 id="template">9. Upload Template 規格</h2>
+
+    <p>透過 <code>GET /api/TcpUpload/GetTemplate</code> 下載，EPPlus 動態產生，含 4 個 Sheet：</p>
+
+    <h3>Sheet 1: Commission Rate（雙行表頭）</h3>
+    <table>
+      <tr><th>欄位（Row 1）</th><th>子欄位（Row 2）</th><th>說明</th></tr>
+      <tr><td>Site</td><td>（merge A1:A2）</td><td>Site 代碼，e.g. ACL</td></tr>
+      <tr><td>Email</td><td>（merge）</td><td>業務員 Email（必填）</td></tr>
+      <tr><td>Group Name</td><td>（merge）</td><td>同 Email 不同結構時使用，通常留空</td></tr>
+      <tr><td>Commission Type</td><td>（merge）</td><td>IND / NOACC / Leader / RS</td></tr>
+      <tr><td>Achievement Rate Threshold</td><td>（merge）</td><td>年度 KPI 門檻（小數，e.g. 0.7 = 70%）</td></tr>
+      <tr><td>Achievement Rate Threshold(Monthly)</td><td>（merge）</td><td>月度 KPI 門檻，有值才啟用 Monthly CR%</td></tr>
+      <tr><td>GP</td><td>（merge）</td><td>毛利門檻</td></tr>
+      <tr><td>Standard CR%</td><td>Commission Rate, Jan ~ Dec</td><td>標準佣金率（全年 + 月別覆蓋）</td></tr>
+      <tr><td>Monthly CR%</td><td>Commission Rate, Jan ~ Dec</td><td>月度佣金率（需搭配 Monthly Threshold）</td></tr>
+    </table>
+
+    <h3>Sheet 2: Sales ID Config（單行表頭）</h3>
+    <p>欄位：Email, Group Name, Sales ID, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec</p>
+    <p>Jan~Dec：有值（任意非空字串）= Active（1），空值 = Inactive（0）。</p>
+
+    <h3>Sheet 3: RS（單行表頭）</h3>
+    <p>欄位：Email, Group Name, Report, FOB_Local, Region, Entity, Sector, Prod_Group, Jan ~ Dec</p>
+    <p>Report 欄接受別名（見第 7 節），系統自動正規化。</p>
+
+    <h3>Sheet 4: Mapping（單行表頭）</h3>
+    <p>欄位：Email（主管 Email）, Sales Email（下屬業務員 Email）</p>
+
+    <h3>Group Name 使用規則</h3>
+    <p>若同一業務員有兩種不同的 Commission Type 或 Rate 結構，可使用 Group Name 加以區分：</p>
+    <ul>
+      <li>主要結構：Group Name 留空</li>
+      <li>第二結構：Group Name = "A"（或其他識別字）</li>
+    </ul>
+    <div class="note">
+      原始 Excel 中若業務員 Email 帶有 <code>_X</code> 後綴（如 <code>john_A@company.com</code> vs <code>john@company.com</code>），代表同一人的兩種結構。轉換時應合併為同一 Email，並以 Group Name 區分（去掉後綴的基礎 Email + Group Name = "A"）。
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="ui-conventions">10. UI 開發慣例</h2>
+
+    <h3>按鈕對齊</h3>
+    <p>所有頁面的 <code>.btn</code> 一律在 <code>&lt;style&gt;</code> 區塊頂端加上：</p>
+    <pre>.btn { display: inline-flex; align-items: center; justify-content: center; }</pre>
+    <p>原因：Bootstrap 4 的 <code>&lt;button&gt;</code> 與 <code>&lt;a class="btn"&gt;</code> 垂直對齊行為不一致，inline-flex 是最可靠的統一解法。<strong>不要</strong>用 <code>line-height</code> 個別調整。</p>
+
+    <h3>Modal Header 對齊</h3>
+    <p>Bootstrap 4 的 <code>.modal-header</code> 預設 <code>align-items:flex-start</code>，會造成 X 按鈕偏上。解法：在 <code>modal-header</code> 的 <code>style</code> 屬性中完整宣告 flex 佈局：</p>
+    <pre>style="background:#00467f; color:#fff; padding:12px 16px;
+       display:flex; flex-direction:row; justify-content:space-between; align-items:center;"</pre>
+    <p>Close 按鈕加上 <code>style="color:#fff; opacity:1; margin:0; align-self:center;"</code>。</p>
+    <div class="note">不要只在 inline style 加 <code>align-items:center</code>，必須同時宣告 <code>display:flex</code>，否則不會覆蓋 Bootstrap class 的設定。</div>
+
+    <h3>isActive 欄位顯示</h3>
+    <p>Sales_ID_Config 和 RS 的 Jan~Dec 月份欄位在 View mode 使用圖示代替數字：</p>
+    <ul>
+      <li>Active（非空值）：<code>&lt;i class="fa fa-check-circle" style="color:#27ae60;"&gt;</code></li>
+      <li>Inactive（空值/0）：<code>&lt;i class="fa fa-circle-o" style="color:#ccc;"&gt;</code></li>
+    </ul>
+
+    <h3>Table Row Hover</h3>
+    <p>所有 Preview 和 DataView 資料表都要加：</p>
+    <pre>tbody tr:hover td { background: #dce8f8; }</pre>
+
+    <h3>Year 下拉邏輯</h3>
+    <p>Upload 與 DataView 頁面共用同一邏輯：</p>
+    <ul>
+      <li>預設顯示當年度</li>
+      <li>1–3 月：額外加入上一年（方便年初補上傳）</li>
+      <li>10–12 月：額外加入下一年（方便年底預設下一年）</li>
+    </ul>
+
+    <h3>Site 自動觸發</h3>
+    <p>Upload、Org Hierarchy、Data View 三個頁面：Site 下拉 <code>change</code> 後自動呼叫對應 API，無需使用者另行點按鈕。</p>
+
+    <h3>Razor 中的 CSS Animation</h3>
+    <p>Razor View 中撰寫 CSS animation 時，<code>@keyframes</code> 必須寫成 <code>@@keyframes</code>，否則 Razor 會將 <code>@</code> 視為 C# 表達式起始符號。</p>
+
+    <h3>Preview 排序</h3>
+    <p>ParsePreview 回傳的各 Sheet 資料，前端在 renderPreview 時先依 Email 欄 ascending 排序（localeCompare），方便使用者核對。</p>
+
+    <!-- ============================================================ -->
+    <h2 id="migration">11. DB Migration 腳本</h2>
+
+    <p>Migration 腳本位於 <code>D:\TCP\改版\docs\改版產出\03_DB_Migration\</code>：</p>
+    <table>
+      <tr><th>檔案</th><th>說明</th><th>執行對象</th></tr>
+      <tr><td>DB_Migration_Template_Redesign.sql</td><td>主要欄位變更：TCP_Sales_TCR_Rate / SalesIDConfig / Mapping / RS 結構調整；已手動調整以符合最終 DataModel</td><td>MFG2025、MFG2026（及其他年份 DB）</td></tr>
+      <tr><td>DB_Migration_OrgHierarchy.sql</td><td>建立 TCP_Sales_Org_Node 表（自我參照樹狀結構）</td><td>MFG（各年度）或共用 DB</td></tr>
+      <tr><td>DB_Migration_FOB_Columns.sql</td><td>刪除 TCP_Sales_TCR_Rate 的 14 個舊 FOB 欄位（改版後不再使用）</td><td>MFG2025、MFG2026（及其他年份 DB）</td></tr>
+    </table>
+
+    <div class="info">
+      目前 DB 環境使用 <code>IMFGDatabaseHelper.GetDbConnection(yearId)</code> 依年度選擇對應 DB Instance（eManager 慣例：不同年度資料分庫）。所有 TCP 表在每個年度 DB 中各自獨立。RS Quota 查詢的 <code>Sales_Sector</code> / <code>SALES_PRODUCT</code> / <code>SALES_FORCE</code> 三張表位於各年度 MFG DB；<code>Quota_Sales_Force</code>（IND/NOACC/Leader Quota 用）位於 ACLSTNR11，透過 IEAIMFGDatabaseHelper 取得連線。
+    </div>
+
+  </div><!-- /container -->
+</div><!-- /main-wrapper -->
+
+<script>
+(function () {
+  var body = document.body;
+  var toggle = document.getElementById('sidebar-toggle');
+  var COLLAPSED_KEY = 'tcp-sidebar-collapsed';
+
+  // restore state
+  if (localStorage.getItem(COLLAPSED_KEY) === '1') {
+    body.classList.add('sidebar-collapsed');
+    toggle.innerHTML = '&#9776;';
+  } else {
+    toggle.innerHTML = '&#10005;';
+  }
+
+  toggle.addEventListener('click', function () {
+    var collapsed = body.classList.toggle('sidebar-collapsed');
+    toggle.innerHTML = collapsed ? '&#9776;' : '&#10005;';
+    localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0');
+  });
+
+  // scroll spy
+  var links = document.querySelectorAll('#sidebar .sidebar-nav a[href^="#"]');
+  var sections = [];
+  links.forEach(function (a) {
+    var id = a.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if (el) sections.push({ id: id, el: el, a: a });
+  });
+
+  function onScroll() {
+    var scrollY = window.scrollY + 80;
+    var current = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= scrollY) current = sections[i];
+    }
+    links.forEach(function (a) { a.classList.remove('active'); });
+    if (current) current.a.classList.add('active');
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>
