@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sync Log — IT Documents</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Segoe UI", Arial, sans-serif; background: #f5f6fa; color: #333; padding: 40px 24px; }
+    header { max-width: 900px; margin: 0 auto 32px; border-bottom: 2px solid #dde1ea; padding-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
+    header h1 { font-size: 1.6rem; color: #1a1a2e; }
+    header a { font-size: 0.88rem; color: #3a6fd8; text-decoration: none; }
+    header a:hover { text-decoration: underline; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .section { background: #fff; border-radius: 8px; border: 1px solid #dde1ea; margin-bottom: 20px; overflow: hidden; }
+    .section-header { padding: 14px 20px; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .section-header.pending { background: #fff8f0; color: #b85c00; border-bottom: 1px solid #ffe4c4; }
+    .section-header.done { background: #f0faf4; color: #1a7a3c; border-bottom: 1px solid #c2efd4; }
+    .date-group { padding: 10px 20px 4px; font-size: 0.82rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.04em; border-top: 1px solid #f0f0f0; }
+    .date-group:first-of-type { border-top: none; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 20px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #999; background: #fafafa; border-bottom: 1px solid #eee; }
+    td { padding: 9px 20px; font-size: 0.9rem; border-bottom: 1px solid #f5f5f5; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; }
+    .tag-pending { background: #fff0e0; color: #b85c00; }
+    .tag-done { background: #e6f7ed; color: #1a7a3c; }
+    .note { color: #999; font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Sync Log</h1>
+    <p style="margin-top:4px;color:#666;font-size:0.9rem;">文件同步記錄 — it-documents</p>
+  </div>
+  <a href="index.html">← 文件總覽</a>
+</header>
+
+<div class="container">
+
+  <!-- 待同步 -->
+  <div class="section">
+    <div class="section-header pending">❌ 待同步</div>
+    <table>
+      <thead><tr><th>專案</th><th>檔案</th><th>目標位置</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>TCP 改版</td>
+          <td>DB_Migration_FOB_Columns.sql</td>
+          <td>it-documents/tcp/DB變更記錄/</td>
+          <td class="note">需轉 HTML</td>
+        </tr>
+        <tr>
+          <td>TCP 改版</td>
+          <td>DB_Migration_OrgHierarchy.sql</td>
+          <td>it-documents/tcp/DB變更記錄/</td>
+          <td class="note">需轉 HTML</td>
+        </tr>
+        <tr>
+          <td>TCP 改版</td>
+          <td>DB_Migration_Template_Redesign.sql</td>
+          <td>it-documents/tcp/DB變更記錄/</td>
+          <td class="note">需轉 HTML</td>
+        </tr>
+        <tr>
+          <td>eManagerReport</td>
+          <td>eManagerReport.md</td>
+          <td>Notion eManagerReport 頁面</td>
+          <td class="note">MD 轉 Notion</td>
+        </tr>
+        <tr>
+          <td>eManagerReport</td>
+          <td>實作做法.md</td>
+          <td>Notion eManagerReport 頁面</td>
+          <td class="note">MD 轉 Notion</td>
+        </tr>
+        <tr>
+          <td>OSF Commerce Insights</td>
+          <td>OSF_Commerce_Analysis.md</td>
+          <td>尚未決定</td>
+          <td class="note">考慮轉 HTML</td>
+        </tr>
+        <tr>
+          <td>MSU Scorecard</td>
+          <td>（目前無對應本機文件）</td>
+          <td>—</td>
+          <td class="note">待新增</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 已同步 -->
+  <div class="section">
+    <div class="section-header done">✅ 已同步記錄</div>
+    <div class="date-group">2026-06-04</div>
+    <table>
+      <thead><tr><th>專案</th><th>檔案</th><th>目標位置</th></tr></thead>
+      <tbody>
+        <tr><td>TCP 改版</td><td>TCP獎金平台_系統設計文件.html</td><td>it-documents/tcp/需求與規格/</td></tr>
+        <tr><td>TCP 改版</td><td>TCP獎金平台_設定規格說明.html</td><td>it-documents/tcp/需求與規格/</td></tr>
+        <tr><td>TCP 改版</td><td>TCP獎金平台_設定簡化分析.html</td><td>it-documents/tcp/需求與規格/</td></tr>
+        <tr><td>TCP 改版</td><td>TCP_Platform_系統架構文件.html</td><td>it-documents/tcp/功能開發/</td></tr>
+        <tr><td>TCP 改版</td><td>TCP_Platform_操作指南.html</td><td>it-documents/tcp/功能開發/</td></tr>
+        <tr><td>TCP 改版</td><td>TCP_Salesperson_Config_QA.html</td><td>it-documents/tcp/功能開發/</td></tr>
+        <tr><td>TCP 改版</td><td>TCP獎金平台_QA測試記錄.html</td><td>it-documents/tcp/功能開發/</td></tr>
+        <tr><td>TCP 改版</td><td>TCP獎金平台_上傳檔案說明.html</td><td>it-documents/tcp/功能開發/</td></tr>
+        <tr><td>TCP 改版</td><td>TCP獎金平台_設定指南.html</td><td>it-documents/tcp/功能開發/</td></tr>
+        <tr><td>TCP 改版</td><td>TCP_Platform_需求確認書.md</td><td>Notion TCP 頁面（需求與規格）</td></tr>
+        <tr><td>eManagerReport</td><td>eManagerReport.html</td><td>it-documents/emanager-report/功能模組/</td></tr>
+        <tr><td>eManagerReport</td><td>功能清單.html</td><td>it-documents/emanager-report/功能模組/</td></tr>
+        <tr><td>eManagerReport</td><td>功能清單_SA.html</td><td>it-documents/emanager-report/功能模組/</td></tr>
+        <tr><td>eManagerReport</td><td>功能清單_User.html</td><td>it-documents/emanager-report/功能模組/</td></tr>
+        <tr><td>OSF Commerce Insights</td><td>OSF_CommerceInsights_ChangeLog.md</td><td>Notion OSF 頁面（Change Log）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>
