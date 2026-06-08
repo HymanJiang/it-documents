@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DB 變更記錄 — TCP_Sales_TCR_Rate FOB 欄位移除</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+  .topbar { background: #00315a; color: #fff; padding: 22px 32px; }
+  .topbar .crumb { font-size: 12px; color: #7ab0d4; letter-spacing: .04em; }
+  .topbar h1 { margin: 6px 0 2px; font-size: 22px; font-weight: 600; }
+  .topbar .sub { font-size: 13px; color: #b8d4ea; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 32px 64px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px 28px; background: #fff; border: 1px solid #e1e6ec; border-left: 4px solid #00315a; border-radius: 6px; padding: 14px 20px; margin-bottom: 28px; }
+  .meta div { font-size: 13px; }
+  .meta b { color: #00315a; font-weight: 600; margin-right: 6px; }
+  .note { background: #fff8e6; border: 1px solid #f0e0b0; border-left: 4px solid #d9a300; border-radius: 6px; padding: 12px 18px; margin-bottom: 24px; font-size: 13px; color: #6b5400; }
+  .step { margin-bottom: 26px; }
+  .step-h { font-size: 16px; font-weight: 600; color: #00315a; border-bottom: 2px solid #e1e6ec; padding-bottom: 6px; margin-bottom: 6px; }
+  .step-desc { color: #555; font-size: 13px; margin: 4px 0 10px; }
+  pre { background: #1e2a38; color: #e6edf3; border-radius: 6px; padding: 16px 18px; overflow-x: auto; font-family: "Cascadia Code", "Consolas", monospace; font-size: 13px; line-height: 1.55; margin: 0; }
+  pre .kw { color: #79c0ff; }
+  pre .cm { color: #8b949e; font-style: italic; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e1e6ec; font-size: 12px; color: #8a97a6; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="crumb">TCP 改版 / DB 變更記錄</div>
+    <h1>TCP_Sales_TCR_Rate — 移除 FOB 欄位</h1>
+    <div class="sub">移除未被任何 Stored Procedure 參照的 FOB 系列欄位</div>
+  </div>
+  <div class="wrap">
+    <div class="meta">
+      <div><b>執行對象</b>MFG2025、MFG2026（及其他年份別 DB）</div>
+      <div><b>類型</b>欄位移除</div>
+      <div><b>來源</b>03_DB_Migration / DB_Migration_FOB_Columns.sql</div>
+    </div>
+
+    <div class="note">
+      <b>背景：</b>FOB 欄位（X_Rate_FOB、Y_Rate_FOB、X_Rate_FOB_Jan～Dec）已不被任何 Stored Procedure 參照，且已從 DataModel、Repository、Service 各層移除，故一併從資料表清掉。
+    </div>
+
+    <div class="step">
+      <div class="step-h">移除 FOB 系列欄位</div>
+      <div class="step-desc">自 <code>TCP_Sales_TCR_Rate</code> 移除 X_Rate_FOB、Y_Rate_FOB 及 X_Rate_FOB_Jan～Dec 共 14 個欄位。</div>
+<pre><span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> Y_Rate_FOB;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Jan;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Feb;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Mar;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Apr;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_May;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Jun;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Jul;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Aug;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Sep;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Oct;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Nov;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_FOB_Dec;</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-h">附註：資料表更名（如尚未執行）</div>
+      <div class="step-desc">若 <code>TCP_Sales_TCR_Emanager</code> 尚未更名,需一併執行:</div>
+<pre><span class="cm">-- If TCP_Sales_TCR_Emanager has not yet been renamed, run this too:</span>
+<span class="cm">-- EXEC sp_rename 'TCP_Sales_TCR_Emanager', 'TCP_Sales_TCR_Manager';</span></pre>
+    </div>
+
+    <div class="footer">
+      TCP 改版 · DB 變更記錄　|　來源：docs/改版產出/03_DB_Migration/DB_Migration_FOB_Columns.sql
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DB 變更記錄 — TCP Sales Org Hierarchy</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+  .topbar { background: #00315a; color: #fff; padding: 22px 32px; }
+  .topbar .crumb { font-size: 12px; color: #7ab0d4; letter-spacing: .04em; }
+  .topbar h1 { margin: 6px 0 2px; font-size: 22px; font-weight: 600; }
+  .topbar .sub { font-size: 13px; color: #b8d4ea; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 32px 64px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px 28px; background: #fff; border: 1px solid #e1e6ec; border-left: 4px solid #00315a; border-radius: 6px; padding: 14px 20px; margin-bottom: 28px; }
+  .meta div { font-size: 13px; }
+  .meta b { color: #00315a; font-weight: 600; margin-right: 6px; }
+  .step { margin-bottom: 26px; }
+  .step-h { font-size: 16px; font-weight: 600; color: #00315a; border-bottom: 2px solid #e1e6ec; padding-bottom: 6px; margin-bottom: 6px; }
+  .step-desc { color: #555; font-size: 13px; margin: 4px 0 10px; }
+  pre { background: #1e2a38; color: #e6edf3; border-radius: 6px; padding: 16px 18px; overflow-x: auto; font-family: "Cascadia Code", "Consolas", monospace; font-size: 13px; line-height: 1.55; margin: 0; }
+  pre .kw { color: #79c0ff; }
+  pre .cm { color: #8b949e; font-style: italic; }
+  pre .str { color: #a5d6ff; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e1e6ec; font-size: 12px; color: #8a97a6; }
+  .footer a { color: #2a6096; text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="crumb">TCP 改版 / DB 變更記錄</div>
+    <h1>TCP Sales Org Hierarchy</h1>
+    <div class="sub">業務組織階層資料表建立與欄位調整</div>
+  </div>
+  <div class="wrap">
+    <div class="meta">
+      <div><b>執行對象</b>MFG25、MFG26 …（年份別 DB）</div>
+      <div><b>類型</b>建表 + 欄位異動</div>
+      <div><b>來源</b>03_DB_Migration / DB_Migration_OrgHierarchy.sql</div>
+    </div>
+
+    <div class="step">
+      <div class="step-h">Step 1　建立資料表（若尚未存在）</div>
+      <div class="step-desc">建立 <code>TCP_Sales_Org_Node</code>，含自參照的 Parent_Id 階層外鍵與 Email/Site、Parent_Id 索引。</div>
+<pre><span class="cm">-- Step 1：建立資料表（若尚未存在）</span>
+<span class="kw">IF NOT EXISTS</span> (<span class="kw">SELECT</span> 1 <span class="kw">FROM</span> sys.tables <span class="kw">WHERE</span> name = <span class="str">'TCP_Sales_Org_Node'</span>)
+<span class="kw">BEGIN</span>
+    <span class="kw">CREATE TABLE</span> TCP_Sales_Org_Node (
+        Id           UNIQUEIDENTIFIER <span class="kw">NOT NULL DEFAULT</span> NEWID(),
+        Site         NVARCHAR(50)     <span class="kw">NOT NULL</span>,
+        Email        NVARCHAR(200)    <span class="kw">NOT NULL</span>,
+        Display_Name NVARCHAR(200)    <span class="kw">NULL</span>,
+        RoleIndex    UNIQUEIDENTIFIER <span class="kw">NULL</span>,   <span class="cm">-- 對應 [ACLDW].[dbo].[RolePermission_Role].RoleIndex（邏輯參照，跨庫不建 FK）</span>
+        Parent_Id    UNIQUEIDENTIFIER <span class="kw">NULL</span>,
+        Sort_Order   INT              <span class="kw">NULL</span>,
+        CreateDate   DATETIME         <span class="kw">NOT NULL DEFAULT</span> GETDATE(),
+        CreateUser   NVARCHAR(200)    <span class="kw">NOT NULL</span>,
+        UpdateDate   DATETIME         <span class="kw">NULL</span>,
+        UpdateUser   NVARCHAR(200)    <span class="kw">NULL</span>,
+
+        <span class="kw">CONSTRAINT</span> PK_TCP_Sales_Org_Node <span class="kw">PRIMARY KEY</span> (Id),
+        <span class="kw">CONSTRAINT</span> FK_TCP_Sales_Org_Node_Parent <span class="kw">FOREIGN KEY</span> (Parent_Id)
+            <span class="kw">REFERENCES</span> TCP_Sales_Org_Node (Id)
+    );
+
+    <span class="kw">CREATE INDEX</span> IX_TCP_Sales_Org_Node_Email_Site <span class="kw">ON</span> TCP_Sales_Org_Node (Email, Site);
+    <span class="kw">CREATE INDEX</span> IX_TCP_Sales_Org_Node_Parent_Id  <span class="kw">ON</span> TCP_Sales_Org_Node (Parent_Id);
+<span class="kw">END</span>
+<span class="kw">GO</span></pre>
+    </div>
+
+    <div class="step">
+      <div class="step-h">Step 2　移除 IsActive 欄位（若存在舊版欄位）</div>
+      <div class="step-desc">IsActive 帶有 Default Constraint，需先動態查出並移除 Constraint，才能 DROP COLUMN。</div>
+<pre><span class="cm">-- Step 2：移除 IsActive 欄位（若存在舊版欄位）</span>
+<span class="cm">-- IsActive 有 Default Constraint，需先移除 Constraint 才能 DROP COLUMN</span>
+<span class="kw">IF EXISTS</span> (
+    <span class="kw">SELECT</span> 1 <span class="kw">FROM</span> sys.columns
+    <span class="kw">WHERE</span>  object_id = OBJECT_ID(<span class="str">'TCP_Sales_Org_Node'</span>) <span class="kw">AND</span> name = <span class="str">'IsActive'</span>
+)
+<span class="kw">BEGIN</span>
+    <span class="kw">DECLARE</span> @constraintName NVARCHAR(200);
+
+    <span class="kw">SELECT</span> @constraintName = dc.name
+    <span class="kw">FROM</span>   sys.default_constraints dc
+    <span class="kw">JOIN</span>   sys.columns c
+           <span class="kw">ON</span> dc.parent_object_id = c.object_id <span class="kw">AND</span> dc.parent_column_id = c.column_id
+    <span class="kw">WHERE</span>  c.object_id = OBJECT_ID(<span class="str">'TCP_Sales_Org_Node'</span>) <span class="kw">AND</span> c.name = <span class="str">'IsActive'</span>;
+
+    <span class="kw">IF</span> @constraintName <span class="kw">IS NOT NULL</span>
+        <span class="kw">EXEC</span>(<span class="str">'ALTER TABLE TCP_Sales_Org_Node DROP CONSTRAINT '</span> + @constraintName);
+
+    <span class="kw">ALTER TABLE</span> TCP_Sales_Org_Node <span class="kw">DROP COLUMN</span> IsActive;
+<span class="kw">END</span>
+<span class="kw">GO</span></pre>
+    </div>
+
+    <div class="step">
+      <div class="step-h">Step 3　Role_Name (NVARCHAR) → RoleIndex (UNIQUEIDENTIFIER)</div>
+      <div class="step-desc">角色改為對應 <code>[ACLDW].[dbo].[RolePermission_Role].RoleIndex</code>。表內目前為草稿／空資料，直接換欄位、不做資料搬移。</div>
+<pre><span class="cm">-- Step 3：Role_Name(NVARCHAR) → RoleIndex(UNIQUEIDENTIFIER)</span>
+<span class="cm">-- 角色改為對應 [ACLDW].[dbo].[RolePermission_Role].RoleIndex。</span>
+<span class="cm">-- 注意：表內目前為草稿/空資料，直接換欄位、不做資料搬移。</span>
+<span class="kw">IF EXISTS</span> (
+    <span class="kw">SELECT</span> 1 <span class="kw">FROM</span> sys.columns
+    <span class="kw">WHERE</span>  object_id = OBJECT_ID(<span class="str">'TCP_Sales_Org_Node'</span>) <span class="kw">AND</span> name = <span class="str">'Role_Name'</span>
+)
+<span class="kw">BEGIN</span>
+    <span class="kw">ALTER TABLE</span> TCP_Sales_Org_Node <span class="kw">DROP COLUMN</span> Role_Name;
+<span class="kw">END</span>
+<span class="kw">GO</span>
+
+<span class="kw">IF NOT EXISTS</span> (
+    <span class="kw">SELECT</span> 1 <span class="kw">FROM</span> sys.columns
+    <span class="kw">WHERE</span>  object_id = OBJECT_ID(<span class="str">'TCP_Sales_Org_Node'</span>) <span class="kw">AND</span> name = <span class="str">'RoleIndex'</span>
+)
+<span class="kw">BEGIN</span>
+    <span class="kw">ALTER TABLE</span> TCP_Sales_Org_Node <span class="kw">ADD</span> RoleIndex UNIQUEIDENTIFIER <span class="kw">NULL</span>;
+<span class="kw">END</span>
+<span class="kw">GO</span></pre>
+    </div>
+
+    <div class="footer">
+      TCP 改版 · DB 變更記錄　|　來源：docs/改版產出/03_DB_Migration/DB_Migration_OrgHierarchy.sql
+    </div>
+  </div>
+</body>
+</html>

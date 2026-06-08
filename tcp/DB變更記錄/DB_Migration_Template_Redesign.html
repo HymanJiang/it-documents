@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DB 變更記錄 — TCP Template Redesign</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+  .topbar { background: #00315a; color: #fff; padding: 22px 32px; }
+  .topbar .crumb { font-size: 12px; color: #7ab0d4; letter-spacing: .04em; }
+  .topbar h1 { margin: 6px 0 2px; font-size: 22px; font-weight: 600; }
+  .topbar .sub { font-size: 13px; color: #b8d4ea; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 32px 64px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px 28px; background: #fff; border: 1px solid #e1e6ec; border-left: 4px solid #00315a; border-radius: 6px; padding: 14px 20px; margin-bottom: 28px; }
+  .meta div { font-size: 13px; }
+  .meta b { color: #00315a; font-weight: 600; margin-right: 6px; }
+  .tbl { margin-bottom: 30px; }
+  .tbl-h { font-size: 17px; font-weight: 600; color: #fff; background: #2a6096; border-radius: 6px 6px 0 0; padding: 8px 16px; }
+  .tbl-body { border: 1px solid #e1e6ec; border-top: none; border-radius: 0 0 6px 6px; padding: 16px 18px; background: #fff; }
+  .sub-h { font-size: 13px; font-weight: 600; color: #00315a; margin: 14px 0 6px; }
+  .sub-h:first-child { margin-top: 0; }
+  pre { background: #1e2a38; color: #e6edf3; border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: "Cascadia Code", "Consolas", monospace; font-size: 12.5px; line-height: 1.5; margin: 0; }
+  pre .kw { color: #79c0ff; }
+  pre .cm { color: #8b949e; font-style: italic; }
+  pre .str { color: #a5d6ff; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e1e6ec; font-size: 12px; color: #8a97a6; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="crumb">TCP 改版 / DB 變更記錄</div>
+    <h1>TCP Template Redesign</h1>
+    <div class="sub">獎金平台範本改版 — 四張資料表欄位重整</div>
+  </div>
+  <div class="wrap">
+    <div class="meta">
+      <div><b>執行對象</b>MFG2025、MFG2026（及其他年份別 DB）</div>
+      <div><b>日期</b>2026-05-15</div>
+      <div><b>類型</b>欄位移除 / 更名 / 新增 / 型別調整</div>
+      <div><b>來源</b>03_DB_Migration / DB_Migration_Template_Redesign.sql</div>
+    </div>
+
+    <div class="tbl">
+      <div class="tbl-h">1. TCP_Sales_TCR_Rate</div>
+      <div class="tbl-body">
+        <div class="sub-h">移除舊欄位</div>
+<pre><span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> Region_Id;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> Sales_Type;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> Y_Rate;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">DROP COLUMN</span> X_Rate_Jan;  <span class="cm">-- … X_Rate_Feb ~ X_Rate_Dec 同樣移除</span></pre>
+        <div class="sub-h">更名欄位</div>
+<pre><span class="kw">EXEC</span> sp_rename <span class="str">'TCP_Sales_TCR_Rate.ThresHold'</span>, <span class="str">'Ach_Threshold'</span>, <span class="str">'COLUMN'</span>;</pre>
+        <div class="sub-h">新增欄位</div>
+<pre><span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">ADD</span> Group_Name            NVARCHAR(50)   <span class="kw">NULL</span>;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">ADD</span> Commission_Type       NVARCHAR(20)   <span class="kw">NULL</span>;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">ADD</span> Ach_Threshold_Monthly DECIMAL(18,4)  <span class="kw">NULL</span>;
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">ADD</span> Standard_CR           DECIMAL(18,4)  <span class="kw">NULL</span>;  <span class="cm">-- 及 Standard_CR_Jan ~ Dec</span>
+<span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Rate <span class="kw">ADD</span> Monthly_CR            DECIMAL(18,4)  <span class="kw">NULL</span>;  <span class="cm">-- 及 Monthly_CR_Jan ~ Dec</span></pre>
+      </div>
+    </div>
+
+    <div class="tbl">
+      <div class="tbl-h">2. TCP_Sales_TCR_Manager</div>
+      <div class="tbl-body">
+        <div class="sub-h">更名欄位</div>
+<pre><span class="kw">EXEC</span> sp_rename <span class="str">'TCP_Sales_TCR_Manager.Manager_eMail'</span>, <span class="str">'Sales_eMail'</span>, <span class="str">'COLUMN'</span>;
+<span class="kw">EXEC</span> sp_rename <span class="str">'TCP_Sales_TCR_Manager.Sales_Id_01'</span>,   <span class="str">'Jan'</span>,         <span class="str">'COLUMN'</span>;  <span class="cm">-- Sales_Id_02~12 → Feb~Dec</span></pre>
+        <div class="sub-h">新增欄位</div>
+<pre><span class="kw">ALTER TABLE</span> TCP_Sales_TCR_Manager <span class="kw">ADD</span> Group_Name NVARCHAR(50) <span class="kw">NULL</span>;</pre>
+      </div>
+    </div>
+
+    <div class="tbl">
+      <div class="tbl-h">3. TCP_Sales_TCR_Mapping</div>
+      <div class="tbl-body">
+        <div class="sub-h">更名欄位</div>
+<pre><span class="kw">EXEC</span> sp_rename <span class="str">'TCP_Sales_TCR_Mapping.eMail_parent'</span>, <span class="str">'Email'</span>,       <span class="str">'COLUMN'</span>;
+<span class="kw">EXEC</span> sp_rename <span class="str">'TCP_Sales_TCR_Mapping.eMail'</span>,        <span class="str">'Sales_Email'</span>, <span class="str">'COLUMN'</span>;</pre>
+      </div>
+    </div>
+
+    <div class="tbl">
+      <div class="tbl-h">4. TCP_Sales_RS</div>
+      <div class="tbl-body">
+        <div class="sub-h">新增 / 移除 / 更名</div>
+<pre><span class="kw">ALTER TABLE</span> TCP_Sales_RS <span class="kw">ADD</span> Group_Name NVARCHAR(50) <span class="kw">NULL</span>;
+<span class="kw">ALTER TABLE</span> TCP_Sales_RS <span class="kw">DROP COLUMN</span> Site;
+<span class="kw">EXEC</span> sp_rename <span class="str">'TCP_Sales_RS.Region_Id'</span>,  <span class="str">'Region'</span>, <span class="str">'COLUMN'</span>;
+<span class="kw">EXEC</span> sp_rename <span class="str">'TCP_Sales_RS.Entity_Id'</span>,  <span class="str">'Entity'</span>, <span class="str">'COLUMN'</span>;
+<span class="kw">EXEC</span> sp_rename <span class="str">'TCP_Sales_RS.Sales_eMail'</span>,<span class="str">'Email'</span>,  <span class="str">'COLUMN'</span>;</pre>
+        <div class="sub-h">Jan~Dec 型別 decimal → int（isActive 旗標）</div>
+<pre><span class="kw">ALTER TABLE</span> TCP_Sales_RS <span class="kw">ALTER COLUMN</span> Jan INT <span class="kw">NULL</span>;  <span class="cm">-- Feb ~ Dec 同樣改為 INT NULL</span></pre>
+      </div>
+    </div>
+
+    <div class="footer">
+      TCP 改版 · DB 變更記錄　|　來源：docs/改版產出/03_DB_Migration/DB_Migration_Template_Redesign.sql　|　完整 SQL 以原始 .sql 檔為準
+    </div>
+  </div>
+</body>
+</html>
