@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HC Dashboard 改版設計文件</title>
+<style>
+  :root{ --fg:#24292f; --muted:#57606a; --border:#d0d7de; --bg:#fff; --code-bg:#f6f8fa; --accent:#0969da; }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;
+       color:var(--fg); line-height:1.7; max-width:980px; margin:0 auto; padding:48px 32px; background:var(--bg);}
+  h1{font-size:2em; border-bottom:2px solid var(--border); padding-bottom:.3em; margin-top:0;}
+  h2{font-size:1.5em; border-bottom:1px solid var(--border); padding-bottom:.3em; margin-top:2em;}
+  h3{font-size:1.2em; margin-top:1.6em;}
+  blockquote{border-left:4px solid var(--accent); margin:1em 0; padding:.4em 1em; color:var(--muted); background:var(--code-bg);}
+  table{border-collapse:collapse; width:100%; margin:1em 0; font-size:.93em; display:block; overflow-x:auto;}
+  th,td{border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top;}
+  th{background:var(--code-bg); font-weight:600;}
+  tr:nth-child(even) td{background:#fafbfc;}
+  code{background:var(--code-bg); padding:.2em .4em; border-radius:6px; font-size:.88em;
+       font-family:"Cascadia Code",Consolas,"Courier New",monospace;}
+  pre{background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:16px; overflow-x:auto;}
+  pre code{background:none; padding:0; font-size:.86em; line-height:1.5;}
+  ul,ol{padding-left:1.6em;}
+  li{margin:.25em 0;}
+  li.task{list-style:none; margin-left:-1.2em;}
+  hr{border:none; border-top:1px solid var(--border); margin:2em 0;}
+  a{color:var(--accent); text-decoration:none;} a:hover{text-decoration:underline;}
+  input[type=checkbox]{margin-right:.5em;}
+</style>
+</head>
+<body>
+<h1 id="hc-dashboard">HC Dashboard 改版設計文件</h1>
+<blockquote>
+<p>版本：草稿 v0.1 ／ 2026-06-12
+對應規格：Notion「HC Dashboard」(2026/6/8 版) ／ 現行 <code>sp_DSB_HC</code>
+決策前提：<strong>設定全部 config 表驅動</strong>；輸出表結構待定（本文第 1 節分析利弊並建議）</p>
+</blockquote>
+<hr />
+<h2 id="0">0. 設計總原則</h2>
+<p>把「<strong>會隨組織調整而變動的東西</strong>」（層級、排序、顯示名、Scorecard 對應、組合小計公式、各 Format 顯示哪些 KPI）全部抽到設定表。
+SP 只負責三件事：<strong>抓來源 → 套設定算 → 寫輸出</strong>。日後組織調整 = 改表，不改 code。</p>
+<p>資料計算拆成清楚的 5 個階段（4 個分頁共用同一套後段邏輯）：</p>
+<pre><code>Stage1 葉節點(Leaf)   每個最小單位從來源抓「可加總」KPI
+        ↓
+Stage2 Revenue        從 Scorecard 依對應抓 Revenue（也是可加總）
+        ↓
+Stage3 組合(Rollup)   依「誰加誰」設定，把子節點加總成小計/Total 列
+        ↓
+Stage4 YTM            可加總KPI：New Hires/Turnover=月加總；Total HC=月平均
+        ↓
+Stage5 衍生KPI        Turnover %、Revenue per Employee（比率，不能加總，最後算）
+        ↓
+輸出 ReportData
+</code></pre>
+<p><strong>關鍵觀念：比率型 KPI（Turnover %、Revenue per Employee）絕對不能用加總得到</strong>，
+必須先把分子分母（可加總KPI）各自 Rollup / YTM 完成，再對「每一列（含小計列）」個別相除。
+現行 SP 對 Revenue per Employee 已是這樣做，新增的 Turnover % 沿用同模式。</p>
+<hr />
+<h2 id="1-vs-4">1. 輸出表結構：單表 vs 4 表（利弊分析）</h2>
+<table>
+<thead>
+<tr>
+<th>面向</th>
+<th>方案A：單一 <code>DSB_HC_ReportData</code></th>
+<th>方案B：沿用 4 張 <code>HC_Dashboard_SBU/RBU/Operation/COE</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Schema</td>
+<td><code>HCDashbordType, Currency, Year, KPI, Measures, Value, Dimensions</code></td>
+<td>4 張，維度欄各自叫 SBU/RBU/Operation/COE，欄名不一致</td>
+</tr>
+<tr>
+<td>與新規格範例</td>
+<td><strong>一致</strong>（你給的 DataSource 範例就是單表）</td>
+<td>不一致，需再轉一層</td>
+</tr>
+<tr>
+<td>前端查詢</td>
+<td>一支查詢 + <code>WHERE HCDashbordType=</code> + Format 用欄位篩</td>
+<td>4 支查詢，分頁各接各表</td>
+</tr>
+<tr>
+<td>新增分頁/Format</td>
+<td>不動結構，加資料即可</td>
+<td>可能要再開表</td>
+</tr>
+<tr>
+<td>SP 寫法</td>
+<td>後段 Stage3~5 完全共用、一次寫好</td>
+<td>後段邏輯得複製 4 份（現行就是這樣，所以 SP 很長）</td>
+</tr>
+<tr>
+<td>既有相依</td>
+<td>需確認還有沒有別的程式吃舊 4 表</td>
+<td>既有相依不動，風險低</td>
+</tr>
+<tr>
+<td>單表資料量</td>
+<td>4 類合一，列數變多；靠 <code>HCDashbordType</code>+索引即可</td>
+<td>各表較小</td>
+</tr>
+<tr>
+<td>遷移成本</td>
+<td>前端查詢要改、舊表要退場</td>
+<td>幾乎不動前端</td>
+</tr>
+</tbody>
+</table>
+<p><strong>建議：採方案A（單表）。</strong> 理由：
+1. 你提供的新版 <code>DSB_HC_ReportData</code> 範例本身就是單表結構，代表規格方向已往這走。
+2. config 驅動的後段邏輯（Rollup/YTM/衍生KPI）<strong>只有單表能寫一次共用</strong>，否則 4 份複製又回到現在難維護的老路。
+3. Format 下拉只是「同一份資料挑不同 KPI 子集顯示」，用欄位篩最自然。</p>
+<blockquote>
+<p>若顧慮既有相依，折衷：SP 先寫進單表 <code>DSB_HC_ReportData</code>，再用 4 個 <code>VIEW</code> 對應舊表名，讓舊程式無痛過渡，之後再退場。</p>
+</blockquote>
+<p>本文後續 SP 草稿以 <strong>方案A 單表</strong> 撰寫。</p>
+<hr />
+<h2 id="2-checklist">2. 新舊規格差異對照清單（開發 checklist）</h2>
+<h3 id="2-1">2-1 共通</h3>
+<ul>
+<li class="task"><input type="checkbox" disabled> 新增輸出表 <code>DSB_HC_ReportData</code>（單表，含 <code>HCDashbordType</code>、<code>Measures</code>）</li>
+<li class="task"><input type="checkbox" disabled> 新增 KPI <strong>Turnover %</strong> = <code># of Turnover / ((當月 Total HC + 前月 Total HC)/2)</code>；前端 &lt;5% 綠、&gt;10% 紅</li>
+<li class="task"><input type="checkbox" disabled> 年月維度新增：By Year / 2025 Dec / 2026 1–12月 / YTM（YTM 對部分 KPI 顯示「-」）</li>
+<li class="task"><input type="checkbox" disabled> 各架構名稱底下只顯示 <strong>Budget</strong> KPI（HC/Budget）</li>
+<li class="task"><input type="checkbox" disabled> 篩選新增 <strong>Format</strong>：HC Management / Turnover / Revenue per Employee（僅 SBU、RBU）</li>
+<li class="task"><input type="checkbox" disabled> Employee list link：<strong>只有 Format = HC Management 才顯示</strong></li>
+</ul>
+<h3 id="2-2-sbu">2-2 SBU</h3>
+<ul>
+<li class="task"><input type="checkbox" disabled> 層級由 ~19 群組列 → <strong>31 條明細 PG</strong>（iSystem-ISG/ESG/iMs/CE/Marketing/BDM…、iAutomation-<em>、Embedded-</em>、iService-*、WISE），照 SBU Hierarchy 排序</li>
+<li class="task"><input type="checkbox" disabled> 每條 PG 的 Revenue 來源各自對應 Scorecard（PG=Intelligent System + 各自 PD/MD，詳 Notion 表）</li>
+<li class="task"><input type="checkbox" disabled> KPI：Total HC(=−ACL+−Oversea+#LOA)、−ACL、−Oversea、#LOA、#New Hires、#Turnover、Revenue、Rev per Employee、HC/Budget、<strong>Turnover%(new)</strong></li>
+<li class="task"><input type="checkbox" disabled> 三個 Format 各顯示不同 KPI 子集（見 §4 KPIFormat）</li>
+</ul>
+<h3 id="2-3-rbu">2-3 RBU</h3>
+<ul>
+<li class="task"><input type="checkbox" disabled> 層級 7 區 → <strong>19 列</strong>，新增 leaf：India、AAU、LATAM、ME&amp;A、CIS、HQDC</li>
+<li class="task"><input type="checkbox" disabled> 組合小計（Rollup）：</li>
+<li>S.Asia Pacific Total = ASEAN + India + AAU</li>
+<li>InterCon Total = LATAM + ME&amp;A + CIS</li>
+<li>InterCon &amp; S.Asia Pacific w/o HQDC = S.Asia + InterCon</li>
+<li>InterCon &amp; S.Asia Pacific w/ HQDC = S.Asia + InterCon + HQDC</li>
+<li>RBU Total (w/ HQDC) = ANA…AKR + S.Asia leaf群 + InterCon leaf群 + HQDC (+AURES?)</li>
+<li class="task"><input type="checkbox" disabled> <strong>HQDC 不顯示 Revenue / Revenue per Employee</strong></li>
+<li class="task"><input type="checkbox" disabled> AURES 規格上被刪線（待確認是否保留）</li>
+<li class="task"><input type="checkbox" disabled> KPI：Total HC、#New Hires、#Turnover、<strong>Turnover%(new)</strong>、Revenue、Rev per Employee、HC/Budget</li>
+</ul>
+<h3 id="2-4-operation">2-4 Operation</h3>
+<ul>
+<li class="task"><input type="checkbox" disabled> 維持單頁、無 Format 下拉</li>
+<li class="task"><input type="checkbox" disabled> 層級：ATMC/AKMC/AJMC → <strong>MSU(=三者加總)</strong> → Non-MSU → <strong>Operation Grand Total(=MSU+Non-MSU)(new)</strong></li>
+<li class="task"><input type="checkbox" disabled> KPI：Total HC(=IDL+DL+#LOA)、−IDL、−DL、#LOA、#New Hires(+IDL/DL拆)、#Turnover(+IDL/DL拆)、HC/Budget、<strong>Turnover%(new) + IDL/DL 拆(new)</strong></li>
+</ul>
+<h3 id="2-5-coe">2-5 COE（改動最大）</h3>
+<ul>
+<li class="task"><input type="checkbox" disabled> GA → <strong>GA/ER</strong>（改抓 <code>RPT_Level1_Name='GA/ER'</code>）</li>
+<li class="task"><input type="checkbox" disabled> 新增：DMKT、BIOS &amp; FW、CES、DQA Linkou、Wireless TSU、IoTMart</li>
+<li class="task"><input type="checkbox" disabled> 移除：Design、CM&amp;D、COE Grand Total</li>
+<li class="task"><input type="checkbox" disabled> 新增組合：</li>
+<li>Corp.Function All = HR+IT+Finance+GA/ER+DMKT+COE-Other</li>
+<li>HW Engineering All = BIOS&amp;FW+CES+DQA Linkou+Wireless TSU</li>
+<li>Corp BG All = IoTMart</li>
+<li class="task"><input type="checkbox" disabled> KPI：Total HC(=Total HC+#LOA)、#LOA、#New Hires、#Turnover、HC/Budget、<strong>Turnover%(new)</strong></li>
+</ul>
+<h3 id="2-6-amber">2-6 ⚠ 範例資料髒值（請資料整理端 Amber 修正後再進表）</h3>
+<ul>
+<li><code>Operation</code> 有 <code>#NAME?</code>（Excel 公式錯誤殘留）</li>
+<li>COE：<code>BIOS &amp; FM</code> vs <code>BIOS &amp; FW</code>、<code>COE_Others</code> vs <code>COE-Others</code> 拼法不一</li>
+<li>Operation：<code>MSU</code> / <code>MSU Total</code> / <code>MSU Others</code> 混用，需統一命名</li>
+<li>這些字串若直接進正式表，會破壞 config 對應與前端排序 → <strong>Measures 命名要與 HierarchySort 完全一致</strong></li>
+</ul>
+<hr />
+<h2 id="3-config">3. 設定表（config）欄位設計</h2>
+<h3 id="3-1-dsb_hc_hierarchy">3-1 <code>DSB_HC_Hierarchy</code>（核心：定義每個分頁有哪些列、怎麼排、資料從哪來）</h3>
+<p>取代現行 <code>DSB_HC_HierarchySort</code> + <code>DSB_HC_ShortName</code> 的層級/顯示/來源對應職責。</p>
+<table>
+<thead>
+<tr>
+<th>欄位</th>
+<th>型別</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HCDashbordType</td>
+<td>nvarchar(25)</td>
+<td>SBU / RBU / Operation / COE</td>
+</tr>
+<tr>
+<td>Sort</td>
+<td>int</td>
+<td>前端列排序</td>
+</tr>
+<tr>
+<td>Measures</td>
+<td>nvarchar(200)</td>
+<td><strong>前端顯示的列名（唯一鍵之一）</strong>，須與輸出 Measures 一致</td>
+</tr>
+<tr>
+<td>NodeType</td>
+<td>nvarchar(10)</td>
+<td><code>Leaf</code>＝直接從來源抓；<code>Rollup</code>＝由其他列加總</td>
+</tr>
+<tr>
+<td>HcSourceKey</td>
+<td>nvarchar(100)</td>
+<td>Leaf 用：對應 <code>rv_hr_hc_dashboard.RPT_Level1_Name</code></td>
+</tr>
+<tr>
+<td>ShowRevenue</td>
+<td>bit</td>
+<td>是否顯示 Revenue / Rev per Employee（HQDC=0）</td>
+</tr>
+<tr>
+<td>IsActive</td>
+<td>bit</td>
+<td>停用列免刪，設 0 即可</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-2-dsb_hc_rollup">3-2 <code>DSB_HC_Rollup</code>（組合公式：誰加誰）</h3>
+<table>
+<thead>
+<tr>
+<th>欄位</th>
+<th>型別</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HCDashbordType</td>
+<td>nvarchar(25)</td>
+<td>分頁</td>
+</tr>
+<tr>
+<td>ParentMeasures</td>
+<td>nvarchar(200)</td>
+<td>組合列名（須在 Hierarchy 中 NodeType=Rollup）</td>
+</tr>
+<tr>
+<td>ChildMeasures</td>
+<td>nvarchar(200)</td>
+<td>被加總的子列名（可為 Leaf 或另一個 Rollup）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>一個組合列 = 多筆 Child。多層組合（例：<code>InterCon &amp; S.Asia w/ HQDC</code> 含 <code>S.Asia Total</code>、<code>InterCon Total</code> 兩個自己也是組合的列）由 SP 用<strong>遞迴 CTE 展開到葉節點</strong>再加總，避免重複計算。</p>
+</blockquote>
+<h3 id="3-3-dsb_hc_scorecardmaprevenue">3-3 <code>DSB_HC_ScorecardMap</code>（Revenue 來源對應）</h3>
+<table>
+<thead>
+<tr>
+<th>欄位</th>
+<th>型別</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HCDashbordType</td>
+<td>nvarchar(25)</td>
+<td>SBU / RBU</td>
+</tr>
+<tr>
+<td>Measures</td>
+<td>nvarchar(200)</td>
+<td>對應 Hierarchy 的列名</td>
+</tr>
+<tr>
+<td>ScorecardSource</td>
+<td>nvarchar(50)</td>
+<td><code>SCORECARD_PROD_N</code>(SBU) / <code>SCORECARD_RBU_2011</code>(RBU)</td>
+</tr>
+<tr>
+<td>FilterPG</td>
+<td>nvarchar(100)</td>
+<td>SBU：PROD_GROUP（多為 Intelligent System）</td>
+</tr>
+<tr>
+<td>FilterPD</td>
+<td>nvarchar(100)</td>
+<td>SBU：PROD_DIVI（All / AiCS / AiH…）；RBU 用 REGION</td>
+</tr>
+<tr>
+<td>Description</td>
+<td>nvarchar(50)</td>
+<td><code>Revenue(E2E)</code>(SBU) / <code>Revenue</code>(RBU)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-4-dsb_hc_kpiformat-format-kpi">3-4 <code>DSB_HC_KPIFormat</code>（各 Format 顯示哪些 KPI、型別、排序）</h3>
+<table>
+<thead>
+<tr>
+<th>欄位</th>
+<th>型別</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HCDashbordType</td>
+<td>nvarchar(25)</td>
+<td>分頁</td>
+</tr>
+<tr>
+<td>Format</td>
+<td>nvarchar(30)</td>
+<td><code>HC Management</code>/<code>Turnover</code>/<code>Revenue per Employee</code>；Operation/COE 留空＝單頁</td>
+</tr>
+<tr>
+<td>KPI</td>
+<td>nvarchar(100)</td>
+<td>KPI 名</td>
+</tr>
+<tr>
+<td>KpiSort</td>
+<td>int</td>
+<td>顯示順序</td>
+</tr>
+<tr>
+<td>ValueType</td>
+<td>nvarchar(10)</td>
+<td><code>number</code> / <code>percent</code></td>
+</tr>
+<tr>
+<td>HideOnYTM</td>
+<td>bit</td>
+<td>YTM 欄是否顯示「-」</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>§3-4 主要供前端決定每個 Format 顯示哪幾列 KPI 與顏色規則；後端也可用它過濾輸出。</p>
+</blockquote>
+<hr />
+<h2 id="4-sp-a-config">4. 改寫後 SP 草稿（方案A 單表，config 驅動）</h2>
+<blockquote>
+<p>以下為<strong>結構草稿</strong>，示範 config 驅動的 5 階段管線。
+Stage1 各分頁來源欄位不同（SBU 有 ACL/Oversea、Operation 有 IDL/DL），仍需分塊抽取；
+但 Stage3（Rollup）、Stage4（YTM）、Stage5（衍生KPI）<strong>完全共用、只寫一次</strong>——這是相對現行 SP 最大的簡化。</p>
+</blockquote>
+<pre><code class="language-sql">ALTER PROCEDURE [dbo].[sp_DSB_HC_New]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @Year int = YEAR(GETDATE());
+    DECLARE @CurMonth int = MONTH(GETDATE());
+
+    -- 統一中繼表（取代現行 4 張 #暫存表）
+    CREATE TABLE #Stage (
+        HCDashbordType nvarchar(25),
+        Currency       nchar(3),
+        Year           int,
+        KPI            nvarchar(100),
+        Measures       nvarchar(200),   -- 已是「顯示名」
+        Value          float,
+        Dim            int               -- 1~12 月、13=YTM
+    );
+
+    /*==================================================================
+      STAGE 1 — 葉節點 HC（可加總 KPI），各分頁來源欄位不同故分塊
+      重點：用 Hierarchy.HcSourceKey 對應 RPT_Level1_Name，
+            直接輸出 Measures = Hierarchy.Measures（不再 SP 內寫死群組）
+    ==================================================================*/
+    -- 範例：SBU（其餘 RBU/Operation/COE 同模式，差在 UNPIVOT 的 KPI 欄位清單）
+    ;WITH Src AS (
+        SELECT 'USD' AS Currency, [ThisYear] AS Year,
+               [RPT_Level1_Name] AS HcSourceKey,
+               CAST([ThisMonth] AS int) AS Dim,
+               [Total HC],[# of New Hires],[# of Turnover],[ACL],[Oversea],[# of LOA]
+        FROM OPENQUERY(&quot;DENODO-PROD&quot;,'SELECT * FROM hcm.rv_hr_hc_dashboard')
+        WHERE [rpt_type]='SBU' AND [ThisYear] &gt;= 2022
+    )
+    INSERT INTO #Stage (HCDashbordType,Currency,Year,KPI,Measures,Value,Dim)
+    SELECT 'SBU', u.Currency, u.Year, u.KPI, h.Measures, u.Value, u.Dim
+    FROM Src
+    UNPIVOT (Value FOR KPI IN
+            ([Total HC],[# of New Hires],[# of Turnover],[ACL],[Oversea],[# of LOA])) u
+    JOIN [dbo].[DSB_HC_Hierarchy] h
+         ON h.HCDashbordType='SBU' AND h.NodeType='Leaf'
+        AND h.HcSourceKey = u.HcSourceKey;
+    --  ↑ RBU / Operation / COE 重複此段，改 rpt_type 與 UNPIVOT KPI 清單
+    --    （Operation 多 IDL/DL/New Hires IDL…；COE 排除 Marketing、GA→GA/ER）
+
+    /*==================================================================
+      STAGE 2 — Revenue（也是可加總），用 ScorecardMap 對應
+    ==================================================================*/
+    -- 範例：SBU Revenue
+    ;WITH Rev AS (
+        SELECT 'USD' AS Currency, s.[YEAR_ID] AS Year, m.Measures,
+               s.[M01],s.[M02],s.[M03],s.[M04],s.[M05],s.[M06],
+               s.[M07],s.[M08],s.[M09],s.[M10],s.[M11],s.[M12]
+        FROM [Global_Fin].[dbo].[SCORECARD_PROD_N] s
+        JOIN [dbo].[DSB_HC_ScorecardMap] m
+             ON m.HCDashbordType='SBU'
+            AND m.FilterPG = s.[PROD_GROUP]
+            AND m.FilterPD = s.[PROD_DIVI]
+        WHERE s.[DESCRIPTION]='Revenue(E2E)' AND s.[YEAR_ID] &gt;= @Year
+    )
+    INSERT INTO #Stage (HCDashbordType,Currency,Year,KPI,Measures,Value,Dim)
+    SELECT 'SBU', Currency, Year, 'Revenue', Measures, Value,
+           CAST(REPLACE(MonthCol,'M','') AS int)
+    FROM Rev
+    UNPIVOT (Value FOR MonthCol IN
+            ([M01],[M02],[M03],[M04],[M05],[M06],[M07],[M08],[M09],[M10],[M11],[M12])) u;
+    -- RBU Revenue 同模式，來源換 SCORECARD_RBU_2011、對應 REGION
+
+    /*==================================================================
+      STAGE 3 — 組合(Rollup)：遞迴展開到葉節點再加總（可加總 KPI 才做）
+      一次處理所有分頁、所有組合列
+    ==================================================================*/
+    ;WITH Expand AS (
+        -- 起點：每個組合列的直接子節點
+        SELECT r.HCDashbordType, r.ParentMeasures, r.ChildMeasures
+        FROM [dbo].[DSB_HC_Rollup] r
+        UNION ALL
+        -- 遞迴：子節點若本身也是組合，繼續往下展開到葉節點
+        SELECT e.HCDashbordType, e.ParentMeasures, r.ChildMeasures
+        FROM Expand e
+        JOIN [dbo].[DSB_HC_Rollup] r
+             ON r.HCDashbordType=e.HCDashbordType
+            AND r.ParentMeasures = e.ChildMeasures
+    ),
+    LeafOnly AS (   -- 只留展開後仍是葉節點的 child
+        SELECT DISTINCT e.HCDashbordType, e.ParentMeasures, e.ChildMeasures
+        FROM Expand e
+        JOIN [dbo].[DSB_HC_Hierarchy] h
+             ON h.HCDashbordType=e.HCDashbordType
+            AND h.Measures=e.ChildMeasures AND h.NodeType='Leaf'
+    )
+    INSERT INTO #Stage (HCDashbordType,Currency,Year,KPI,Measures,Value,Dim)
+    SELECT s.HCDashbordType, s.Currency, s.Year, s.KPI,
+           lo.ParentMeasures, SUM(s.Value), s.Dim
+    FROM #Stage s
+    JOIN LeafOnly lo
+         ON lo.HCDashbordType=s.HCDashbordType AND lo.ChildMeasures=s.Measures
+    WHERE s.KPI NOT IN ('Turnover %','Revenue per Employee')   -- 只加可加總KPI
+    GROUP BY s.HCDashbordType,s.Currency,s.Year,s.KPI,lo.ParentMeasures,s.Dim;
+
+    /*==================================================================
+      STAGE 4 — YTM（Dim=13）
+        New Hires / Turnover 類 = 月加總
+        Total HC / ACL / Oversea / LOA = 月平均（/已過月數）
+        Revenue = 月加總
+    ==================================================================*/
+    INSERT INTO #Stage (HCDashbordType,Currency,Year,KPI,Measures,Value,Dim)
+    SELECT HCDashbordType,Currency,Year,KPI,Measures,
+           CASE WHEN KPI IN ('Total HC','ACL','Oversea','# of LOA','- IDL','- DL')
+                THEN SUM(Value)/NULLIF(@CurMonth-1,0)   -- 平均
+                ELSE SUM(Value) END,                    -- 加總
+           13
+    FROM #Stage
+    WHERE Year=@Year AND Dim &lt; @CurMonth
+      AND KPI NOT IN ('Turnover %','Revenue per Employee')
+    GROUP BY HCDashbordType,Currency,Year,KPI,Measures;
+
+    /*==================================================================
+      STAGE 5 — 衍生 KPI（比率，對每一列含小計個別計算）
+    ==================================================================*/
+    -- 5a. Revenue per Employee = Revenue / Total HC
+    INSERT INTO #Stage (HCDashbordType,Currency,Year,KPI,Measures,Value,Dim)
+    SELECT r.HCDashbordType,r.Currency,r.Year,'Revenue per Employee',
+           r.Measures, r.Value / NULLIF(hc.Value,0), r.Dim
+    FROM #Stage r
+    JOIN #Stage hc
+         ON hc.HCDashbordType=r.HCDashbordType AND hc.Currency=r.Currency
+        AND hc.Year=r.Year AND hc.Measures=r.Measures AND hc.Dim=r.Dim
+        AND hc.KPI='Total HC'
+    WHERE r.KPI='Revenue';
+
+    -- 5b. Turnover % = #Turnover / ((當月 + 前月 Total HC)/2)
+    INSERT INTO #Stage (HCDashbordType,Currency,Year,KPI,Measures,Value,Dim)
+    SELECT t.HCDashbordType,t.Currency,t.Year,'Turnover %',t.Measures,
+           t.Value / NULLIF((hc.Value + ISNULL(pm.Value,hc.Value))/2.0,0), t.Dim
+    FROM #Stage t
+    JOIN #Stage hc
+         ON hc.HCDashbordType=t.HCDashbordType AND hc.Currency=t.Currency
+        AND hc.Year=t.Year AND hc.Measures=t.Measures AND hc.Dim=t.Dim
+        AND hc.KPI='Total HC'
+    LEFT JOIN #Stage pm   -- 前月 Total HC
+         ON pm.HCDashbordType=t.HCDashbordType AND pm.Currency=t.Currency
+        AND pm.Year=t.Year AND pm.Measures=t.Measures AND pm.Dim=t.Dim-1
+        AND pm.KPI='Total HC'
+    WHERE t.KPI='# of Turnover' AND t.Dim BETWEEN 1 AND 12;
+
+    /*==================================================================
+      STAGE 6 — Budget（每月該月 budget；維度=Budget）
+    ==================================================================*/
+    -- 同現行：抓 rv_sharepoint_hc_dashboard_budget，依 rpt_type 寫入，
+    --         Measures 用 Hierarchy 對應名（略）
+
+    /*==================================================================
+      OUTPUT — 寫入單表 DSB_HC_ReportData（Dim 轉月份字串）
+    ==================================================================*/
+    DELETE [Global_Fin].[dbo].[DSB_HC_ReportData] WHERE [Year]=@Year;
+
+    INSERT INTO [Global_Fin].[dbo].[DSB_HC_ReportData]
+        (HCDashbordType,Currency,Year,KPI,Measures,Value,Dimensions)
+    SELECT HCDashbordType, RTRIM(Currency), Year, KPI, Measures, Value,
+           CASE Dim WHEN 1 THEN 'Jan' WHEN 2 THEN 'Feb' WHEN 3 THEN 'Mar'
+                    WHEN 4 THEN 'Apr' WHEN 5 THEN 'May' WHEN 6 THEN 'Jun'
+                    WHEN 7 THEN 'Jul' WHEN 8 THEN 'Aug' WHEN 9 THEN 'Sep'
+                    WHEN 10 THEN 'Oct' WHEN 11 THEN 'Nov' WHEN 12 THEN 'Dec'
+                    WHEN 13 THEN 'YTM' END
+    FROM #Stage
+    WHERE Year=@Year;
+
+    DROP TABLE #Stage;
+END
+</code></pre>
+<h3 id="_1">草稿尚待補完 / 待確認</h3>
+<ol>
+<li><strong>Stage1 RBU/Operation/COE 三塊</strong>未展開（同 SBU 模式，差在來源欄位與 rpt_type）。</li>
+<li><strong>Total HC 組成公式</strong>：SBU=−ACL+−Oversea+#LOA、Operation=IDL+DL+#LOA、COE=Total HC+#LOA——
+   來源是「已有 Total HC 欄」還是「要 SP 自己加」？需確認 <code>rv_hr_hc_dashboard</code> 的 <code>Total HC</code> 欄定義。</li>
+<li><strong>YTM Total HC 平均的分母</strong>：現行用 <code>MONTH(GETDATE())-1</code>，請確認新規格 By Year/Dec 的 YTM 定義一致。</li>
+<li><strong>AURES（RBU）</strong> 規格刪線——保留或移除？</li>
+<li><strong>Operation Turnover% 拆 IDL/DL</strong>：分母用「整體 Total HC」還是「IDL/DL 各自 HC」？Notion 公式欄三者寫一樣，疑似筆誤，需向 Tina 確認。</li>
+<li>髒值（§2-6）由資料整理端先清乾淨，Measures 命名與 Hierarchy 對齊。</li>
+</ol>
+</body>
+</html>
