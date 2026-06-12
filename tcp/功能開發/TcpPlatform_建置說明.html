@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TCP Platform — 建置說明文件</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  body{font-family:"Segoe UI","Microsoft JhengHei",Arial,sans-serif;margin:0;padding:0;background:#f4f6f9;color:#222;font-size:14px;line-height:1.65;}
+  .topbar{background:#00315a;color:#fff;padding:22px 32px;}
+  .topbar .crumb{font-size:12px;color:#7ab0d4;letter-spacing:.04em;}
+  .topbar h1{margin:6px 0 2px;font-size:22px;font-weight:600;}
+  .topbar .sub{font-size:13px;color:#b8d4ea;}
+  .wrap{max-width:960px;margin:0 auto;padding:28px 32px 64px;}
+  h2{font-size:18px;color:#00315a;border-bottom:2px solid #e1e6ec;padding-bottom:6px;margin:30px 0 10px;}
+  h3{font-size:14.5px;color:#2a6096;margin:18px 0 6px;}
+  p{margin:8px 0;}
+  code{background:#eef1f5;color:#1e2a38;padding:1px 5px;border-radius:3px;font-family:"Cascadia Code","Consolas",monospace;font-size:12.5px;}
+  pre{background:#1e2a38;color:#e6edf3;border-radius:6px;padding:14px 16px;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:12.5px;line-height:1.5;}
+  table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;}
+  th,td{border:1px solid #d8dee6;padding:6px 10px;text-align:left;vertical-align:top;}
+  th{background:#eef3f8;color:#00315a;}
+  .footer{margin-top:44px;padding-top:16px;border-top:1px solid #e1e6ec;font-size:12px;color:#8a97a6;}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="crumb">TCP 改版 / 功能開發</div>
+    <h1>TCP Platform — 建置說明文件</h1>
+    <div class="sub">維運人員參照：系統架構、權限設定、新增功能標準流程</div>
+  </div>
+  <div class="wrap">
+    <h2>1. 系統概述</h2>
+    <p>TCP Platform 是 TCP 後台管理系統，以功能 Hub 頁為入口，各功能以獨立 Page 呈現。</p>
+    <table>
+      <tr><th>路由</th><th>說明</th></tr>
+      <tr><td><code>/Admin/TcpPlatform</code></td><td>Hub 首頁（功能卡片導覽）</td></tr>
+      <tr><td><code>/Admin/TcpPlatform/Upload</code></td><td>業務員設定檔上傳功能</td></tr>
+      <tr><td><code>/Admin/TcpPlatform/OrgHierarchy</code></td><td>組織架構管理（樹狀結構）</td></tr>
+    </table>
+
+    <h2>2. 專案檔案位置</h2>
+<pre>eManagerCoreAdmin/
+├── Areas/Admin/Controllers/TcpPlatform/TcpPlatformController.cs   ← Page Controller
+├── Areas/Admin/Controllers/Api/TcpUploadController.cs            ← API Controller
+├── Areas/Admin/Views/TcpPlatform/{Index, Upload}.cshtml
+└── wwwroot/js/TcpUpload/Index.js                                 ← Upload 前端
+eManagerCoreAdmin.Models/DataModels/Tcp/ (6 個)、DTO/Tcp/TcpUploadDto.cs
+eManagerCoreAdmin.DataAccess/Repository/Tcp/{I}TcpUploadRepository.cs
+eManagerCoreAdmin.Service/Service/Tcp/{I}TcpUploadService.cs</pre>
+
+    <h2>3. Role Permission 設定</h2>
+    <p>使用系統現有的 Role Permission 管理系統（ACLDW 資料庫）。<b>前端文字規範：所有前端頁面顯示文字一律使用英文。</b></p>
+    <table>
+      <tr><th>項目</th><th>名稱</th><th>GUID</th></tr>
+      <tr><td>Module</td><td>TcpPlatform</td><td><code>5454723A-4A4F-F111-84EA-8EF546DA7DB9</code></td></tr>
+      <tr><td>Page</td><td>Overview</td><td><code>8A5A41AB-0D50-F111-84EA-8EF546DA7DB9</code></td></tr>
+      <tr><td>Page</td><td>Upload</td><td><code>C5591D68-4A4F-F111-84EA-8EF546DA7DB9</code></td></tr>
+      <tr><td>Role（最高權限）</td><td>E3</td><td><code>467236DC-7939-ED11-B820-D3BC584A32D2</code></td></tr>
+    </table>
+    <p>OrgHierarchy 的 Page 待建立。新增功能時：進管理介面 → 選 Module(TcpPlatform) → 新增 Page 名稱與 Action → 指派 Role。</p>
+
+    <h2>4. API 端點（TcpUpload）</h2>
+    <table>
+      <tr><th>Method</th><th>路由</th><th>說明</th></tr>
+      <tr><td>GET</td><td><code>/api/TcpUpload/GetSites?yearId=</code></td><td>取得 TCP Site 清單</td></tr>
+      <tr><td>POST</td><td><code>/api/TcpUpload/ParsePreview</code></td><td>解析 Excel，回傳預覽（不寫 DB）</td></tr>
+      <tr><td>POST</td><td><code>/api/TcpUpload/Import</code></td><td>直接上傳寫入 DB</td></tr>
+      <tr><td>POST</td><td><code>/api/TcpUpload/ImportFromPreview</code></td><td>由預覽資料寫入 DB</td></tr>
+      <tr><td>GET</td><td><code>/api/TcpUpload/GetLogs?yearId=&amp;site=</code></td><td>查詢上傳記錄</td></tr>
+      <tr><td>DELETE</td><td><code>/api/TcpUpload/DeleteLog/{logId}?yearId=</code></td><td>刪除上傳記錄及關聯資料</td></tr>
+    </table>
+
+    <h2>5. 資料庫</h2>
+    <p>TcpUpload 使用資料表（MFG DB，依年份切換）：<code>TCP_Upload_Log</code>、<code>TCP_Sales_TCR_Rate</code>、<code>TCP_Sales_TCR_Manager</code>、<code>TCP_Sales_TCR_Mapping</code>、<code>TCP_Sales_TCR_Change</code>、<code>TCP_Sales_RS</code>。連線：<code>IMFGDatabaseHelper.GetDbConnection(yearId)</code>（傳 4 位數年份，如 2026 → MFG2026Connection）。</p>
+    <h3>Excel Sheet 名稱對照</h3>
+    <table>
+      <tr><th>Excel Sheet</th><th>系統標準名</th></tr>
+      <tr><td>sales_tcr_rate</td><td>Sales_TCR_Rate</td></tr>
+      <tr><td>sales_tcr_emanager / sales_tcr_manager</td><td>Sales_TCR_Manager</td></tr>
+      <tr><td>sales_tcr_mapping / mapping</td><td>Sales_TCR_Mapping</td></tr>
+      <tr><td>sales_tcr_change / change</td><td>Sales_TCR_Change</td></tr>
+      <tr><td>rs / aeu_rs</td><td>RS</td></tr>
+    </table>
+
+    <h2>6. 新增功能的標準流程</h2>
+    <p><b>Step 1 後端：</b>TcpPlatformController 新增 Action（回傳 View）→ 需要 API 則在 Controllers/Api/ 新增 → 建立 Service/Repository/DataModel（各自 Tcp/ 資料夾）→ ServiceRegistration.cs 註冊 DI。</p>
+    <p><b>Step 2 前端：</b>Views/TcpPlatform/ 新增 .cshtml；wwwroot/js/TcpPlatform/ 新增 .js。</p>
+    <p><b>Step 3 Hub：</b>Index.cshtml 新增功能卡片，將 Coming Soon 改為實際連結。</p>
+    <p><b>Step 4 權限：</b>依第 3 節在管理介面新增 Page 並設定 Role。</p>
+
+    <h2>7. 建置歷程</h2>
+    <table>
+      <tr><th>日期</th><th>內容</th></tr>
+      <tr><td>2026-05-14</td><td>確認採用 Hub 架構，TcpPlatform 作為獨立入口</td></tr>
+      <tr><td>2026-05-15</td><td>建立 TcpPlatformController、Hub 首頁、Upload 頁；Role Permission 建立 Module 與 Page(Upload/Overview)；前端文字一律英文；TCP_Sales_TCR_Emanager 改名 TCP_Sales_TCR_Manager（同步更新各層）</td></tr>
+      <tr><td>2026-05-19</td><td>建立 OrgHierarchy 模組完整草稿（DataModel/DTO/Repo/Service/API/View/JS）；Index.cshtml Hub 含 Upload+OrgHierarchy 卡；修正 TcpOrgRepository（Sort_Order NULL 排序、GetDescendantSalesIds 加 IsActive 過濾）</td></tr>
+    </table>
+
+    <div class="footer">TCP 改版 · 功能開發　|　來源：docs/改版產出/01_技術文件/TcpPlatform_建置說明.md</div>
+  </div>
+</body>
+</html>

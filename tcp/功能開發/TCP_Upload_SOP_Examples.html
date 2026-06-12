@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TCP Upload — SOP 設定範本</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  body{font-family:"Segoe UI","Microsoft JhengHei",Arial,sans-serif;margin:0;padding:0;background:#f4f6f9;color:#222;font-size:14px;line-height:1.65;}
+  .topbar{background:#00315a;color:#fff;padding:22px 32px;}
+  .topbar .crumb{font-size:12px;color:#7ab0d4;letter-spacing:.04em;}
+  .topbar h1{margin:6px 0 2px;font-size:22px;font-weight:600;}
+  .topbar .sub{font-size:13px;color:#b8d4ea;}
+  .wrap{max-width:960px;margin:0 auto;padding:28px 32px 64px;}
+  h2{font-size:18px;color:#00315a;border-bottom:2px solid #e1e6ec;padding-bottom:6px;margin:30px 0 10px;}
+  h3{font-size:14.5px;color:#2a6096;margin:18px 0 6px;}
+  p{margin:8px 0;}
+  code{background:#eef1f5;color:#1e2a38;padding:1px 5px;border-radius:3px;font-family:"Cascadia Code","Consolas",monospace;font-size:12.5px;}
+  table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;}
+  th,td{border:1px solid #d8dee6;padding:6px 10px;text-align:left;vertical-align:top;}
+  th{background:#eef3f8;color:#00315a;}
+  .note{background:#fff8e6;border:1px solid #f0e0b0;border-left:4px solid #d9a300;border-radius:6px;padding:10px 16px;margin:10px 0;font-size:13px;color:#6b5400;}
+  .footer{margin-top:44px;padding-top:16px;border-top:1px solid #e1e6ec;font-size:12px;color:#8a97a6;}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="crumb">TCP 改版 / 功能開發</div>
+    <h1>TCP Upload — SOP 設定範本</h1>
+    <div class="sub">常見上傳設定情境，供製作 SOP 或範本參考</div>
+  </div>
+  <div class="wrap">
+    <h2>欄位設計說明</h2>
+    <h3>Commission Rate sheet（共 33 欄，三區塊）</h3>
+    <p><b>基本資訊（7 欄）：</b>Site、Email、Group Name（選填，多計算方式時區分群組）、Commission Type（<code>IND</code>＝直接用自己 Sales_ID／<code>Leader</code>＝透過 Sales ID Config）、Achievement Rate Threshold（累積達成率門檻）、Achievement Rate Threshold(Monthly)（選填，啟用每月獨立判斷）、GP（毛利率條件）。</p>
+    <p><b>Standard CR%（13 欄）：</b>Commission Rate（預設 CR%）＋ Jan~Dec（各月可個別設定，留空沿用預設）。<b>Monthly CR%（13 欄）：</b>結構同上，用於月達成率門檻對應費率。</p>
+    <h3>Sales ID Config sheet</h3>
+    <p>Email、Group Name（對應 Commission Rate 群組，留空＝單一計算方式）、Sales ID、Jan~Dec（isActive 旗標：1＝該月啟用、0＝停用）。</p>
+    <h3>Mapping sheet（業績觀看權限，非管理階層關係）</h3>
+    <p>Email（要開放觀看的人）、Sales（被觀看對象 Email）。範例：主管 A 看業務員 B → Email=A、Sales=B。</p>
+    <h3>RS sheet（報表篩選條件，對應報表抓 Revenue/Quota 作額外獎金依據；不含 Site）</h3>
+    <p>Email、Group Name、Report、FOB_Local、Region、Entity、Sector、Prod_Group、Jan~Dec（各月數值，用途待確認）。</p>
+
+    <h2>一、Group Name 使用邏輯</h2>
+    <p>Group Name 是 Commission Rate、Sales ID Config、RS 三張 sheet 之間的關聯鍵，三張透過 <code>Email + Group Name</code> 對應。一種計算方式 → 留空；多種 → 用 Group Name 區分。</p>
+
+    <h2>情境一：單一計算方式（Group Name 留空）</h2>
+    <p>大多數業務員，只有一套固定 Commission Rate。Commission Rate 一列（Group Name 空、IND、Threshold 0.7、CR 0.05）；Sales ID Config 各 Sales ID 一列，Jan~Dec 全 1。</p>
+
+    <h2>情境二：多種計算方式（Group Name 區分）</h2>
+    <p>同一業務員負責不同性質 Sales ID，各套不同 CR%。範例：5 個 Sales ID，2 個 9%、3 個 4%。</p>
+    <table>
+      <tr><th>Email</th><th>Group Name</th><th>Type</th><th>Threshold</th><th>CR</th></tr>
+      <tr><td>john@example.com</td><td>GroupA</td><td>Leader</td><td>0.8</td><td>0.09</td></tr>
+      <tr><td>john@example.com</td><td>GroupB</td><td>Leader</td><td>0.6</td><td>0.04</td></tr>
+    </table>
+    <p>Sales ID Config：GroupA → S001/S002；GroupB → S003/S004/S005（各月 isActive 可不同）。</p>
+
+    <h2>情境三：月份 CR% 各自不同</h2>
+    <p>每月費率不固定，按月個別設定。Standard CR% 區塊：Commission Rate 為預設，若該月有填值則以月份欄位為準（例：預設 0.05，Jan/Feb 0.03、Mar 0.05、Apr 0.07…）。</p>
+
+    <h2>情境四：Leader 帶 IND</h2>
+    <div class="note">待補充。</div>
+
+    <div class="footer">TCP 改版 · 功能開發　|　來源：docs/改版產出/02_使用說明/TCP_Upload_SOP_Examples.md（最後更新 2026-05-15）</div>
+  </div>
+</body>
+</html>
