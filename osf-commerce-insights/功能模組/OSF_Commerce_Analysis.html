@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OSF Commerce Insights — 程式碼分析報告</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: "Segoe UI","Microsoft JhengHei",Arial,sans-serif; margin:0; padding:0; background:#f4f6f9; color:#222; font-size:14px; line-height:1.65; }
+  .topbar { background:#00315a; color:#fff; padding:22px 32px; }
+  .topbar .crumb { font-size:12px; color:#7ab0d4; letter-spacing:.04em; }
+  .topbar h1 { margin:6px 0 2px; font-size:22px; font-weight:600; }
+  .topbar .sub { font-size:13px; color:#b8d4ea; }
+  .wrap { max-width:960px; margin:0 auto; padding:28px 32px 64px; }
+  h2 { font-size:18px; color:#00315a; border-bottom:2px solid #e1e6ec; padding-bottom:6px; margin:32px 0 10px; }
+  h3 { font-size:14.5px; color:#2a6096; margin:18px 0 6px; }
+  p { margin:8px 0; }
+  code { background:#eef1f5; color:#1e2a38; padding:1px 5px; border-radius:3px; font-family:"Cascadia Code","Consolas",monospace; font-size:12.5px; }
+  pre { background:#1e2a38; color:#e6edf3; border-radius:6px; padding:14px 16px; overflow-x:auto; font-family:"Cascadia Code","Consolas",monospace; font-size:12.5px; line-height:1.5; margin:8px 0; }
+  pre code { background:none; color:inherit; padding:0; }
+  table { border-collapse:collapse; width:100%; margin:10px 0; font-size:13px; }
+  th,td { border:1px solid #d8dee6; padding:6px 10px; text-align:left; vertical-align:top; }
+  th { background:#eef3f8; color:#00315a; }
+  .note { background:#fff8e6; border:1px solid #f0e0b0; border-left:4px solid #d9a300; border-radius:6px; padding:10px 16px; margin:10px 0; font-size:13px; color:#6b5400; }
+  .footer { margin-top:44px; padding-top:16px; border-top:1px solid #e1e6ec; font-size:12px; color:#8a97a6; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="crumb">eManager / OSF Commerce Insights</div>
+    <h1>OSF Commerce Insights — 程式碼分析報告</h1>
+    <div class="sub">分析日期 2026-04-29 ｜ Repository / Service / Page / Model 全層分析</div>
+  </div>
+  <div class="wrap">
+
+    <h2>一、整體架構</h2>
+    <p>標準 ASP.NET Core 分層：Presentation（Razor Page）→ Service → Repository（Dapper）→ Database（SQL Server）。</p>
+    <table>
+      <tr><th>層級</th><th>檔案路徑</th></tr>
+      <tr><td>Presentation</td><td><code>Areas/ScoreCard/Pages/OSF_CommerceInsights/OSF_CommerceInsights.cshtml</code></td></tr>
+      <tr><td>Page Model</td><td><code>OSF_CommerceInsights.cshtml.cs</code></td></tr>
+      <tr><td>API Controller</td><td><code>Areas/ScoreCard/Controllers/Api/OSFCommerceController.cs</code></td></tr>
+      <tr><td>Service</td><td><code>Service/OSFCommerce/OSFCommerceService.cs</code>（介面 IOSFCommerceService）</td></tr>
+      <tr><td>Repository</td><td><code>Repository/OSFCommerce/OSFCommerceRepository.cs</code>（介面 IOSFCommerceRepository）</td></tr>
+      <tr><td>DataModels / DTO</td><td><code>Models/DataModels/OSFCommerce/</code>、<code>Models/DTO/OSFCommerceInsights/</code></td></tr>
+    </table>
+
+    <h2>二、Model 層</h2>
+    <h3>OSFCommerceQuery（查詢參數）</h3>
+    <p><code>Year</code>(int)、<code>Currency</code>(string)、<code>Sector</code>(string，"ALL"=全部)。</p>
+    <h3>OSF_CommerceInsights（Insights 主資料，縱向 EAV 格式）</h3>
+    <p>每筆 = 維度組合 × KPI × 時間的單一數值。欄位：HierarchyYear、Year、DateDimension（Jan…Dec/Total/YTM/YTMLocal）、Currency、Store、Region、Country（"ALL"=匯總）、KPI、Value。</p>
+    <h3>OSF_CommerceInsightsKPI（KPI 定義與樣式）</h3>
+    <p>PerformanceArea、KPI、Sort、FontColor、BackgroundColor、Floor（縮排層級，每層 ×10px）、DecimalPlaces、hasLocalCurrency、hasPercentage、DataSource。</p>
+    <h3>OSF_CommerceInsightsHierarchy（層級結構）</h3>
+    <p>Level（1=Store, 2=Region, 3=Country）、LevelName、Value（如 TW/APAC/ALL）、Sort、FontColor、LocalCurrency。</p>
+    <h3>OSF_CommerceInsightsDto（Service 聚合 DTO）</h3>
+    <p>一次打包三張表結果（oSF_CommerceInsights、KPIs、Hierarchies）供 PageModel 使用。另有舊版 <code>OSFCommerceGetKpiDatasResponseDto</code>（月份橫向展開格式）。</p>
+
+    <h2>三、Repository 層</h2>
+    <p>注入 <code>IProjectReportHelper</code> 取得連線，ORM 用 Dapper。<code>OSFGetKpiDatas</code> 有三條 SQL 路徑：</p>
+    <table>
+      <tr><th>條件</th><th>SQL 邏輯</th></tr>
+      <tr><td>Sector == "ALL"</td><td>不篩 Sector，依 OSF_SectorSort.SectorSort 及 OSF_Commerce_Style.Sort 排序</td></tr>
+      <tr><td>Sector != "ALL" 且 USD</td><td>加 <code>O.Sector = @Sector</code> 篩選</td></tr>
+      <tr><td>Sector != "ALL" 且非 USD</td><td><b>UNION</b>：本地幣別兩段（第二段 Sort not in 1,2,3 且用 OSF_SectorSort.Currency 篩），統一 ORDER BY Sort</td></tr>
+    </table>
+    <p>KPI 查詢動態替換年份：KPI 含 "LastYear"/"CurrentYear" → 替換為實際年份（如 Revenue LastYear → Revenue 2025）。</p>
+
+    <h2>四、Service 層</h2>
+    <p><code>OSFGetKpiDatas</code>：呼叫 Repository 取單一 UnitDto，包成 List 放入 Response。<code>GetOSFCommerceInsights</code>：同時呼叫 Insights/KPI/Hierarchy 三方法組成 DTO。（原 Region GroupBy 邏輯已註解，留 TODO。）</p>
+
+    <h2>五、Presentation 層</h2>
+    <p>PageModel 屬性：SelectedYearId/Currency/Store/Region/Country、Level。<code>OnGet()</code> 設預設年、取資料、初始化下拉（YearList 2024~當年、CurrencyList 從 Hierarchies 的 LocalCurrency 去重）。</p>
+    <p><code>OnGetDataAsync()</code>（AJAX <code>?handler=Data</code>）：取 DTO → 依 Level 篩 Hierarchies → 排序 KPIs → Currency 篩選 → <b>YTM Local 處理</b>（複製 YTM 資料標記為 YTMLocal）→ 依 Level 套維度篩選 → 回傳 JSON。</p>
+    <h3>前端層級邏輯</h3>
+<pre>Store 未選            → Level 1（Store 維度）
+Store 已選, Region 未選 → Level 2（Region 維度）
+Store + Region 皆選    → Level 3（Country 維度）</pre>
+    <p>表格動態生成：維度欄 rowspan=KPI 數、PA 欄 rowspan=該 PA 的 KPI 數、KPI 欄套背景/字色/縮排；數值千分位 + 指定小數，百分比加 %。"ALL" 不可下鑽。</p>
+
+    <h2>六、資料庫結構（推斷）</h2>
+    <table>
+      <tr><th>資料表</th><th>用途</th></tr>
+      <tr><td>OSF_Commerce</td><td>舊版 KPI（月份橫向展開）</td></tr>
+      <tr><td>OSF_Commerce_Style / OSF_SectorSort</td><td>樣式設定 / Sector 排序</td></tr>
+      <tr><td>OSF_CommerceInsights</td><td>新版 Insights（縱向 EAV）</td></tr>
+      <tr><td>OSF_CommerceInsightsKPI</td><td>KPI 定義、排序、樣式</td></tr>
+      <tr><td>OSF_CommerceInsightsHierarchy</td><td>Store/Region/Country 三層層級</td></tr>
+    </table>
+
+    <h2>七、資料流程</h2>
+<pre>篩選器 → loadData() AJAX → OnGetDataAsync()
+  → GetOSFCommerceInsights(Year)
+      → OSF_CommerceInsights / KPI(年份替換) / Hierarchy
+  ← DTO { data, KPIs, Hierarchies } → JSON
+  → renderTable()（維度列 rowspan → KPI 列分組 → 填值 → formatNumber）</pre>
+
+    <h2>八、注意事項與潛在問題</h2>
+    <div class="note">
+      <p><b>1. YTM Local 資料重用</b>：localData 為原始資料引用，修改 DateDimension 可能汙染原物件，建議深複製（Select new）。</p>
+      <p><b>2. Level 1 篩選不一致</b>：維度篩用原始 filteredData（僅 Currency 篩），但回傳的是 combinedData，結果與回傳不一致。</p>
+      <p><b>3. UNION SQL 幣別</b>：非 USD 第三路徑用 So.Currency=@Currency，OSF_SectorSort.Currency 欄意義需確認，避免與 OSF_Commerce.Currency 混淆。</p>
+      <p><b>4. 文字編碼</b>：.cshtml.cs 部分中文註解亂碼，建議統一 UTF-8。</p>
+      <p><b>5. GroupBy TODO</b>：OSFGetKpiDatas 有被註解的 Region GroupBy，未來分組需求可參考。</p>
+    </div>
+
+    <div class="footer">eManager · OSF Commerce Insights　|　來源：OSF/Commerce Insight/OSF_Commerce_Analysis.md（2026-04-29）</div>
+  </div>
+</body>
+</html>
