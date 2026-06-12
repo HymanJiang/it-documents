@@ -8,8 +8,6 @@
 
 | 專案 | 檔案 | 目標位置 | 備註 |
 |------|------|---------|------|
-| TCP 改版 | docs/改版產出/01_技術文件/TcpPlatform_建置說明.md | it-documents/tcp/ | 待轉 HTML + Notion 連結 |
-| TCP 改版 | docs/改版產出/02_使用說明/TCP_Upload_SOP_Examples.md | it-documents/tcp/ | 待轉 HTML + Notion 連結 |
 | eManagerReport | 既有連結 | Notion eManagerReport 頁 | 補 SA 摘要（小項）|
 | SBU Scorecard | （無設計文件，僅 SP） | Notion SBU 子頁已註明 | 待撰寫設計文件後再發 |
 
@@ -33,6 +31,8 @@
 | eManager / HC Dashboard | 改版設計_HC_Dashboard.html | it-documents/hc-dashboard/ ＋ Notion 子頁 SA 摘要 |
 | eManager / My Sales Force | My_Sales_Force_規格文件.html | it-documents/my-sales-force/ ＋ Notion 子頁 SA 摘要 |
 | eManager / OSF | OSF_Commerce_Analysis.html | it-documents/osf-commerce-insights/功能模組/ ＋ Notion 子頁 SA 摘要 |
+| TCP 改版 | TcpPlatform_建置說明.html | it-documents/tcp/功能開發/ ＋ Notion TCP 頁連結 |
+| TCP 改版 | TCP_Upload_SOP_Examples.html | it-documents/tcp/功能開發/ ＋ Notion TCP 頁連結 |
 
 > 源檔重複提醒：`DB_View_Quota.sql` 與 `DB_View_Quota_By_SalesId.sql` 內容相同，建議擇一保留。
 
