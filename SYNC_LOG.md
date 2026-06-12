@@ -12,6 +12,27 @@
 | OSF Commerce Insights | OSF_Commerce_Analysis.md | 尚未決定（無 HTML 版） | 需人工決定：是否轉 HTML、放哪 |
 | MSU Scorecard | （目前無對應本機文件） | — | 待新增 |
 
+> ⚠️ 以下 Notion 端待補（2026-06-12 Notion MCP 斷線時無法寫入，待連線恢復補做）：
+> - TCP 需求確認書 **v1.1（0605）** 的 12 項確認狀態更新到 Notion 既有 v1.0 摘要
+> - 下方「部分同步」5 個 DB SQL 的 Notion 連結 + SA 摘要
+> - 既有 DB 連結（OrgHierarchy/FOB/Template）與 eManagerReport 實作做法 補上 SA 摘要
+
+---
+
+## ⏳ 部分同步（GitHub 已推，Notion 待補）
+
+### 2026-06-12
+
+| 專案 | 檔案 | GitHub | Notion |
+|------|------|--------|--------|
+| TCP 改版 | DB_Migration_Currency.html | ✅ 已推 | ⏳ 待補連結+SA |
+| TCP 改版 | DB_Migration_History_Tables.html | ✅ 已推 | ⏳ 待補連結+SA |
+| TCP 改版 | DB_View_Quota_By_SalesId.html（合併重複的 DB_View_Quota.sql） | ✅ 已推 | ⏳ 待補連結+SA |
+| TCP 改版 | DB_View_Quota_Salesperson.html | ✅ 已推 | ⏳ 待補連結+SA |
+
+> 這 5 個 DB SQL（6/5）原本**未被列入上方 ❌ 清單**（清單漏記），經實際掃資料夾比對才發現，於 2026-06-12 補推 GitHub。
+> 提醒源檔重複：`DB_View_Quota.sql` 與 `DB_View_Quota_By_SalesId.sql` 內容相同，建議擇一保留。
+
 ---
 
 ## ✅ 已同步記錄
