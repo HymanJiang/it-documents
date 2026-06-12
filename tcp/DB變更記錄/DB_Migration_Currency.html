@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DB 變更記錄 — 幣別欄位 Migration</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+  .topbar { background: #00315a; color: #fff; padding: 22px 32px; }
+  .topbar .crumb { font-size: 12px; color: #7ab0d4; letter-spacing: .04em; }
+  .topbar h1 { margin: 6px 0 2px; font-size: 22px; font-weight: 600; }
+  .topbar .sub { font-size: 13px; color: #b8d4ea; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 32px 64px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px 28px; background: #fff; border: 1px solid #e1e6ec; border-left: 4px solid #00315a; border-radius: 6px; padding: 14px 20px; margin-bottom: 28px; }
+  .meta div { font-size: 13px; } .meta b { color: #00315a; font-weight: 600; margin-right: 6px; }
+  .step { margin-bottom: 26px; }
+  .step-h { font-size: 16px; font-weight: 600; color: #00315a; border-bottom: 2px solid #e1e6ec; padding-bottom: 6px; margin-bottom: 6px; }
+  .step-desc { color: #555; font-size: 13px; margin: 4px 0 10px; }
+  pre { background: #1e2a38; color: #e6edf3; border-radius: 6px; padding: 16px 18px; overflow-x: auto; font-family: "Cascadia Code","Consolas",monospace; font-size: 13px; line-height: 1.55; margin: 0; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e1e6ec; font-size: 12px; color: #8a97a6; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="crumb">TCP 改版 / DB 變更記錄</div>
+    <h1>幣別欄位 Migration</h1>
+    <div class="sub">為 Site 與費率表新增 ReportCurrency / PayCurrency / LocalCurrency</div>
+  </div>
+  <div class="wrap">
+    <div class="meta">
+      <div><b>執行對象</b>MFG2025、MFG2026（及各年份 DB）</div>
+      <div><b>日期</b>2026-06-05</div>
+      <div><b>類型</b>欄位新增</div>
+      <div><b>來源</b>03_DB_Migration / DB_Migration_Currency.sql</div>
+    </div>
+
+    <div class="step">
+      <div class="step-h">1. TCP_Site：新增 LocalCurrency</div>
+<pre>IF NOT EXISTS (
+    SELECT 1 FROM sys.columns
+    WHERE object_id = OBJECT_ID('TCP_Site') AND name = 'LocalCurrency'
+)
+BEGIN
+    ALTER TABLE TCP_Site ADD LocalCurrency NVARCHAR(10) NULL;
+END
+GO</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-h">2. TCP_Sales_TCR_Rate：新增 ReportCurrency、PayCurrency</div>
+<pre>ALTER TABLE TCP_Sales_TCR_Rate ADD ReportCurrency NVARCHAR(10) NULL;  -- 若不存在
+ALTER TABLE TCP_Sales_TCR_Rate ADD PayCurrency    NVARCHAR(10) NULL;  -- 若不存在
+GO</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-h">3. TCP_Sales_TCR_Rate_History：同步新增欄位</div>
+      <div class="step-desc">History 表同步補上 ReportCurrency、PayCurrency，與主表結構一致。</div>
+<pre>ALTER TABLE TCP_Sales_TCR_Rate_History ADD ReportCurrency NVARCHAR(10) NULL;
+ALTER TABLE TCP_Sales_TCR_Rate_History ADD PayCurrency    NVARCHAR(10) NULL;
+GO</pre>
+    </div>
+
+    <div class="footer">TCP 改版 · DB 變更記錄　|　來源：docs/改版產出/03_DB_Migration/DB_Migration_Currency.sql　|　每段皆以 IF NOT EXISTS 包覆，可重複執行</div>
+  </div>
+</body>
+</html>

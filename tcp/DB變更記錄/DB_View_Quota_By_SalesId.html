@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DB 變更記錄 — vw_TCP_Quota_By_SalesId</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+  .topbar { background: #00315a; color: #fff; padding: 22px 32px; }
+  .topbar .crumb { font-size: 12px; color: #7ab0d4; letter-spacing: .04em; }
+  .topbar h1 { margin: 6px 0 2px; font-size: 22px; font-weight: 600; }
+  .topbar .sub { font-size: 13px; color: #b8d4ea; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 32px 64px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px 28px; background: #fff; border: 1px solid #e1e6ec; border-left: 4px solid #00315a; border-radius: 6px; padding: 14px 20px; margin-bottom: 24px; }
+  .meta div { font-size: 13px; } .meta b { color: #00315a; font-weight: 600; margin-right: 6px; }
+  .note { background: #fff8e6; border: 1px solid #f0e0b0; border-left: 4px solid #d9a300; border-radius: 6px; padding: 12px 18px; margin-bottom: 24px; font-size: 13px; color: #6b5400; }
+  .step-h { font-size: 16px; font-weight: 600; color: #00315a; border-bottom: 2px solid #e1e6ec; padding-bottom: 6px; margin: 0 0 6px; }
+  .step-desc { color: #555; font-size: 13px; margin: 4px 0 10px; }
+  pre { background: #1e2a38; color: #e6edf3; border-radius: 6px; padding: 16px 18px; overflow-x: auto; font-family: "Cascadia Code","Consolas",monospace; font-size: 13px; line-height: 1.55; margin: 0; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e1e6ec; font-size: 12px; color: #8a97a6; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="crumb">TCP 改版 / DB 變更記錄</div>
+    <h1>View：vw_TCP_Quota_By_SalesId</h1>
+    <div class="sub">供 DataView Overview 查詢各 Sales ID 年度 Quota</div>
+  </div>
+  <div class="wrap">
+    <div class="meta">
+      <div><b>目標 Server</b>aclemanager-db.advantech.corp（eManagerDB）</div>
+      <div><b>目標 DB</b>MFG26（及各年份 MFG DB，需逐一執行）</div>
+      <div><b>日期</b>2026-06-05</div>
+      <div><b>來源</b>03_DB_Migration / DB_View_Quota_By_SalesId.sql</div>
+    </div>
+    <div class="note"><b>資料來源：</b>Linked Server <code>[ACLSTNR11.advantech.corp].MFG26.dbo.Quota_Sales_Force</code>，只取 <code>Tran_type = 'General'</code>，依 Sales_id / Year_id / Currency 彙總各月份與 Total。</div>
+
+    <div class="step-h">View 定義</div>
+    <div class="step-desc">每個年份別的 MFG DB 需逐一執行（USE [MFGxx]）。</div>
+<pre>USE [MFG26]
+GO
+
+IF EXISTS (SELECT 1 FROM sys.views WHERE name = 'vw_TCP_Quota_By_SalesId')
+    DROP VIEW vw_TCP_Quota_By_SalesId;
+GO
+
+CREATE VIEW vw_TCP_Quota_By_SalesId AS
+SELECT
+    Sales_id   AS SalesId,
+    Year_id    AS YearId,
+    Currency,
+    SUM(Jan) AS Jan, SUM(Feb) AS Feb, SUM(Mar) AS Mar, SUM(Apr) AS Apr,
+    SUM(May) AS May, SUM(Jun) AS Jun, SUM(Jul) AS Jul, SUM(Aug) AS Aug,
+    SUM(Sep) AS Sep, SUM(Oct) AS Oct, SUM(Nov) AS Nov, SUM([Dec]) AS [Dec],
+    SUM(Total) AS Total
+FROM [ACLSTNR11.advantech.corp].[MFG26].[dbo].[Quota_Sales_Force]
+WHERE Tran_type = 'General'
+GROUP BY Sales_id, Year_id, Currency;
+GO</pre>
+
+    <div class="footer">TCP 改版 · DB 變更記錄　|　來源：DB_View_Quota_By_SalesId.sql（與 DB_View_Quota.sql 內容相同，已合併）</div>
+  </div>
+</body>
+</html>

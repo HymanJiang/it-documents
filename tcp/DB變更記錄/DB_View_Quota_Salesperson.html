@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DB 變更記錄 — Quota Views（業務員）</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #222; font-size: 14px; line-height: 1.6; }
+  .topbar { background: #00315a; color: #fff; padding: 22px 32px; }
+  .topbar .crumb { font-size: 12px; color: #7ab0d4; letter-spacing: .04em; }
+  .topbar h1 { margin: 6px 0 2px; font-size: 22px; font-weight: 600; }
+  .topbar .sub { font-size: 13px; color: #b8d4ea; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 32px 64px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px 28px; background: #fff; border: 1px solid #e1e6ec; border-left: 4px solid #00315a; border-radius: 6px; padding: 14px 20px; margin-bottom: 24px; }
+  .meta div { font-size: 13px; } .meta b { color: #00315a; font-weight: 600; margin-right: 6px; }
+  .view { margin-bottom: 30px; }
+  .view-h { font-size: 17px; font-weight: 600; color: #fff; background: #2a6096; border-radius: 6px 6px 0 0; padding: 8px 16px; }
+  .view-body { border: 1px solid #e1e6ec; border-top: none; border-radius: 0 0 6px 6px; padding: 14px 16px; background: #fff; }
+  .desc { color: #555; font-size: 13px; margin: 0 0 10px; }
+  pre { background: #1e2a38; color: #e6edf3; border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: "Cascadia Code","Consolas",monospace; font-size: 12.5px; line-height: 1.5; margin: 0; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e1e6ec; font-size: 12px; color: #8a97a6; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="crumb">TCP 改版 / DB 變更記錄</div>
+    <h1>Quota Views（業務員）</h1>
+    <div class="sub">有效 Sales ID 計算 + 結合幣別與 Quota 的業務員別 View</div>
+  </div>
+  <div class="wrap">
+    <div class="meta">
+      <div><b>目標 DB</b>aclemanager-db.MFG26（及各年份 MFG DB）</div>
+      <div><b>日期</b>2026-06-05</div>
+      <div><b>類型</b>建立 2 個 View</div>
+      <div><b>來源</b>03_DB_Migration / DB_View_Quota_Salesperson.sql</div>
+    </div>
+
+    <div class="view">
+      <div class="view-h">View 1：vw_TCP_Effective_SalesId</div>
+      <div class="view-body">
+        <div class="desc">依 Commission Type 計算每位業務員的有效 Sales ID 清單：<b>IND/NOACC</b> = idmap 基底 + SalesIDConfig Delta；<b>LEADER</b> = Org Hierarchy（遞迴）+ idmap 基底 + SalesIDConfig Delta。SalesIDConfig 全零視為排除、至少一月有值視為新增。</div>
+<pre>CREATE VIEW vw_TCP_Effective_SalesId AS
+WITH
+OrgHierarchy AS (   -- 遞迴取得每位 Leader 底下所有子孫節點 Email
+    SELECT Id, Email, Site, Parent_Id, Email AS LeaderEmail
+    FROM   TCP_Sales_Org_Node
+    UNION ALL
+    SELECT n.Id, n.Email, n.Site, n.Parent_Id, h.LeaderEmail
+    FROM   TCP_Sales_Org_Node n
+    JOIN   OrgHierarchy h ON n.Parent_Id = h.Id AND n.Site = h.Site
+),
+LeaderBase AS (     -- LEADER 的 Org + idmap 基底（未套 Delta）
+    SELECT DISTINCT r.Email AS LeaderEmail, ISNULL(r.Group_Name,'') AS Group_Name,
+           r.Site, i.Id_SAP AS SalesId
+    FROM   TCP_Sales_TCR_Rate r
+    JOIN   OrgHierarchy h ON h.LeaderEmail = r.Email AND h.Site = r.Site
+    JOIN   idmap i ON i.id_email = h.Email
+    WHERE  r.Commission_Type = 'LEADER'
+)
+-- IND/NOACC 基底（排除 SalesIDConfig 全零）
+SELECT r.Email, ISNULL(r.Group_Name,'') AS Group_Name, r.Commission_Type, r.Site, i.Id_SAP AS SalesId
+FROM TCP_Sales_TCR_Rate r JOIN idmap i ON i.id_email = r.Email
+WHERE r.Commission_Type IN ('IND','NOACC')
+  AND NOT EXISTS ( /* SalesIDConfig 12 月加總 = 0 則排除 */ )
+UNION ALL
+-- IND/NOACC SalesIDConfig 新增（不在 idmap、至少一月有值）
+SELECT ... FROM TCP_Sales_TCR_Rate r JOIN TCP_Sales_TCR_SalesIDConfig s ...
+UNION ALL
+-- LEADER 基底（排除全零）
+SELECT lb.LeaderEmail AS Email, lb.Group_Name, 'LEADER', lb.Site, lb.SalesId FROM LeaderBase lb ...
+UNION ALL
+-- LEADER SalesIDConfig 新增
+SELECT ... ;
+GO</pre>
+      </div>
+    </div>
+
+    <div class="view">
+      <div class="view-h">View 2：vw_TCP_Quota_By_Salesperson</div>
+      <div class="view-body">
+        <div class="desc">結合有效 Sales ID、幣別邏輯與 Quota 資料。幣別優先序：<b>ReportCurrency → TCP_Site.LocalCurrency</b>。IND/NOACC/LEADER 走 Quota_Sales_Force；RS 類型依報表維度（SalesByRegion / SalesByProduct / MySalesForce）分別 JOIN 對應 Quota 表。</div>
+<pre>CREATE VIEW vw_TCP_Quota_By_Salesperson AS
+-- IND / NOACC / LEADER：從有效 Sales ID 查 Quota
+SELECT e.Email, e.Group_Name, e.Commission_Type, e.Site,
+       COALESCE(r.ReportCurrency, t.LocalCurrency) AS Currency,
+       q.Year_id AS YearId, SUM(q.Jan) AS Jan, ... SUM(q.Total) AS Total
+FROM vw_TCP_Effective_SalesId e
+JOIN TCP_Sales_TCR_Rate r ON r.Email=e.Email AND ISNULL(r.Group_Name,'')=e.Group_Name
+                         AND r.Site=e.Site AND r.Commission_Type=e.Commission_Type
+JOIN TCP_Site t ON t.SiteCode = e.Site
+JOIN [ACLSTNR11...].[MFG26].[dbo].[Quota_Sales_Force] q
+     ON q.Sales_id=e.SalesId AND q.Tran_type='General'
+     AND q.Currency = COALESCE(r.ReportCurrency, t.LocalCurrency)
+GROUP BY e.Email, e.Group_Name, e.Commission_Type, e.Site,
+         COALESCE(r.ReportCurrency,t.LocalCurrency), q.Year_id
+UNION ALL
+-- RS：SalesByRegion → Sales_Sector
+SELECT ... FROM TCP_Sales_TCR_Rate r JOIN TCP_Site t JOIN TCP_Sales_RS rs
+       JOIN Sales_Sector q ON ... WHERE r.Commission_Type='RS' AND rs.Report='SalesByRegion' ...
+UNION ALL
+-- RS：SalesByProduct → SALES_PRODUCT
+SELECT ... WHERE rs.Report='SalesByProduct' ...
+UNION ALL
+-- RS：MySalesForce → SALES_FORCE
+SELECT ... WHERE rs.Report='MySalesForce' ;
+GO</pre>
+      </div>
+    </div>
+
+    <div class="footer">TCP 改版 · DB 變更記錄　|　來源：docs/改版產出/03_DB_Migration/DB_View_Quota_Salesperson.sql　|　完整 SQL（含全部 UNION ALL 分支與月份欄）以原始 .sql 為準</div>
+  </div>
+</body>
+</html>
