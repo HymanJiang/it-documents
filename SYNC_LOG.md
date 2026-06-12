@@ -8,34 +8,33 @@
 
 | 專案 | 檔案 | 目標位置 | 備註 |
 |------|------|---------|------|
-| TCP 改版 | docs/改版產出/TCP_Platform_需求確認書.md（0605 更新） | Notion TCP 頁面（需求與規格） | 需人工確認：6/5 更新內容要不要反映到 Notion 既有摘要 |
-| OSF Commerce Insights | OSF_Commerce_Analysis.md | 尚未決定（無 HTML 版） | 需人工決定：是否轉 HTML、放哪 |
-| MSU Scorecard | （目前無對應本機文件） | — | 待新增 |
+| TCP 改版 | docs/改版產出/01_技術文件/TcpPlatform_建置說明.md | it-documents/tcp/ | 待轉 HTML + Notion 連結 |
+| TCP 改版 | docs/改版產出/02_使用說明/TCP_Upload_SOP_Examples.md | it-documents/tcp/ | 待轉 HTML + Notion 連結 |
+| eManager（多模組） | HC Dashboard / My Sales Force / OSF 其餘 / 共用框架 | 多數無對應頁 | 需先定模組歸屬（見 專案盤點對照表）|
+| SBU Scorecard | SP\uSP_SBUScorecard2026 系列 | 無對應頁 | 需先決定是否建頁 |
 
-> ⚠️ 以下 Notion 端待補（2026-06-12 Notion MCP 斷線時無法寫入，待連線恢復補做）：
-> - TCP 需求確認書 **v1.1（0605）** 的 12 項確認狀態更新到 Notion 既有 v1.0 摘要
-> - 下方「部分同步」5 個 DB SQL 的 Notion 連結 + SA 摘要
-> - 既有 DB 連結（OrgHierarchy/FOB/Template）與 eManagerReport 實作做法 補上 SA 摘要
-
----
-
-## ⏳ 部分同步（GitHub 已推，Notion 待補）
-
-### 2026-06-12
-
-| 專案 | 檔案 | GitHub | Notion |
-|------|------|--------|--------|
-| TCP 改版 | DB_Migration_Currency.html | ✅ 已推 | ⏳ 待補連結+SA |
-| TCP 改版 | DB_Migration_History_Tables.html | ✅ 已推 | ⏳ 待補連結+SA |
-| TCP 改版 | DB_View_Quota_By_SalesId.html（合併重複的 DB_View_Quota.sql） | ✅ 已推 | ⏳ 待補連結+SA |
-| TCP 改版 | DB_View_Quota_Salesperson.html | ✅ 已推 | ⏳ 待補連結+SA |
-
-> 這 5 個 DB SQL（6/5）原本**未被列入上方 ❌ 清單**（清單漏記），經實際掃資料夾比對才發現，於 2026-06-12 補推 GitHub。
-> 提醒源檔重複：`DB_View_Quota.sql` 與 `DB_View_Quota_By_SalesId.sql` 內容相同，建議擇一保留。
+> ℹ️ 完整盤點與待決事項見 `D:\Obsidian Note\專案盤點對照表.md`。
+> 小項待補：TCP 既有 3 個 DB 連結（OrgHierarchy/FOB/Template）與 eManagerReport 實作做法，補上 SA 摘要。
 
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-06-12
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| TCP 改版 | DB_Migration_Currency.html | it-documents/tcp/DB變更記錄/ ＋ Notion 連結+SA 摘要 |
+| TCP 改版 | DB_Migration_History_Tables.html | 同上 |
+| TCP 改版 | DB_View_Quota_By_SalesId.html（合併重複的 DB_View_Quota.sql） | 同上 |
+| TCP 改版 | DB_View_Quota_Salesperson.html | 同上 |
+| TCP 改版 | 需求確認書 v1.1（12 項確認） | Notion TCP 頁就地更新（版本行+清單標題+12 問題→✅結論）|
+
+> 源檔重複提醒：`DB_View_Quota.sql` 與 `DB_View_Quota_By_SalesId.sql` 內容相同，建議擇一保留。
+
+---
+
+## ✅ 已同步記錄（更早）
 
 ### 2026-06-08
 
