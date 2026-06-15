@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HC Dashboard KPI 名稱對齊 worksheet</title>
+<style>
+  :root{ --fg:#24292f; --muted:#57606a; --border:#d0d7de; --bg:#fff; --code-bg:#f6f8fa; --accent:#0969da; }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;
+       color:var(--fg); line-height:1.7; max-width:980px; margin:0 auto; padding:48px 32px; background:var(--bg);}
+  h1{font-size:2em; border-bottom:2px solid var(--border); padding-bottom:.3em; margin-top:0;}
+  h2{font-size:1.5em; border-bottom:1px solid var(--border); padding-bottom:.3em; margin-top:2em;}
+  h3{font-size:1.2em; margin-top:1.6em;}
+  blockquote{border-left:4px solid var(--accent); margin:1em 0; padding:.4em 1em; color:var(--muted); background:var(--code-bg);}
+  table{border-collapse:collapse; width:100%; margin:1em 0; font-size:.93em; display:block; overflow-x:auto;}
+  th,td{border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top;}
+  th{background:var(--code-bg); font-weight:600;}
+  tr:nth-child(even) td{background:#fafbfc;}
+  code{background:var(--code-bg); padding:.2em .4em; border-radius:6px; font-size:.88em;
+       font-family:"Cascadia Code",Consolas,"Courier New",monospace;}
+  pre{background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:16px; overflow-x:auto;}
+  pre code{background:none; padding:0; font-size:.86em; line-height:1.5;}
+  ul,ol{padding-left:1.6em;}
+  li{margin:.25em 0;}
+  li.task{list-style:none; margin-left:-1.2em;}
+  hr{border:none; border-top:1px solid var(--border); margin:2em 0;}
+  a{color:var(--accent); text-decoration:none;} a:hover{text-decoration:underline;}
+  input[type=checkbox]{margin-right:.5em;}
+</style>
+</head>
+<body>
+<h1 id="hc-dashboard-kpi-worksheet">HC Dashboard KPI 名稱對齊 worksheet</h1>
+<blockquote>
+<p>標準 = Notion 2026/6/8。對齊三處：SP 寫入 <code>DSB_HC_ReportData.KPI</code> = 框架 <code>Report_Measures_KPIs.Name</code>（View 用 Name 比對資料）。
+<code>DisplayName</code> 為前端顯示文字，可與 Name 不同（用來讓重複的「- IDL/- DL」共用顯示名、用 Name 區分資料）。</p>
+<p>命名正規化原則（本 worksheet 採用）：
+1. <strong>前綴破折號只放 DisplayName</strong>，Name 不帶「- 」。理由：現行 SP 寫 <code>- IDL</code> 匯出 Excel 被當公式 → <code>#NAME?</code>。
+2. 重複的「- IDL / - DL」用 Name 區分：<code>IDL</code>/<code>DL</code>（Total HC 拆解）、<code>New Hires IDL</code>/<code>New Hires DL</code>、<code>Turnover IDL</code>/<code>Turnover DL</code>、<code>Turnover % IDL</code>/<code>Turnover % DL</code>。
+3. <strong>HC/ Budget</strong> 不是 KPI 列 → 沿用框架 SpecialKPI <code>H/C Budget</code>（不進 <code>Report_Measures_KPIs</code>）。
+4. <strong>Last Year HC</strong>（2025 Dec）沿用框架 SpecialKPI（待確認新版是否改成維度欄，見文末）。</p>
+<p>來源/計算：Leaf=來源欄位、Scorecard=Revenue 來源、計算=SP 衍生。
+YTM「-」：該 KPI 在 YTM 欄顯示破折號（<code>FutureMonthsAdjustment</code>/SpecialRule 機制）。</p>
+</blockquote>
+<hr />
+<h2 id="sbu10-kpi-format">SBU（10 KPI；有 Format）</h2>
+<table>
+<thead>
+<tr>
+<th>Sort</th>
+<th>DisplayName</th>
+<th>Name（=資料 KPI）</th>
+<th>來源/計算</th>
+<th>YTM</th>
+<th>上色</th>
+<th style="text-align: center;">HC Mgmt</th>
+<th style="text-align: center;">Turnover</th>
+<th style="text-align: center;">Rev/Emp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Total HC</td>
+<td>Total HC</td>
+<td>計算/來源</td>
+<td>-</td>
+<td></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;">v</td>
+</tr>
+<tr>
+<td>2</td>
+<td>- ACL</td>
+<td>ACL</td>
+<td>Leaf</td>
+<td>-</td>
+<td></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>3</td>
+<td>- Oversea</td>
+<td>Oversea</td>
+<td>Leaf</td>
+<td>-</td>
+<td></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>4</td>
+<td># of LOA</td>
+<td># of LOA</td>
+<td>Leaf</td>
+<td>-</td>
+<td></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>5</td>
+<td># of New Hires</td>
+<td># of New Hires</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>6</td>
+<td># of Turnover</td>
+<td># of Turnover</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Revenue</td>
+<td>Revenue</td>
+<td>Scorecard</td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">v</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Revenue per Employee</td>
+<td>Revenue per Employee</td>
+<td>計算</td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">v</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Turnover %</td>
+<td>Turnover %</td>
+<td>計算</td>
+<td></td>
+<td>&lt;5%綠 &gt;10%紅</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>—</td>
+<td>(HC/ Budget)</td>
+<td>—</td>
+<td>SpecialKPI</td>
+<td></td>
+<td></td>
+<td style="text-align: center;">(架構名稱底下)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="rbu6-kpi-format">RBU（6 KPI；有 Format）</h2>
+<table>
+<thead>
+<tr>
+<th>Sort</th>
+<th>DisplayName</th>
+<th>Name</th>
+<th>來源/計算</th>
+<th>YTM</th>
+<th>上色</th>
+<th style="text-align: center;">HC Mgmt</th>
+<th style="text-align: center;">Turnover</th>
+<th style="text-align: center;">Rev/Emp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Total HC</td>
+<td>Total HC</td>
+<td>計算/來源</td>
+<td>-</td>
+<td></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;">v</td>
+</tr>
+<tr>
+<td>2</td>
+<td># of New Hires</td>
+<td># of New Hires</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>3</td>
+<td># of Turnover</td>
+<td># of Turnover</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Turnover %</td>
+<td>Turnover %</td>
+<td>計算</td>
+<td></td>
+<td>&lt;5%綠 &gt;10%紅</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Revenue</td>
+<td>Revenue</td>
+<td>Scorecard</td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">v</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Revenue per Employee</td>
+<td>Revenue per Employee</td>
+<td>計算</td>
+<td></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">v</td>
+</tr>
+<tr>
+<td>—</td>
+<td>(HC/ Budget)</td>
+<td>—</td>
+<td>SpecialKPI</td>
+<td></td>
+<td></td>
+<td style="text-align: center;">(架構名稱底下)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="operation13-kpi-format">Operation（13 KPI；無 Format，單頁）</h2>
+<table>
+<thead>
+<tr>
+<th>Sort</th>
+<th>DisplayName</th>
+<th>Name</th>
+<th>來源/計算</th>
+<th>YTM</th>
+<th>上色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Total HC</td>
+<td>Total HC</td>
+<td>計算/來源</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>- IDL</td>
+<td>IDL</td>
+<td>Leaf</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>- DL</td>
+<td>DL</td>
+<td>Leaf</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td># of LOA</td>
+<td># of LOA</td>
+<td>Leaf</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td># of New Hires</td>
+<td># of New Hires</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>- IDL</td>
+<td>New Hires IDL</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>7</td>
+<td>- DL</td>
+<td>New Hires DL</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>8</td>
+<td># of Turnover</td>
+<td># of Turnover</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>9</td>
+<td>- IDL</td>
+<td>Turnover IDL</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>10</td>
+<td>- DL</td>
+<td>Turnover DL</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>11</td>
+<td>Turnover %</td>
+<td>Turnover %</td>
+<td>計算</td>
+<td></td>
+<td>&lt;5%綠 &gt;10%紅</td>
+</tr>
+<tr>
+<td>12</td>
+<td>- IDL</td>
+<td>Turnover % IDL</td>
+<td>計算</td>
+<td></td>
+<td>&lt;5%綠 &gt;10%紅</td>
+</tr>
+<tr>
+<td>13</td>
+<td>- DL</td>
+<td>Turnover % DL</td>
+<td>計算</td>
+<td></td>
+<td>&lt;5%綠 &gt;10%紅</td>
+</tr>
+<tr>
+<td>—</td>
+<td>(HC/ Budget)</td>
+<td>—</td>
+<td>SpecialKPI</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>✅ 已確認：Operation Turnover% 拆 IDL/DL 分母用<strong>各自 HC</strong>：
+<code>Turnover % IDL = Turnover IDL / ((當月 IDL + 前月 IDL)/2)</code>；<code>Turnover % DL = Turnover DL / ((當月 DL + 前月 DL)/2)</code>。
+（SP Stage5 分母取 KPI=<code>IDL</code>/<code>DL</code> 的當月與前月值；整體 <code>Turnover %</code> 仍用 Total HC。）</p>
+</blockquote>
+<h2 id="coe6-kpi-format">COE（6 KPI；無 Format，單頁）</h2>
+<table>
+<thead>
+<tr>
+<th>Sort</th>
+<th>DisplayName</th>
+<th>Name</th>
+<th>來源/計算</th>
+<th>YTM</th>
+<th>上色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Total HC</td>
+<td>Total HC</td>
+<td>計算/來源</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td># of LOA</td>
+<td># of LOA</td>
+<td>Leaf</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td># of New Hires</td>
+<td># of New Hires</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td># of Turnover</td>
+<td># of Turnover</td>
+<td>Leaf</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Turnover %</td>
+<td>Turnover %</td>
+<td>計算</td>
+<td></td>
+<td>&lt;5%綠 &gt;10%紅</td>
+</tr>
+<tr>
+<td>—</td>
+<td>(HC/ Budget)</td>
+<td>—</td>
+<td>SpecialKPI</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sp-emit-kpi-name">跨表彙整（SP 要 emit 的 KPI 字串 = 框架 Name）</h2>
+<ul>
+<li>共用：<code>Total HC</code>, <code># of LOA</code>, <code># of New Hires</code>, <code># of Turnover</code>, <code>Turnover %</code></li>
+<li>SBU 額外：<code>ACL</code>, <code>Oversea</code>, <code>Revenue</code>, <code>Revenue per Employee</code></li>
+<li>RBU 額外：<code>Revenue</code>, <code>Revenue per Employee</code></li>
+<li>Operation 額外：<code>IDL</code>, <code>DL</code>, <code>New Hires IDL</code>, <code>New Hires DL</code>, <code>Turnover IDL</code>, <code>Turnover DL</code>, <code>Turnover % IDL</code>, <code>Turnover % DL</code></li>
+<li>COE 額外：（無）</li>
+</ul>
+<h2 id="gap-2">上色機制注意（Gap 2）</h2>
+<p><code>Turnover %</code> 要雙門檻（&lt;5% 綠、&gt;10% 紅），但框架現行 <code>CompareCategory/CompareType/Compare/CompareStyle</code> <strong>一個 KPI 只支援單一門檻</strong>。需擴成多條規則，或先只標一個門檻。→ 列入框架小改清單。</p>
+<h2 id="_1">已鎖定 / 待確認</h2>
+<ol>
+<li>✅ <strong>「2025 Dec」改成維度欄</strong>（整欄各 KPI 都有值），不是架構名稱底下的 SpecialKPI。
+   → 影響 <strong>Dimensions 設計</strong>：需新增「去年 12 月」維度欄，且框架需能跨年（reportFilter.Year 的前一年 Dec）顯示。
+   ⚠ 框架現行 Dimensions 是在所選年度內比對；跨年顯示前一年 Dec 是<strong>新能力</strong>，列入維度設計／框架小改評估。不影響 KPI 名稱。</li>
+<li>✅ <strong>Operation Turnover% IDL/DL 分母用各自 HC</strong>（見上）。</li>
+<li>❓ <strong>Total HC 來源</strong>：來源現成欄 or SP 自算（-ACL+-Oversea+#LOA / IDL+DL+#LOA / Total HC+#LOA）。屬 SP 階段，命名不受影響，改 SP 時確認。</li>
+</ol>
+</body>
+</html>

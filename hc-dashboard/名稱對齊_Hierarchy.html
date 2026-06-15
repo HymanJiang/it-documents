@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HC Dashboard 名稱對齊 worksheet</title>
+<style>
+  :root{ --fg:#24292f; --muted:#57606a; --border:#d0d7de; --bg:#fff; --code-bg:#f6f8fa; --accent:#0969da; }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;
+       color:var(--fg); line-height:1.7; max-width:980px; margin:0 auto; padding:48px 32px; background:var(--bg);}
+  h1{font-size:2em; border-bottom:2px solid var(--border); padding-bottom:.3em; margin-top:0;}
+  h2{font-size:1.5em; border-bottom:1px solid var(--border); padding-bottom:.3em; margin-top:2em;}
+  h3{font-size:1.2em; margin-top:1.6em;}
+  blockquote{border-left:4px solid var(--accent); margin:1em 0; padding:.4em 1em; color:var(--muted); background:var(--code-bg);}
+  table{border-collapse:collapse; width:100%; margin:1em 0; font-size:.93em; display:block; overflow-x:auto;}
+  th,td{border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top;}
+  th{background:var(--code-bg); font-weight:600;}
+  tr:nth-child(even) td{background:#fafbfc;}
+  code{background:var(--code-bg); padding:.2em .4em; border-radius:6px; font-size:.88em;
+       font-family:"Cascadia Code",Consolas,"Courier New",monospace;}
+  pre{background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:16px; overflow-x:auto;}
+  pre code{background:none; padding:0; font-size:.86em; line-height:1.5;}
+  ul,ol{padding-left:1.6em;}
+  li{margin:.25em 0;}
+  li.task{list-style:none; margin-left:-1.2em;}
+  hr{border:none; border-top:1px solid var(--border); margin:2em 0;}
+  a{color:var(--accent); text-decoration:none;} a:hover{text-decoration:underline;}
+  input[type=checkbox]{margin-right:.5em;}
+</style>
+</head>
+<body>
+<h1 id="hc-dashboard-worksheet-notion">HC Dashboard 名稱對齊 worksheet（標準名 = Notion）</h1>
+<blockquote>
+<p>用途：定義四個分頁每一列的<strong>標準名（Measures）</strong>，作為三處對齊的單一真實來源：
+① SP 寫入 <code>DSB_HC_ReportData.Measures</code> ② <code>DSB_HC_Hierarchy.Measures</code> ③ 框架 <code>Report_Measures.Name</code>
+前提（已與使用者確認）：來源 <code>rv_hr_hc_dashboard.RPT_Level1_Name</code> 已是新標準名 → <strong>Leaf 的 HcSourceKey = Measures（identity）</strong>。
+ReportData 範例裡的舊值（Others/MKT/AiC/WISE-Edge…）只是舊資料殘留，新 SP 重灌會覆蓋。</p>
+<p>圖例：Leaf = 直接從來源抓；Rollup = 由其他列加總（遞迴展開到葉節點）。</p>
+</blockquote>
+<hr />
+<h2 id="sbu31-leaf-grand-total">SBU（31 列，全部 Leaf，無小計 / 無 Grand Total）</h2>
+<table>
+<thead>
+<tr>
+<th>Sort</th>
+<th>標準名 (Measures = HcSourceKey)</th>
+<th>類型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>iSystem-ISG</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>2</td>
+<td>iSystem-ESG</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>3</td>
+<td>iSystem-iMs</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>4</td>
+<td>iSystem-CE</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>5</td>
+<td>iSystem-Marketing</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>6</td>
+<td>iSystem-BDM/ Customer Service</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>7</td>
+<td>iSystem-Common Pool</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>8</td>
+<td>iAutomation-ICWG</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>9</td>
+<td>iAutomation-IAG</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>10</td>
+<td>iAutomation-BDM &amp; Sales</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>11</td>
+<td>iAutomation-Marketing</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>12</td>
+<td>iAutomation-Common Pool</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Embedded-ECG</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Embedded-IEVG</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Embedded-ACG</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Embedded-AE</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Embedded-HW RD</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Embedded-SW RD</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Embedded-Marketing</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Embedded-Common Pool</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>21</td>
+<td>iService-AiCS</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>22</td>
+<td>iService-AiH</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>23</td>
+<td>iService-iCS</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>24</td>
+<td>iService-iH</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>25</td>
+<td>iService-Aures</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>26</td>
+<td>iService-HW RD</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>27</td>
+<td>iService-SW RD</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>28</td>
+<td>iService-AE</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>29</td>
+<td>iService-Marketing</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>30</td>
+<td>iService-Common Pool</td>
+<td>Leaf</td>
+</tr>
+<tr>
+<td>31</td>
+<td>WISE</td>
+<td>Leaf</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>✅ 已確認：第 31 標準名 = <code>WISE</code>（來源舊值 WISE-Edge / WISE-IoT 為殘留）。</p>
+</blockquote>
+<hr />
+<h2 id="rbu19-5-rollup">RBU（19 列，含 5 個 Rollup）</h2>
+<table>
+<thead>
+<tr>
+<th>Sort</th>
+<th>標準名</th>
+<th>類型</th>
+<th>Rollup 組合（→ 子節點，遞迴展開到葉）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>ANA</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>AEU</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>ACN</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>ATW</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>AJP</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>AKR</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>7</td>
+<td>ASEAN</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>8</td>
+<td>India</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>9</td>
+<td>AAU</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>10</td>
+<td>S.Asia Pacific Total</td>
+<td>Rollup</td>
+<td>ASEAN + India + AAU</td>
+</tr>
+<tr>
+<td>11</td>
+<td>LATAM</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>12</td>
+<td>ME&amp;A</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>13</td>
+<td>CIS</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>14</td>
+<td>InterCon Total</td>
+<td>Rollup</td>
+<td>LATAM + ME&amp;A + CIS</td>
+</tr>
+<tr>
+<td>15</td>
+<td>HQDC</td>
+<td>Leaf</td>
+<td>（新增）<strong>不顯示 Revenue / Rev per Employee</strong></td>
+</tr>
+<tr>
+<td>16</td>
+<td>Intercon &amp; S. Asia Pacific w/o HQDC</td>
+<td>Rollup</td>
+<td>S.Asia Pacific Total + InterCon Total</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Intercon &amp; S. Asia Pacific w/ HQDC</td>
+<td>Rollup</td>
+<td>S.Asia Pacific Total + InterCon Total + HQDC</td>
+</tr>
+<tr>
+<td>18</td>
+<td>AURES</td>
+<td>Leaf</td>
+<td>✅ 保留</td>
+</tr>
+<tr>
+<td>19</td>
+<td>RBU Total (w/ HQDC)</td>
+<td>Rollup</td>
+<td>ANA,AEU,ACN,ATW,AJP,AKR,ASEAN,India,AAU,LATAM,ME&amp;A,CIS,HQDC,<strong>AURES</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>✅ 已確認：AURES（#18）保留，且計入 RBU Total (w/ HQDC)（#19 含 AURES）。</p>
+</blockquote>
+<hr />
+<h2 id="operation6-2-rollup">Operation（6 列，含 2 個 Rollup）</h2>
+<table>
+<thead>
+<tr>
+<th>Sort</th>
+<th>標準名</th>
+<th>類型</th>
+<th>Rollup 組合</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>ATMC</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>AKMC</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>AJMC</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>MSU</td>
+<td>Rollup</td>
+<td>ATMC + AKMC + AJMC</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Non-MSU</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Operation Grand Total</td>
+<td>Rollup</td>
+<td>ATMC + AKMC + AJMC + Non-MSU</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="coe14-3-rollup-design-cmd-coe-grand-total">COE（14 列，含 3 個 Rollup；移除 Design / CM&amp;D / COE Grand Total）</h2>
+<table>
+<thead>
+<tr>
+<th>Sort</th>
+<th>標準名</th>
+<th>類型</th>
+<th>來源 / Rollup 組合</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>HR</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>IT</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Finance</td>
+<td>Leaf</td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>GA/ER</td>
+<td>Leaf</td>
+<td>來源 RPT_Level1_Name = <code>GA/ER</code>（原 GA 更名）</td>
+</tr>
+<tr>
+<td>5</td>
+<td>DMKT</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>6</td>
+<td>COE-Other</td>
+<td>Leaf</td>
+<td>✅ 標準名 = <code>COE-Other</code>（單數）</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Corp.Function All</td>
+<td>Rollup</td>
+<td>HR + IT + Finance + GA/ER + DMKT + COE-Other</td>
+</tr>
+<tr>
+<td>8</td>
+<td>BIOS &amp; FW</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>9</td>
+<td>CES</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>10</td>
+<td>DQA Linkou</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Wireless TSU</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>12</td>
+<td>HW Engineering All</td>
+<td>Rollup</td>
+<td>BIOS &amp; FW + CES + DQA Linkou + Wireless TSU</td>
+</tr>
+<tr>
+<td>13</td>
+<td>IoTMart</td>
+<td>Leaf</td>
+<td>（新增）</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Corp BG All</td>
+<td>Rollup</td>
+<td>IoTMart</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>✅ 已確認：COE-Other 用單數；新增單位（BIOS &amp; FW / CES / DQA Linkou / Wireless TSU / DMKT / IoTMart）在來源全部 <code>rpt_type='COE'</code>，SP 同一區塊即可抓到（仍排除 <code>RPT_Level1_Name&lt;&gt;'Marketing'</code>）。</p>
+</blockquote>
+<hr />
+<h2 id="_1">還沒處理（屬於下一步，非命名對齊）</h2>
+<ul>
+<li><strong>ScorecardMap（Revenue 來源對應）</strong>：SBU 每條 PG → Scorecard PG/PD；RBU region → REGION。需 Notion SBU 大表逐列對應。</li>
+<li><strong>KPI 名稱對齊</strong>：Total HC / - ACL / - Oversea / # of LOA / # of New Hires / # of Turnover / Revenue / Revenue per Employee / Turnover % / - IDL / - DL 等，需與框架 <code>Report_Measures_KPIs.Name</code> 對齊（下一階段）。</li>
+</ul>
+</body>
+</html>
