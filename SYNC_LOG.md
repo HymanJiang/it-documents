@@ -10,6 +10,9 @@
 |------|------|---------|------|
 | eManagerReport | 既有連結 | Notion eManagerReport 頁 | 補 SA 摘要（小項）|
 | SBU Scorecard | （無設計文件，僅 SP） | Notion SBU 子頁已註明 | 待撰寫設計文件後再發 |
+| TCP 改版 | BuildLog.md（6/9）| — | 待人工：屬建置「紀錄」非主要設計文件，是否發佈待定 |
+| TCP 改版 | 同步舊版資料表.sql（6/9）| — | 待人工：SQL 位於改版根（非 03_DB_Migration），是否比照 DB 變更記錄發佈待定 |
+| TCP 改版 | README.md（6/5）| — | 待人工：專案 README，一般不列入發佈集 |
 
 > ℹ️ 完整盤點與已建結構見 `D:\Obsidian Note\專案盤點對照表.md`。
 > 小項待補：TCP 既有 3 個 DB 連結（OrgHierarchy/FOB/Template）補 SA 摘要。
@@ -17,6 +20,17 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-06-15
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| eManager / HC Dashboard | 名稱對齊_KPI.html | it-documents/hc-dashboard/ ＋ Notion 子頁連結+SA 摘要 |
+| eManager / HC Dashboard | 名稱對齊_Hierarchy.html | it-documents/hc-dashboard/ ＋ Notion 子頁連結+SA 摘要 |
+| eManager / HC Dashboard | （更新既有）Notion 子頁「待確認」block | AURES 保留、Operation Turnover% IDL/DL 分母已確認 → 移出待確認、補新待評估 |
+
+> 兩份 worksheet 為 6/12 設計同步後當天新增（13:29 / 13:40），故當次未涵蓋，本次補上。
+> 來源檔：`D:\Work\專案\eManager\HC Dashboard\名稱對齊_KPI.md`、`名稱對齊_Hierarchy.md`。
 
 ### 2026-06-12
 
