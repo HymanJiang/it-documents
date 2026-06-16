@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HC Dashboard 改版 — 變更記錄 (ChangeLog)</title>
+<style>
+  :root{ --fg:#24292f; --muted:#57606a; --border:#d0d7de; --bg:#fff; --code-bg:#f6f8fa; --accent:#0969da; }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;
+       color:var(--fg); line-height:1.7; max-width:980px; margin:0 auto; padding:48px 32px; background:var(--bg);}
+  h1{font-size:2em; border-bottom:2px solid var(--border); padding-bottom:.3em; margin-top:0;}
+  h2{font-size:1.5em; border-bottom:1px solid var(--border); padding-bottom:.3em; margin-top:2em;}
+  h3{font-size:1.2em; margin-top:1.6em;}
+  blockquote{border-left:4px solid var(--accent); margin:1em 0; padding:.4em 1em; color:var(--muted); background:var(--code-bg);}
+  table{border-collapse:collapse; width:100%; margin:1em 0; font-size:.93em; display:block; overflow-x:auto;}
+  th,td{border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top;}
+  th{background:var(--code-bg); font-weight:600;}
+  tr:nth-child(even) td{background:#fafbfc;}
+  code{background:var(--code-bg); padding:.2em .4em; border-radius:6px; font-size:.88em;
+       font-family:"Cascadia Code",Consolas,"Courier New",monospace;}
+  pre{background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:16px; overflow-x:auto;}
+  pre code{background:none; padding:0; font-size:.86em; line-height:1.5;}
+  ul,ol{padding-left:1.6em;}
+  li{margin:.25em 0;}
+  hr{border:none; border-top:1px solid var(--border); margin:2em 0;}
+  a{color:var(--accent); text-decoration:none;} a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<h1 id="hc-dashboard-changelog">HC Dashboard 改版 — 變更記錄 (ChangeLog)</h1>
+<blockquote>
+<p>本檔記錄 HC Dashboard 報表改版的逐日變更。整體設計見 <code>改版設計_HC_Dashboard.md</code>、命名對齊見 <code>名稱對齊_*.md</code>。
+程式碼在 <code>D:\Project\eManagerCore</code>（共用框架，ReportCode='HC Dashboard'）；SQL 腳本在本資料夾 <code>SQL Server\</code>。</p>
+</blockquote>
+<hr>
+<h2 id="2026-06-16">2026-06-16</h2>
+<ul>
+<li><strong>部署收尾完成（昨日最高優先）</strong>：<code>sp_DSB_HC_New</code> 已正式上線（變正式 proc／排程改呼叫它），排程不再跑舊 <code>sp_DSB_HC</code> 蓋回舊命名。</li>
+<li><strong>eManagerCore build/部署完成</strong>；<code>framework_HC_KPIFormat.sql</code>、<code>framework_HC_Dimensions.sql</code> 已跑、<code>sp_DSB_HC_New</code>（2025/2026）已重跑。</li>
+<li><strong>ScorecardMap 已補齊</strong>（原待 Amber）；其他來源確認完成（Total HC 來源、Operation budget rpt_type、CIS(AURES) 拆分）。</li>
+<li><strong>剩餘待辦</strong>：3. Turnover% 雙色（&lt;5% 綠／&gt;10% 紅，目前只有紅）；4. Turnover% YTM 欄定義（待 Tina）。</li>
+</ul>
+<h3 id="ui-sburbu-regionkpi-commit-9fe84d1">UI 調整：SBU/RBU 的 Region/KPI 列標題欄寬（commit <code>9fe84d1</code>）</h3>
+<ul>
+<li><strong>範圍</strong>：只動 <code>HCFormatReport.cshtml</code>（SBU/RBU 專屬 View）內嵌 <code>&lt;style&gt;</code>/script；共用 <code>ClassicReport.cshtml</code>、<code>eManagerReport.css</code> 零修改，Operation/COE 與其他報表不受影響。</li>
+<li><strong>問題</strong>：長 Region 名稱（如 <code>Intercon &amp; S. Asia Pacific w/o HQDC</code>）被切；改自動寬度後又發現文字右側留白過多。</li>
+<li><strong>根因</strong>：右側留白來自共用 <code>.DataBox table { width:100% }</code>——<code>table-layout:auto</code> 下自然內容寬度 &lt; 容器時，多餘寬度被分攤到各欄，Region 欄 td(auto) 分到的寬度在靠左名稱右側成為空白。</li>
+<li><strong>修正</strong>：</li>
+<li><code>.Measures div { width:max-content }</code> 覆寫共用固定 150px → 欄寬依名稱、不再切字。</li>
+<li><code>.Measures</code>、<code>.Kpi</code> 加 <code>width:1%</code>（搭配既有 <code>nowrap</code>）→ 兩個列標題欄收到內容寬度，多餘寬度改分給月份欄，消除右側留白。</li>
+<li><code>.Measures</code> 右 padding 10px→3px。</li>
+<li>小段 script：依實際 Region 欄寬動態設定 KPI 凍結欄的 sticky <code>left</code>，<code>resize</code> 重算、<code>&lt;=1600px</code>（共用 CSS 取消 sticky）清掉位移。</li>
+<li>驗收：CSS/View 改動，部署後務必 <strong>Ctrl+F5</strong>。</li>
+</ul>
+<hr>
+<h2 id="2026-06-15">2026-06-15</h2>
+<h3 id="_1">一、資料層目視驗收與修正</h3>
+<ul>
+<li><strong>SBU 整張空白</strong> → 根因：production <code>DSB_HC_ReportData</code> 仍是舊 <code>sp_DSB_HC</code> 寫的（舊命名），新 SP 未重跑覆蓋；同時 <code>vw_Report_Measures</code> 已切新 <code>DSB_HC_Hierarchy</code>，SBU 改版幅度最大（19→31 大改名）→ 新舊對不上 → 整張消失。解法：用新 SP（命名已修正）重跑 <code>EXEC sp_DSB_HC_New @Year=&lt;各年度&gt;</code>。</li>
+<li><strong>PK 衝突</strong>（<code>SBU,USD,2026,Total HC,iSystem-iMs,Jun</code> 重複）→ 來源 <code>rv_hr_hc_dashboard</code> 對同一 PG／月份有多列（子單位明細），應加總。修正：<code>sp_DSB_HC_New.sql</code> 四個葉節點（SBU/RBU/Operation/COE）＋兩個 Revenue（SBU/RBU）的 INSERT 加上 <code>SUM(...) + GROUP BY</code>（粒度對齊 PK）。</li>
+<li><strong>Turnover% 畫面沒出</strong> → 純瀏覽器頁面快取；框架不快取 KPI，設定/資料/程式三邊皆正確。驗收時改完務必 <strong>Ctrl+F5</strong>。</li>
+<li><strong>SBU 2025 資料缺</strong>（致「前一年 Dec」欄、Last Year HC 抓不到）→ 當初新 SP <code>@Year=2025</code> 在 SBU 命名修正前跑/沒跑成。解法：以現行 config 補跑 <code>EXEC sp_DSB_HC_New @Year=2025</code>。</li>
+</ul>
+<h3 id="rbu-hqdc">二、框架修正：RBU HQDC 列不顯示</h3>
+<ul>
+<li>根因：<code>ReportStructureService.cs</code> 的 <code>switch(reportBasic.ReportCode)</code> 有 <code>case "HC Dashboard"</code>，用「Revenue YTM &lt;&gt; 0」過濾 measures（本為 CRM/Sales Performance 設計）。HQDC <code>ShowRevenue=0</code> → 無 Revenue → 被誤刪；CIS/AURES 同理；且 SBU 補完 Revenue 後也會誤刪零值列。</li>
+<li>修正：<strong>移除該 <code>case "HC Dashboard"</code></strong>。HC 列顯示改由 <code>DSB_HC_Hierarchy.IsActive</code> + vw 決定。CRM/Sales/OSF 不受影響。</li>
+</ul>
+<h3 id="format-bsburbu">三、Format 下拉（方法 B，SBU/RBU）</h3>
+<ul>
+<li>規格（Notion）：SBU/RBU 各三個 Format（HC Management / Turnover / Revenue per Employee），各顯示不同 KPI 子集；Employee link 只在 HC Management 顯示。HC/Budget 為 SpecialKPI，三 Format 恆顯示。</li>
+<li><strong>DB</strong>：新表 <code>Report_Measures_KPIs_Format</code>（EMGRV2），腳本 <code>SQL Server\Table\framework_HC_KPIFormat.sql</code>。Sort 編碼 HC Mgmt 1../Turnover 11../RevPerEmp 21..。</li>
+<li><strong>C#（全加法）</strong>：<code>ReportFilter</code>+Format、<code>Report</code>+AvailableFormats、新 model <code>Report_Measures_KPIs_Format</code>、Repository <code>GetReport_Measures_KPIs_Format</code>、Service <code>GetReport</code> 設可用 Format/預設值＋<code>GetReportKPI</code> 末端 <code>if(map.Any())</code> 閘門過濾排序。</li>
+<li><strong>路由</strong>：<code>HomeController.NewReportStructure</code> 依 <code>Report.AvailableFormats.Any()</code> 路由到新 View（<strong>不改 <code>Report_Basic.ReportType</code></strong>）。Operation/COE 無 Format → 走原 <code>ClassicReport</code>。</li>
+<li><strong>新 View</strong> <code>HCFormatReport.cshtml</code> = <code>ClassicReport</code> 複製＋Format 下拉＋Employee link 閘門＋切換灰底白字 Loading 遮罩＋內嵌導向 script（沿用共用 JS <code>checkFilterInformation()</code>）。<strong>共用 <code>ClassicReport.cshtml</code> / <code>eManagerReport.js</code> 零修改。</strong></li>
+</ul>
+<h3 id="dec">四、維度「前一年 Dec」欄（動態年份，四張表通用）</h3>
+<ul>
+<li>例：選 2026 顯示 <code>2025 Dec</code> 欄（隨年度變）。<strong>零 View 改動</strong>。</li>
+<li><strong>DB</strong>：<code>Report_Dimensions</code> 各 HC 報表加佔位列（<code>Name='LY Dec'</code>、<code>GroupName=''</code>、<code>Sort=0</code>、<code>IsDefault=1</code>），腳本 <code>SQL Server\Table\framework_HC_Dimensions.sql</code>。</li>
+<li><strong>C#</strong>：Service HC case 把該維度 <code>Name</code> 改寫成 <code>"{選定年-1} Dec"</code>，並把 <code>hCDashboards</code> 中去年 Dec 各 KPI 值貼成同一維度字串、Year 設選定年後加進 <code>ReportSource</code>（資料源同既有 Last Year HC）。<code>"2025 Dec"</code> 不匹配 Jan~Dec/YTM → 自動避開月份特殊規則、直接顯示實值。</li>
+<li><strong>移除 Last Year HC</strong> SpecialKPI（由本欄取代；在 Service HC case，非設定表）。</li>
+</ul>
+<h3 id="turnover-1">五、Turnover% 公式說明與 1 月跨年修正</h3>
+<ul>
+<li>公式：<code>當月 Turnover % = 當月 # of Turnover / ((當月 Total HC + 前月 Total HC) / 2)</code>，逐月（1~12）、每 measure 各算、不可加總。Operation IDL/DL 版分母用各自 IDL/DL HC。值存小數、框架以 <code>Percentage</code> 轉 %、<code>&gt;10% 紅</code>（雙色待做）。</li>
+<li><strong>1 月修正</strong>（使用者確認）：原本 1 月找不到前月→退回用當月 HC；改為 1 月前月＝<strong>去年 12 月 HC</strong>（<code>#Stage</code> 含所有年度月資料）。改 <code>sp_DSB_HC_New.sql</code> Stage5b/5c 三處 <code>pm</code> join：<code>(同年 Dim-1) OR (去年 Dim=12 且 t.Dim=1)</code>；去年也無資料時 <code>ISNULL</code> 退回當月。需重跑 SP 套用（只影響 1 月值）。</li>
+</ul>
+<h3 id="_2">六、版控</h3>
+<ul>
+<li>eManagerCore 程式改動已 commit + push 到 <code>develop</code>：<strong>commit <code>b02c0ac</code></strong>（8 檔，+593/-13）。</li>
+<li>⚠ SQL 腳本（本資料夾 <code>SQL Server\</code>）<strong>不在 git</strong>，DB 變更需各環境手動跑。</li>
+</ul>
+<h3 id="_3">待辦（接續）</h3>
+<ol>
+<li><strong>部署收尾（最高優先）</strong>：把 <code>sp_DSB_HC_New</code> 變正式 proc／改排程呼叫它——否則排程仍跑舊 <code>sp_DSB_HC</code>，會把驗收好的資料蓋回舊命名。</li>
+<li>重新 build/部署 eManagerCore；跑 <code>framework_HC_KPIFormat.sql</code>、<code>framework_HC_Dimensions.sql</code>；重跑 <code>sp_DSB_HC_New</code>（2025/2026）。</li>
+<li>Turnover% <strong>雙色</strong>（&lt;5% 綠 / &gt;10% 紅，目前只有 &gt;10% 紅）。</li>
+<li>Turnover% <strong>YTM 欄定義</strong>（待 Tina）。</li>
+<li><strong>ScorecardMap 待 Amber</strong>：SBU 26 列 + RBU 6 列真實 Revenue 對應、<code>SCORECARD_PROD_N</code> 的 MD 欄名。</li>
+<li>其他確認：Total HC 來源、budget 來源 Operation 的 rpt_type、CIS/AURES 來源拆分。</li>
+</ol>
+</body>
+</html>
