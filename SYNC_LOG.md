@@ -13,13 +13,22 @@
 | TCP 改版 | BuildLog.md（6/9）| — | 待人工：屬建置「紀錄」非主要設計文件，是否發佈待定 |
 | TCP 改版 | 同步舊版資料表.sql（6/9）| — | 待人工：SQL 位於改版根（非 03_DB_Migration），是否比照 DB 變更記錄發佈待定 |
 | TCP 改版 | README.md（6/5）| — | 待人工：專案 README，一般不列入發佈集 |
+| eManager 改版 | docs/Notion報表框架.html、Notion報表框架_vs_共用框架.html、SA與框架差異分析.html（6/17）| 未定 | 待人工：框架分析文件，發佈集是否納入、放 eManagerReport 還是新區待你定 |
+| eManager 改版 | Notion/系統分析文件…md（6/17）| 未定 | 待人工：Notion 匯出檔，是否回灌待定 |
 
 > ℹ️ 完整盤點與已建結構見 `D:\Obsidian Note\專案盤點對照表.md`。
-> 小項待補：TCP 既有 3 個 DB 連結（OrgHierarchy/FOB/Template）補 SA 摘要。
+> 小項待補：eManagerReport 既有連結補 SA 摘要。（TCP 3 個舊 DB 連結 SA 已於 6/12 補齊）
 
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-06-17
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| Budget Platform（新專案） | BudgetPlatform.html | it-documents/budget-platform/ ＋ Notion 新頁(SA 摘要+連結) ＋ Obsidian「Budget Platform Notes\Budget Platform 概覽.md」|
+| TCP / eManager | （補同步 Obsidian） | TCP DB變更總覽、HC Dashboard 開發記錄寫入 Obsidian；台帳 Obsidian 欄補上 |
 
 ### 2026-06-16
 
