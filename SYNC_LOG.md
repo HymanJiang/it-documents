@@ -18,7 +18,8 @@
 | eManager 改版 | Notion/系統分析文件…md（6/17）| 未定 | 待人工：Notion 匯出檔，是否回灌待定 |
 | Budget Platform | BudgetPlatform_分析報告.html、OPTIMIZATION_PLAN.md（6/23）| 未定（GitHub/Notion）| 待人工：四層程式碼分析＋六階段優化計畫；含 SQL 注入確切位置(Repository.cs:2338、_RBU.cs:51/752/1033/1055)與缺 [Authorize] 端點，對外發佈敏感安全細節之取捨待 Hyman 定。Obsidian 工作紀錄已寫 |
 | Budget Platform | 優化執行計畫.html、整體規劃流程.html、測試操作指南.html（6/23–6/24）| 未定（GitHub/Notion）| 待人工：前二者含安全弱點細節引用，併入 Budget Platform 對外待決集；Obsidian 工作紀錄已寫 |
-| eManager / MSU Scorecard | ATMC自動化_SP修正交接_20260624（Notion 部分）| 未定（Notion 子頁）| 待人工：MSU Scorecard 歸屬「後續再定」、尚無 Notion 子頁，未自動建頁。GitHub HTML 已發、Obsidian 已寫；待 Hyman 決定 Notion 歸屬後補 SA 摘要+連結 |
+| eManager / MSU Scorecard | ATMC自動化_初版.html（6/25，含 E14）| GitHub Pages（推送待認證）| 待認證：HTML 已 commit（5ece429），但 git credential 解析到帳號 **JHCtw**（無 HymanJiang/it-documents 推送權，403）。Hyman 重新登入 GitHub 後 `git push` 即發佈。Notion/Obsidian 已完成（Notion 子頁已補 SA+交接連結） |
+| Budget Platform | 優化規劃_PM報告.html（6/25）| 未定（GitHub/Notion）| 待人工：PM 面向高階簡報，**不含敏感安全細節**，為 Budget Platform 對外待決集中最低風險、最適合先對外之候選；是否發佈仍待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
 
 > ℹ️ 完整盤點與已建結構見 `D:\Obsidian Note\專案盤點對照表.md`。
 > 小項待補：eManagerReport 既有連結補 SA 摘要。（TCP 3 個舊 DB 連結 SA 已於 6/12 補齊）
@@ -26,6 +27,19 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-06-25
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| eManager / MSU Scorecard | ATMC自動化_初版.html（整合交接 + 新增 2026-06-25 E14 MOPEX-ES 拆分：拆 ES-SMT(LG09)/ES-Labor(LG10) + 新增 Hourly Rate-ES，0625-1 守恆驗收） | it-documents/msu-scorecard/功能模組/（**本機已 commit 5ece429；GitHub 推送待認證，見待同步**） |
+| eManager / MSU Scorecard | （Notion）子頁 SA 摘要 + GitHub 連結 | Notion MSU 子頁 `375b60a1-adfe-819d-a12a-eaacac3f4c68`：歸屬定案移入 eManager → 將「GitHub Pages 文件（待補連結）」placeholder 就地更新為交接 HTML 連結，並補 7 條 SA 摘要 bullets（範圍/改了什麼/為什麼/影響/E14/狀態） |
+| eManager / MSU Scorecard | （工作紀錄）開發記錄更新 | Obsidian「eManager Maintain Notes\開發記錄\MSU Scorecard.md」：新增 06-25 E14 修改歷程列、ES 拆分與 Notion 歸屬兩項待確認標記為已解、補初版檔路徑與同步狀態 |
+| Budget Platform | 優化規劃_PM報告.html（6/25，PM 高階簡報） | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」補「PM 報告（2026-06-25）」段 + 修改歷程列（GitHub/Notion 對外待人工，見待同步） |
+
+> MSU Scorecard 歸屬於 2026-06-25 定案（移入 eManager，Notion 子頁 `375b60a1-…`），原 6/24「Notion 待人工」項目已解除。
+> 初版 HTML 接續 6/24 交接（後者仍在 GitHub Pages），兩者並存：交接＝交接快照、初版＝含 E14 整合設計文件。
+> Budget Platform PM 報告不含敏感細節，但 GitHub/Notion 對外仍歸整體待決集，待 Hyman 定。
 
 ### 2026-06-24
 
