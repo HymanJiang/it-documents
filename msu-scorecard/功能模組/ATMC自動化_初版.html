@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATMC MSU Scorecard 自動化 — 初版</title>
+<style>
+  :root{
+    --fg:#1f2328; --muted:#57606a; --line:#d0d7de; --bg:#fff;
+    --accent:#0969da; --accent-bg:#ddf4ff; --ok:#1a7f37; --ok-bg:#dafbe1;
+    --warn:#9a6700; --warn-bg:#fff8c5; --code-bg:#f6f8fa; --th-bg:#f6f8fa;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",-apple-system,
+      "Segoe UI",Helvetica,Arial,sans-serif;
+    color:var(--fg); background:#eaeef2; margin:0; line-height:1.7; font-size:15px;
+  }
+  .page{max-width:980px; margin:24px auto; background:var(--bg); padding:40px 48px;
+    box-shadow:0 1px 4px rgba(0,0,0,.12); border-radius:8px;}
+  h1{font-size:26px; margin:0 0 4px; border-bottom:3px solid var(--accent); padding-bottom:10px;}
+  h2{font-size:20px; margin:34px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--line);}
+  h3{font-size:16px; margin:22px 0 8px; color:#24292f;}
+  h3 .tag{display:inline-block; font-size:12px; font-weight:700; color:#fff; background:var(--accent);
+    border-radius:4px; padding:1px 7px; margin-right:8px; vertical-align:middle;}
+  h3 .tag.key{background:#cf222e;}
+  p,li{color:var(--fg);}
+  .sub{color:var(--muted); font-size:13px; margin-top:0;}
+  table{border-collapse:collapse; width:100%; margin:12px 0; font-size:13.5px;}
+  th,td{border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top;}
+  th{background:var(--th-bg); font-weight:700;}
+  tbody tr:nth-child(even){background:#fafbfc;}
+  code{font-family:"Cascadia Code",Consolas,"SF Mono",Menlo,monospace; font-size:12.5px;
+    background:var(--code-bg); padding:1px 5px; border-radius:4px;}
+  pre{background:var(--code-bg); border:1px solid var(--line); border-radius:6px;
+    padding:12px 14px; overflow:auto; font-size:12.5px; line-height:1.5;}
+  pre code{background:none; padding:0;}
+  .meta td:first-child{width:140px; font-weight:700; background:var(--th-bg);}
+  .ok{color:var(--ok); font-weight:700;}
+  .warn-box{background:var(--warn-bg); border:1px solid #d4a72c; border-left:4px solid #d4a72c;
+    border-radius:6px; padding:10px 14px; margin:14px 0;}
+  .note{background:var(--accent-bg); border:1px solid #54aeff; border-left:4px solid var(--accent);
+    border-radius:6px; padding:10px 14px; margin:14px 0; font-size:13.5px;}
+  .val{font-weight:700; color:var(--ok);}
+  .old{color:#cf222e;}
+  .pill{display:inline-block; font-size:11px; font-weight:700; padding:1px 8px; border-radius:10px;}
+  .pill.green{background:var(--ok-bg); color:var(--ok);}
+  .pill.amber{background:var(--warn-bg); color:var(--warn);}
+  .footer{margin-top:36px; padding-top:14px; border-top:1px solid var(--line);
+    color:var(--muted); font-size:12px;}
+  @media print{
+    body{background:#fff;} .page{box-shadow:none; margin:0; max-width:none; border-radius:0;}
+    h2{page-break-after:avoid;} pre,table{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>ATMC MSU Scorecard 自動化 — 初版</h1>
+<p class="sub">eManager · MSU Scorecard（ATMC 台灣財務 KPI 自動化）</p>
+
+<div class="warn-box">
+  <strong>狀態：初版，尚未正式啟用。</strong>本文件所述 SP 變更（含 2026-06-25 的 ES 拆分 E14）目前皆為待確認版本，經本次調整確認無誤後才會正式上線。
+</div>
+
+<table class="meta">
+  <tr><td>日期</td><td>2026-06-24（2026-06-25 新增 E14 ES 拆分）</td></tr>
+  <tr><td>對象程序</td><td><code>[Global_Fin].[dbo].[uSP_MSUScorecard2026_N_Data_TW]</code></td></tr>
+  <tr><td>對象資料表</td><td><code>[Global_Fin].[dbo].[SCORECARD_MSU_N_HierarchyMapping]</code></td></tr>
+  <tr><td>來源需求</td><td><code>ATMC 自動化 1~3_20260503_tinacheck.xlsx</code>（自動化指標公式 / 3 月自動化結果）</td></tr>
+  <tr><td>驗收檔</td><td><code>0624-6.xlsx</code>（M01–M03，全數通過）；ES 拆分 <code>0625-1.xlsx</code></td></tr>
+  <tr><td>原始備份</td><td><code>SP\uSP_MSUScorecard2026_N_Data_TW.sql.bak_20260624</code>；ES 拆分前 <code>..bak_20260625</code></td></tr>
+</table>
+
+<h2>1. 背景</h2>
+<p><code>uSP_MSUScorecard2026_N_Data_TW</code> 是<strong>獨立執行</strong>的預存程序（主程序 <code>uSP_MSUScorecard2026</code> 並未呼叫它），手動 <code>EXEC</code> 後以 <code>SELECT ... PIVOT</code> 直接回傳 ATMC（台灣）各廠的財務 KPI（MOPEX、Hourly Rate、閒置成本等）。</p>
+<p>初版檢核（3 月）共 <strong>17 項 N（計算錯誤）+ 12 項未計算</strong>。本次修正後，凡屬程式/對照表可解者皆已修正並驗收通過，餘 3 項屬「業務定義」需財務拍板（見第 5 節）。</p>
+
+<h2>2. 預存程序（SP）變更明細</h2>
+<div class="note">以下為邏輯說明與關鍵 SQL 前後對照。實際檔案已套用，編碼維持 UTF-16 LE。</div>
+
+<h3><span class="tag">E1</span>當月成倉費用 — 廠別歸屬錯誤</h3>
+<p>症狀：掛在 <code>ATMC total</code>，應為 <code>ATMC-林口發貨倉</code>（VK04）。</p>
+<pre><code>-- 前
+'ATMC total' AS [PLANT],
+-- 後
+N'ATMC-林口發貨倉' AS [PLANT],</code></pre>
+
+<h3><span class="tag">E2</span>ATMC-LA MOPEX(K) — 993 科目排除規則</h3>
+<p>需求：「993* 全排，只加回 993002、993019」。</p>
+<pre><code>-- 前
+WHERE [CostElement] NOT IN ('993020','993021')
+-- 後
+WHERE ([CostElement] NOT LIKE '993%' OR [CostElement] IN ('993002','993019'))</code></pre>
+
+<h3><span class="tag key">E3</span>MOPEX-SMT / Labor / ES(K) — 重複計算 2 倍（重點）</h3>
+<p>症狀：<code>MOPEX_SpecialConfig</code> 以 <code>Exception &lt;&gt; CostElement</code> 做 JOIN，單一 cost center 有多筆排除碼時，金額被乘上排除碼筆數（SMT/Labor 約 2 倍）。</p>
+<p>修正：改為「存在即排除」的 <code>NOT EXISTS</code>，並新增 <code>MOPEX_SpecialMap</code>（cost center→指標 去重對照）。</p>
+<pre><code>[MOPEX_SpecialMap] AS (
+    SELECT DISTINCT [PLANT],[DESCRIPTION],[Costcenter] FROM [MOPEX_SpecialConfig]
+),
+[MOPEX_Special] AS (
+    SELECT A.[YEAR_ID],A.[MONTH_ID],M.[PLANT],M.[DESCRIPTION],SUM(A.[AMOUNT]) AS [AMOUNT]
+    FROM [MOPEX_Data] A
+    INNER JOIN [MOPEX_SpecialMap] M ON M.[Costcenter] = A.[Costcenter]
+    WHERE A.[MONTH_ID] &lt;= @Month
+      AND NOT EXISTS (
+          SELECT 1 FROM [MOPEX_SpecialConfig] X
+          WHERE X.[Costcenter] = A.[Costcenter] AND X.[Exception] = A.[CostElement])
+    GROUP BY A.[YEAR_ID],A.[MONTH_ID],M.[PLANT],M.[DESCRIPTION]
+)</code></pre>
+
+<h3><span class="tag">E5'</span>Hourly Rate - Labor(Standard) — 應取平均</h3>
+<p>來源 kp27 每個 cost center 有 2 筆，先前誤改 AVG 會把所有標準率砍半；正解：維持 <code>SUM</code>，僅 Labor 的 LH12/13/14 各除以 cost center 數（3）。</p>
+<pre><code>-- HourlyRateItem 第一段 AMOUNT 改為：
+CASE WHEN [Costcenter] IN ('LH12','LH13','LH14') THEN [AMOUNT] * 60 / 10000 / 3
+     ELSE [AMOUNT] * 60 / 10000 END AS [AMOUNT]
+-- 外層彙總維持 SUM([AMOUNT])</code></pre>
+
+<h3><span class="tag">E6</span>ATMC-CTOS 閒置成本(%) — 量級錯誤</h3>
+<pre><code>-- 前（得 ~ -2.9e-7）
+ISNULL(A.[AMOUNT],0) / (ISNULL(C.[AMOUNT],0) * ISNULL(D.[AMOUNT],0) ) / 1000 AS [AMOUNT]
+-- 後（得 ~ -0.29）
+ISNULL(A.[AMOUNT],0) * 1000 / (ISNULL(C.[AMOUNT],0) * ISNULL(D.[AMOUNT],0) ) AS [AMOUNT]</code></pre>
+
+<h3><span class="tag">E7</span>Hourly Rate - 人力（ATMC total）— 分母用錯欄位</h3>
+<pre><code>-- 前（誤除以 PG Charge）
+(A.[AMOUNT] - B.[AMOUNT]) / B.[AMOUNT] * 1000 AS [AMOUNT]
+-- 後（除以工時 C）
+(A.[AMOUNT] - B.[AMOUNT]) / C.[AMOUNT] * 1000 AS [AMOUNT]</code></pre>
+
+<h3><span class="tag">E8</span>ATMC-LA 閒置成本(K)-SMT/Labor — 後綴遺失 + 乘除錯</h3>
+<pre><code>-- 描述補上 -SMT/-Labor 區分
+N'閒置成本(K) - ' + A.[DESCRIPTION] AS [DESCRIPTION],
+-- 工時×標準率（前為 B/C，後為 B*C）
+ELSE A.[AMOUNT] - (B.[AMOUNT]*C.[AMOUNT]) / 1000</code></pre>
+
+<h3><span class="tag">E9</span>名稱字串不一致（造成多項「未計算」）</h3>
+<p>取用端字串對齊產出端（以對外輸出名稱為準）：</p>
+<table>
+  <thead><tr><th>取用端（前）</th><th>改為（後）</th></tr></thead>
+  <tbody>
+    <tr><td><code>'MOPEX - SMT(K)'</code>,<code>'MOPEX - Labor(K)'</code></td><td><code>'MOPEX-SMT(K)'</code>,<code>'MOPEX-Labor(K)'</code></td></tr>
+    <tr><td><code>N'SAP產出工時 - SMT(Hr)'</code>,<code>N'SAP產出工時 - Labor(Hr)'</code></td><td><code>N'SAP產出工時 -SMT(Hr)'</code>,<code>N'SAP產出工時 -Labor(Hr)'</code></td></tr>
+    <tr><td><code>'Hourly Rate - SMT(Standard)'</code></td><td><code>'Hourly Rate-SMT(Standard)'</code></td></tr>
+  </tbody>
+</table>
+
+<h3><span class="tag">E10</span>BCM 委外加工費 — OR/AND 優先序</h3>
+<pre><code>-- 後（加括號，使 No / 廠別過濾正確套用到兩個 LIKE）
+WHERE ([Name] LIKE N'%委外加工費-BCM%'
+    OR [Name] LIKE N'%委外加工費-板階外包%')
+    AND [No] = 1
+    AND [eMgrShowName] = 'ATMC-LA'</code></pre>
+
+<h3><span class="tag">E11</span>ATMC-LA Hourly Rate-SMT/Labor — 漏乘 1000</h3>
+<pre><code>-- 前
+A.[AMOUNT] / B.[AMOUNT] AS [AMOUNT]
+-- 後
+A.[AMOUNT] * 1000 / B.[AMOUNT] AS [AMOUNT]</code></pre>
+
+<h3><span class="tag">E12</span>ATMC-LA 閒置成本(K)-SMT/Labor — JOIN 漏配對條件</h3>
+<p>症狀：MOPEX 與 WorkHour / Hourly_Rate 的 JOIN 僅 年/月/廠，缺 <code>DESCRIPTION</code>，造成 SMT×Labor 交叉（出現 -14 萬等離譜值）。</p>
+<pre><code>-- 兩個 LEFT JOIN 各補：
+AND B.[DESCRIPTION] = A.[DESCRIPTION]
+AND C.[DESCRIPTION] = A.[DESCRIPTION]</code></pre>
+
+<h3><span class="tag">E13 + E4</span>ATMC-泛System Hourly Rate-Assembly — 重複列 + 漏乘 1000</h3>
+<p>症狀：對照表 No=2 對泛System 有 MH10、MH14 兩筆都對到 <code>Phase_3='SAP產出工時(H)'</code>；SP 以 <code>INNER JOIN</code> 把 Temp 內「工時總額」那一筆複製成兩列，PIVOT SUM 後變 2 倍（1.65）。</p>
+<p>修正：<code>INNER JOIN</code> → <code>EXISTS</code>（只做存在性過濾、不複製），並補泛System 的 ×1000。</p>
+<pre><code>[WorkHour] AS (
+    SELECT A.[YEAR_ID],[MONTH_ID],[PLANT],[DESCRIPTION],[AMOUNT]
+    FROM [Temp_SCORECARD_MSU_N_Data] A
+    WHERE A.[YEAR_ID] = @Year
+    AND [PLANT] IN (N'ATMC-泛System',N'ATMC-CTOS')
+    AND EXISTS (
+        SELECT 1 FROM [SCORECARD_MSU_N_HierarchyMapping] B
+        WHERE B.[eMgrShowName] = A.[PLANT]
+        AND B.[Phase_3] = A.[DESCRIPTION]
+        AND B.[Year_ID] = A.[YEAR_ID]
+        AND B.[No] = 2)
+)
+-- 泛System 分支：ELSE A.[AMOUNT] * 1000 / C.[AMOUNT]</code></pre>
+
+<h2>3. 對照表（HierarchyMapping）變更</h2>
+<p>LG10 在 No=2（工時）被誤標為 ES SMT，應為 ES Labor：</p>
+<pre><code>USE [Global_Fin];
+UPDATE [SCORECARD_MSU_N_HierarchyMapping]
+SET [Phase_2] = 'ES Labor(Hr)'
+WHERE [Year_ID]=2026 AND [No]=2 AND [Phase_1]='LG10';   -- 更新筆數 = 1</code></pre>
+<div class="note">註：改對照表後<strong>不需重部署 SP</strong>，直接 <code>EXEC</code> 即可（SP 每次重撈對照表）。</div>
+
+<h2>4. 驗收結果（0624-6，M03）</h2>
+<table>
+  <thead><tr><th>指標</th><th>原狀態</th><th>修正後</th><th>期望/說明</th></tr></thead>
+  <tbody>
+    <tr><td>泛System Hourly Rate-Assembly</td><td class="old">N (1.65)</td><td class="val">827.27</td><td>=MOPEX×1000/工時</td></tr>
+    <tr><td>MOPEX-SMT(K) LA</td><td class="old">N (56,409)</td><td class="val">28,204.68</td><td>28,205</td></tr>
+    <tr><td>MOPEX-Labor(K) LA</td><td class="old">N (102,105)</td><td class="val">50,125.35</td><td>50,125</td></tr>
+    <tr><td>MOPEX-ES(K) LA</td><td>—</td><td>1,452.09</td><td>=ES-SMT+ES-Labor</td></tr>
+    <tr><td>Hourly Rate-SMT(Standard)</td><td>—</td><td class="val">6,000</td><td></td></tr>
+    <tr><td>Hourly Rate-Labor(Standard)</td><td class="old">N (2,520)</td><td class="val">840</td><td>2520/3</td></tr>
+    <tr><td>泛System Assembly(Standard)</td><td>(砍半過)</td><td class="val">880</td><td></td></tr>
+    <tr><td>CTOS Assembly(Standard)</td><td>(砍半過)</td><td class="val">800</td><td></td></tr>
+    <tr><td>CTOS 閒置成本(%)</td><td class="old">N (-2.9e-7)</td><td class="val">-0.2885</td><td></td></tr>
+    <tr><td>CTOS 閒置成本(K)</td><td>—</td><td>-2,452.85</td><td></td></tr>
+    <tr><td>泛System 閒置(%)/(K)</td><td>—</td><td>0.053/0.565/-0.043；2549…</td><td>回正</td></tr>
+    <tr><td>LA Hourly Rate-SMT / Labor</td><td>未計算</td><td class="val">5,125.69 / 729.06</td><td></td></tr>
+    <tr><td>LA 閒置(K)-SMT / Labor</td><td>未計算</td><td>-4,810.99 / -7,627.57</td><td>依需求公式</td></tr>
+    <tr><td>當月成倉費用</td><td>要修正Plant</td><td class="val">ATMC-林口發貨倉</td><td></td></tr>
+    <tr><td>Hourly Rate-人力</td><td class="old">N (-41,144)</td><td class="val">2,268.36</td><td></td></tr>
+    <tr><td>SAP產出工時 -ES SMT(Hr)</td><td class="old">N (321.74)</td><td class="val">115.72</td><td>LG09</td></tr>
+    <tr><td>SAP產出工時 -ES Labor(Hr)</td><td>未計算</td><td class="val">206.03</td><td>LG10（新增）</td></tr>
+  </tbody>
+</table>
+
+<h2>5. 待業務拍板事項（非程式 bug）</h2>
+<ol>
+  <li><strong>LA MOPEX(K) = 79,782</strong>（analyst 期望 77,224）—— 本月無其他 993* 科目，79,782 為現行規則正確值。是否要計入 IC Burning / PG Charge 屬定義問題，需財務確認。</li>
+  <li><strong>LA 閒置成本(%)-SMT/Labor 的分母</strong>（閒置成本(K) 已符合需求公式）
+    <ul>
+      <li>SP 現況（分母＝Production Value）：SMT ≈ <strong>-0.0046</strong></li>
+      <li>需求文件 R38（分母＝工時×標準率）：SMT ≈ <strong>-0.146</strong></li>
+      <li>Excel analyst 期望：<strong>-0.2195</strong></li>
+    </ul>
+    三者不同，確認採用哪個定義後即可調整（一行改動）。</li>
+  <li><span class="pill green">已實作</span> <s>MOPEX-ES 是否拆分顯示</s> → <strong>已實作（2026-06-25，0625-1 驗收）</strong>
+    <ul>
+      <li>拍板拆分。SP 變更見下方 <strong>E14</strong>。</li>
+      <li><code>MOPEX-ES(K)</code> 已拆為 <code>MOPEX-ES-SMT(K)</code>(LG09) / <code>MOPEX-ES-Labor(K)</code>(LG10)，並新增 <code>Hourly Rate - ES-SMT/ES-Labor</code>。</li>
+      <li>驗收（ATMC-LA，M01）：MOPEX-ES-SMT <strong>1,844.882</strong> + ES-Labor <strong>669.684</strong> = <strong>2,514.566</strong>（＝原合併值，守恆 ✓）；Hourly Rate ES-SMT <strong>9,700</strong> / ES-Labor <strong>1,600</strong>（kp27 標準率，每月固定）。</li>
+    </ul>
+  </li>
+</ol>
+
+<h3><span class="tag">E14</span>MOPEX-ES 拆分 + Hourly Rate-ES 新增（2026-06-25）</h3>
+<ul>
+  <li><strong>MOPEX 拆分</strong>：<code>MOPEX_SpecialConfig</code> 內原合併的 <code>MOPEX-ES(K)</code> 改標為兩個指標（排除碼 993002/993019/993020/993021 不變）。</li>
+</ul>
+<pre><code>-- LG09 → MOPEX-ES-SMT(K)；LG10 → MOPEX-ES-Labor(K)
+SELECT 'ATMC-LA','MOPEX-ES-SMT(K)'  ,'LG09','993002' UNION ... -- 4 筆
+SELECT 'ATMC-LA','MOPEX-ES-Labor(K)','LG10','993002' UNION ... -- 4 筆</code></pre>
+<ul>
+  <li><strong>Hourly Rate-ES</strong>：<code>HourlyRateItem</code> CTE 加入 LG09/LG10（kp27 標準率，工時×60/10000，不除 cost center 數）。</li>
+</ul>
+<pre><code>-- PLANT CASE 補：WHEN [Costcenter] IN ('LG09','LG10') THEN 'ATMC-LA'
+-- DESCRIPTION CASE 補：WHEN 'LG09' THEN 'Hourly Rate - ES-SMT'
+--                      WHEN 'LG10' THEN 'Hourly Rate - ES-Labor'
+-- WHERE IN(...) 補：'LG09','LG10'</code></pre>
+<ul>
+  <li>原合併 <code>MOPEX-ES(K)</code> 無下游引用，已移除；最終 PIVOT 無 DESCRIPTION 白名單，新指標自動輸出。</li>
+  <li>備份：<code>uSP_MSUScorecard2026_N_Data_TW.sql.bak_20260625</code>。</li>
+</ul>
+
+<h2>6. 部署備忘（避免重蹈覆轍）</h2>
+<ul>
+  <li>SP 檔為 <strong>UTF-16 LE + BOM</strong>；用程式批次改檔需以二進位寫入，避免換行被重複轉成 <code>\r\r\n</code> 導致編輯器「格式錯誤」。</li>
+  <li>在 SSMS 改 SP 後務必：<strong>重新開檔</strong>（避免舊分頁覆蓋）→ F5（ALTER 更新 DB 程序）→ 另外 <code>EXEC</code> 才會回結果。</li>
+  <li>驗證 DB 是否為新版：<code>OBJECT_DEFINITION(OBJECT_ID('dbo.uSP_MSUScorecard2026_N_Data_TW')) LIKE '%MOPEX_SpecialMap%'</code>。</li>
+</ul>
+
+<div class="footer">
+  ATMC MSU Scorecard 自動化 — 初版 · 來源：<code>D:\Work\專案\eManager\MSU Scorecard\TW\ATMC自動化_初版.md</code> · 產出 2026-06-25<br>
+  接續 6/24「SP 修正交接說明」，新增 E14 ES 拆分。SP 變更為待確認版本，確認無誤後正式上線。
+</div>
+
+</div>
+</body>
+</html>
