@@ -15,10 +15,12 @@
 | TCP 改版 | README.md（6/5）| — | 待人工：專案 README，一般不列入發佈集 |
 | eManager 改版 | docs/Notion報表框架.html、Notion報表框架_vs_共用框架.html、SA與框架差異分析.html（6/17）| 未定 | 待人工：框架分析文件，發佈集是否納入、放 eManagerReport 還是新區待你定 |
 | eManager 改版 | docs/補充內容_報表框架與首頁(給SA).md/.html（6/23）| 未定 | 待人工：供 SA 補入 Notion〈系統分析文件〉之框架/首頁設計補充；同屬上列框架文件群，placement 未定 |
-| eManager 改版 | Notion/系統分析文件…md（6/17）| 未定 | 待人工：Notion 匯出檔，是否回灌待定 |
+| eManager 改版 | Notion/系統分析文件_最新_20260625.md（6/25 抓取）、docs/比對_補充內容vs Notion最新_20260625.md、比對與衝突解法_補充vsNotion_20260625.html、待補進Notion_對齊草稿_20260625.md（6/25）| 未定（Notion 回灌 / GitHub） | 待人工：補充內容 vs Notion 最新版逐段比對，浮現**七個待拍板衝突 C1–C7**（KPI 顏色模型/狀態態數/用詞/篩選器/小分類做法/布告欄記憶）；對齊草稿標【待拍板後定稿】。拍板＋placement 定後才能回灌 Notion。Obsidian 工作紀錄已寫 |
+| eManager 改版 | docs/設定架構對照_首頁登錄vs報表內容_20260626.html、全框架對照_現行為主_差異標註_20260626.html（6/26）| 未定 | 待人工：給 SA 的現行 vs 改版框架對照；同屬框架文件群，placement 待定。Obsidian 工作紀錄已寫 |
 | Budget Platform | BudgetPlatform_分析報告.html、OPTIMIZATION_PLAN.md（6/23）| 未定（GitHub/Notion）| 待人工：四層程式碼分析＋六階段優化計畫；含 SQL 注入確切位置(Repository.cs:2338、_RBU.cs:51/752/1033/1055)與缺 [Authorize] 端點，對外發佈敏感安全細節之取捨待 Hyman 定。Obsidian 工作紀錄已寫 |
 | Budget Platform | 優化執行計畫.html、整體規劃流程.html、測試操作指南.html（6/23–6/24）| 未定（GitHub/Notion）| 待人工：前二者含安全弱點細節引用，併入 Budget Platform 對外待決集；Obsidian 工作紀錄已寫 |
 | Budget Platform | 優化規劃_PM報告.html（6/25）| 未定（GitHub/Notion）| 待人工：PM 面向高階簡報，**不含敏感安全細節**，為 Budget Platform 對外待決集中最低風險、最適合先對外之候選；是否發佈仍待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
+| Budget Platform | 年度改造_盤點清單.html（6/26）| 未定（GitHub/Notion）| 待人工：動態年度／去分年度庫依賴範圍底稿（3 叢集 View/ETL SP/C#＋Snapshot+UNION 殼設計）。含程式碼物件名/行號但**無資安弱點細節**，仍歸 Budget Platform 對外待決集，待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
 
 > ℹ️ 完整盤點與已建結構見 `D:\Obsidian Note\專案盤點對照表.md`。
 > 小項待補：eManagerReport 既有連結補 SA 摘要。（TCP 3 個舊 DB 連結 SA 已於 6/12 補齊）
@@ -26,6 +28,16 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-06-26
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| Budget Platform | 年度改造_盤點清單.html（6/26，動態年度／去分年度庫依賴範圍底稿：3 叢集＋Snapshot+UNION 殼設計） | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「年度改造盤點清單（2026-06-26）」段＋修改歷程列。GitHub/Notion 對外待人工（見待同步） |
+| eManager 改版 / 框架 | 6/23 補充內容 + 6/25 比對·衝突解法·對齊草稿·系統分析抓取 + 6/26 兩份框架對照（彙整） | Obsidian「eManager Maintain Notes\開發記錄\eManager 改版框架與系統分析.md」**新建**：系統位置/原始文件/工作內容/七個待拍板衝突 C1–C7/Notion 仍缺清單/修改歷程/待人工。GitHub/Notion 因內容與 placement 均待拍板，列待人工 |
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，落差全數落在 eManager 改版框架文件群與 Budget Platform —— 兩者對外（GitHub/Notion）發佈皆**待 Hyman 拍板**，故本次實際同步動作僅 Obsidian 工作紀錄（含新建 eManager 改版框架開發記錄）。無自動 git push。
+> eManager 改版框架文件群（6/17~6/26 共 ~10 份）先前無任何 Obsidian 工作紀錄 → 本次補建彙整開發記錄，填補工作紀錄缺口。
 
 ### 2026-06-25
 
