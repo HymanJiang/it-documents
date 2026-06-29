@@ -20,7 +20,8 @@
 | Budget Platform | BudgetPlatform_分析報告.html、OPTIMIZATION_PLAN.md（6/23）| 未定（GitHub/Notion）| 待人工：四層程式碼分析＋六階段優化計畫；含 SQL 注入確切位置(Repository.cs:2338、_RBU.cs:51/752/1033/1055)與缺 [Authorize] 端點，對外發佈敏感安全細節之取捨待 Hyman 定。Obsidian 工作紀錄已寫 |
 | Budget Platform | 優化執行計畫.html、整體規劃流程.html、測試操作指南.html（6/23–6/24）| 未定（GitHub/Notion）| 待人工：前二者含安全弱點細節引用，併入 Budget Platform 對外待決集；Obsidian 工作紀錄已寫 |
 | Budget Platform | 優化規劃_PM報告.html（6/25）| 未定（GitHub/Notion）| 待人工：PM 面向高階簡報，**不含敏感安全細節**，為 Budget Platform 對外待決集中最低風險、最適合先對外之候選；是否發佈仍待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
-| Budget Platform | 年度改造_盤點清單.html（6/26）| 未定（GitHub/Notion）| 待人工：動態年度／去分年度庫依賴範圍底稿（3 叢集 View/ETL SP/C#＋Snapshot+UNION 殼設計）。含程式碼物件名/行號但**無資安弱點細節**，仍歸 Budget Platform 對外待決集，待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
+| Budget Platform | 年度改造_盤點清單.html（6/26，6/29 隨實作微調）| 未定（GitHub/Notion）| 待人工：動態年度／去分年度庫依賴範圍底稿（3 叢集 View/ETL SP/C#＋Snapshot+UNION 殼設計）。含程式碼物件名/行號但**無資安弱點細節**，仍歸 Budget Platform 對外待決集，待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
+| Budget Platform | 年度改造_第一輪完成小結.html（6/29）| 未定（GitHub/Notion）| 待人工：3 張 Denodo View 動態年度+凍結快照改造**實際完成**（2 新表+2 新 SP+2 View flip 成 UNION 殼，零行為變化）。**無資安弱點細節**（僅 View/SP/表物件名與年度硬編），低風險；但第一輪未收尾（凍結 orchestrator/第二刀未做），仍歸對外待決集待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
 
 > ℹ️ 完整盤點與已建結構見 `D:\Obsidian Note\專案盤點對照表.md`。
 > 小項待補：eManagerReport 既有連結補 SA 摘要。（TCP 3 個舊 DB 連結 SA 已於 6/12 補齊）
@@ -28,6 +29,15 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-06-29
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| Budget Platform | 年度改造_第一輪完成小結.html（6/29，3 張 Denodo View 動態年度+凍結快照改造實際完成：2 新表+2 新 SP+2 View flip 成 UNION 殼，零行為變化 Prod==基準 0/0）＋盤點清單隨實作微調 | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「年度改造 第一輪完成（2026-06-29）」段＋修改歷程列＋同步狀態更新。GitHub/Notion 對外待人工（見待同步） |
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 6/26 同步後唯一落差為 Budget Platform 6/29 兩份檔案（年度改造第一輪完成小結＝實作完成、盤點清單隨實作微調）。兩者對外（GitHub/Notion）發佈皆**待 Hyman 連同 Budget Platform 整體取捨拍板**，故本次實際同步動作僅 Obsidian 工作紀錄。無自動 git push。
+> 完成小結無資安弱點細節（僅 View/SP/表物件名），低風險；但改造第一輪尚未收尾（凍結 orchestrator/第二刀多年度存取未做），系統行為仍在變動中，Notion 暫不更新系統說明（待收尾且 Hyman 拍板）。
 
 ### 2026-06-26
 
