@@ -22,6 +22,7 @@
 | Budget Platform | 優化規劃_PM報告.html（6/25）| 未定（GitHub/Notion）| 待人工：PM 面向高階簡報，**不含敏感安全細節**，為 Budget Platform 對外待決集中最低風險、最適合先對外之候選；是否發佈仍待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
 | Budget Platform | 年度改造_盤點清單.html（6/26，6/29 隨實作微調）| 未定（GitHub/Notion）| 待人工：動態年度／去分年度庫依賴範圍底稿（3 叢集 View/ETL SP/C#＋Snapshot+UNION 殼設計）。含程式碼物件名/行號但**無資安弱點細節**，仍歸 Budget Platform 對外待決集，待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
 | Budget Platform | 年度改造_第一輪完成小結.html（6/29）| 未定（GitHub/Notion）| 待人工：3 張 Denodo View 動態年度+凍結快照改造**實際完成**（2 新表+2 新 SP+2 View flip 成 UNION 殼，零行為變化）。**無資安弱點細節**（僅 View/SP/表物件名與年度硬編），低風險；但第一輪未收尾（凍結 orchestrator/第二刀未做），仍歸對外待決集待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
+| Budget Platform | 優化進度總覽.html（6/29）＋ 年度改造第二輪 ETL SP 年度參數化/synonym + 凍結 orchestrator 腳本（6/29~6/30）| 未定（GitHub/Notion）| 待人工：第二輪收尾叢集② ETL SP（@Year=NULL 自動推導+synonym 去分年度庫）與凍結 orchestrator。**無資安弱點細節**；SP 腳本屬程式碼不逐一發佈，HTML 為進度儀表板。整體年度改造對外發佈仍待 Hyman 連同整體取捨決定（第二刀多年度存取仍待答）。Obsidian 工作紀錄已寫 |
 
 > ℹ️ 完整盤點與已建結構見 `D:\Obsidian Note\專案盤點對照表.md`。
 > 小項待補：eManagerReport 既有連結補 SA 摘要。（TCP 3 個舊 DB 連結 SA 已於 6/12 補齊）
@@ -29,6 +30,16 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-06-30
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| eManager / MSU Scorecard | ATMC自動化_初版.html（**更新**：新增 E15 年月動態——SP `uSP_MSUScorecard2026_N_Data_TW` 由寫死 `@Year=2026,@Month=3` 改為 `@Year/@Month=NULL` 預設、不帶參數時以 `GETDATE()` 自動採當下年月；備份 `..bak_20260630`）| it-documents/msu-scorecard/功能模組/（GitHub Pages，git push）；Obsidian「開發記錄\MSU Scorecard.md」新增 06-30 E15 修改歷程列＋同步狀態。**Notion 暫不動**（E15 為執行方式調整、文件仍標「初版尚未正式啟用」，KPI/邏輯/資料未對既有系統說明實質變動；待 SP 正式上線拍板後再評估） |
+| Budget Platform | 優化進度總覽.html + 年度改造第二輪（ETL SP 年度參數化/synonym + 凍結 orchestrator，6/29~6/30）| Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「年度改造 第二輪」段＋修改歷程列＋同步狀態。GitHub/Notion 對外待人工（見待同步） |
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 6/29 同步後落差為：(a) MSU 初版 `.md` 6/30 更新（E15 年月動態）→ 已重生並推送 GitHub HTML + Obsidian；(b) Budget Platform 6/29 晚~6/30 年度改造第二輪（ETL SP 年度參數化 + 凍結 orchestrator + 進度總覽 HTML）→ 對外待人工，僅 Obsidian 工作紀錄。
+> MSU E15 唯一對外動作為 GitHub HTML 更新（屬主要設計文件改版）；Notion 因系統仍 pre-production 且僅執行方式調整，暫不更新系統說明。Budget 第二輪無資安弱點細節但整體年度改造對外發佈待 Hyman 拍板，故無自動 git push（Budget 部分）。
 
 ### 2026-06-29
 

@@ -61,16 +61,16 @@
 <p class="sub">eManager · MSU Scorecard（ATMC 台灣財務 KPI 自動化）</p>
 
 <div class="warn-box">
-  <strong>狀態：初版，尚未正式啟用。</strong>本文件所述 SP 變更（含 2026-06-25 的 ES 拆分 E14）目前皆為待確認版本，經本次調整確認無誤後才會正式上線。
+  <strong>狀態：初版，尚未正式啟用。</strong>本文件所述 SP 變更（含 2026-06-25 的 ES 拆分 E14、2026-06-30 的年月動態 E15）目前皆為待確認版本，經本次調整確認無誤後才會正式上線。
 </div>
 
 <table class="meta">
-  <tr><td>日期</td><td>2026-06-24（2026-06-25 新增 E14 ES 拆分）</td></tr>
+  <tr><td>日期</td><td>2026-06-24（2026-06-25 新增 E14 ES 拆分；2026-06-30 新增 E15 年月動態）</td></tr>
   <tr><td>對象程序</td><td><code>[Global_Fin].[dbo].[uSP_MSUScorecard2026_N_Data_TW]</code></td></tr>
   <tr><td>對象資料表</td><td><code>[Global_Fin].[dbo].[SCORECARD_MSU_N_HierarchyMapping]</code></td></tr>
   <tr><td>來源需求</td><td><code>ATMC 自動化 1~3_20260503_tinacheck.xlsx</code>（自動化指標公式 / 3 月自動化結果）</td></tr>
   <tr><td>驗收檔</td><td><code>0624-6.xlsx</code>（M01–M03，全數通過）；ES 拆分 <code>0625-1.xlsx</code></td></tr>
-  <tr><td>原始備份</td><td><code>SP\uSP_MSUScorecard2026_N_Data_TW.sql.bak_20260624</code>；ES 拆分前 <code>..bak_20260625</code></td></tr>
+  <tr><td>原始備份</td><td><code>SP\uSP_MSUScorecard2026_N_Data_TW.sql.bak_20260624</code>；ES 拆分前 <code>..bak_20260625</code>；年月動態前 <code>..bak_20260630</code></td></tr>
 </table>
 
 <h2>1. 背景</h2>
@@ -253,6 +253,26 @@ SELECT 'ATMC-LA','MOPEX-ES-Labor(K)','LG10','993002' UNION ... -- 4 筆</code></
   <li>備份：<code>uSP_MSUScorecard2026_N_Data_TW.sql.bak_20260625</code>。</li>
 </ul>
 
+<h3><span class="tag">E15</span>年月改為動態（2026-06-30）</h3>
+<p>原本參數被註解、改用寫死的 <code>DECLARE @Year=2026, @Month=3</code>（測試用）。改為以參數帶入，<strong>不帶參數時自動採用當下時間的年月</strong>（<code>GETDATE()</code>）。</p>
+<pre><code>-- 前（參數註解、寫死 DECLARE）
+ALTER PROCEDURE [dbo].[uSP_MSUScorecard2026_N_Data_TW] --( @Year int,@Month int )
+...
+DECLARE @Year int = 2026,
+        @Month int = 3;
+-- 後（參數預設 NULL，進入程序後補當下年月）
+ALTER PROCEDURE [dbo].[uSP_MSUScorecard2026_N_Data_TW] ( @Year int = NULL,@Month int = NULL )
+...
+IF @Year IS NULL
+    SET @Year = DATEPART(YEAR, GETDATE());
+IF @Month IS NULL
+    SET @Month = DATEPART(MONTH, GETDATE());</code></pre>
+<ul>
+  <li>執行方式：不帶參數 → 跑當下年月 <code>EXEC [dbo].[uSP_MSUScorecard2026_N_Data_TW];</code>；指定月份（補跑/測試）<code>EXEC [dbo].[uSP_MSUScorecard2026_N_Data_TW] 2026, 3;</code>。</li>
+  <li>此 SP 為獨立手動執行，採「當下月」而非主程序的「上個月」邏輯。</li>
+  <li>備份：<code>uSP_MSUScorecard2026_N_Data_TW.sql.bak_20260630</code>。</li>
+</ul>
+
 <h2>6. 部署備忘（避免重蹈覆轍）</h2>
 <ul>
   <li>SP 檔為 <strong>UTF-16 LE + BOM</strong>；用程式批次改檔需以二進位寫入，避免換行被重複轉成 <code>\r\r\n</code> 導致編輯器「格式錯誤」。</li>
@@ -261,8 +281,8 @@ SELECT 'ATMC-LA','MOPEX-ES-Labor(K)','LG10','993002' UNION ... -- 4 筆</code></
 </ul>
 
 <div class="footer">
-  ATMC MSU Scorecard 自動化 — 初版 · 來源：<code>D:\Work\專案\eManager\MSU Scorecard\TW\ATMC自動化_初版.md</code> · 產出 2026-06-25<br>
-  接續 6/24「SP 修正交接說明」，新增 E14 ES 拆分。SP 變更為待確認版本，確認無誤後正式上線。
+  ATMC MSU Scorecard 自動化 — 初版 · 來源：<code>D:\Work\專案\eManager\MSU Scorecard\TW\ATMC自動化_初版.md</code> · 產出 2026-06-25，更新 2026-06-30<br>
+  接續 6/24「SP 修正交接說明」，新增 E14 ES 拆分（6/25）、E15 年月動態（6/30）。SP 變更為待確認版本，確認無誤後正式上線。
 </div>
 
 </div>
