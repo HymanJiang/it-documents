@@ -25,6 +25,7 @@
 | Budget Platform | 優化進度總覽.html（6/29）＋ 年度改造第二輪 ETL SP 年度參數化/synonym + 凍結 orchestrator 腳本（6/29~6/30）| 未定（GitHub/Notion）| 待人工：第二輪收尾叢集② ETL SP（@Year=NULL 自動推導+synonym 去分年度庫）與凍結 orchestrator。**無資安弱點細節**；SP 腳本屬程式碼不逐一發佈，HTML 為進度儀表板。整體年度改造對外發佈仍待 Hyman 連同整體取捨決定（第二刀多年度存取仍待答）。Obsidian 工作紀錄已寫 |
 | eManager 改版 | 交付_Notion批改稿_20260701\（對照版/全文標註/摘要卡 HTML + Notion線上圖對照/圖片對照 HTML + Notion修改清單.xlsx + Notion現況vs需求規格書_差異報告.md，7/1）| 未定（回灌 Notion / GitHub） | 待人工：以需求規格書為格式基準、抓 Notion 6/30 現況（51 圖）逐段比對之批改稿交付包。**未直接修改線上 Notion**。待決策：結構方向 (A) 保留 Notion SA 格式補模組 /(B) 重整 9 模組 /(C) 併存；整模組缺失（匯出/申請權限/LOG/登入/權限管理/寄信）待補 SA 草稿；報表狀態四態 vs 兩態；是否由 AI 直接改線上 Notion 或先出對照稿。F1 篩選列已釐清為非衝突、D1 使用者已修。placement 未定。Obsidian 工作紀錄已寫 |
 | Budget Platform | 待確認_Denodo用途問題.md（7/1）| 未定（外部確認）| 待人工：年度改造第二刀唯一缺的外部答案——Denodo 消費端是否有報表讀「已結案年度」`vw_BudgetPlatformCurrentData`，期望 (A) 送審當下固定值（＝現行凍結，符合）或 (B) 隨匯率重算即時值（需保留即時路徑）。**需向 Denodo 平台負責人（非本專案 C# 範圍）確認**。取得答案前第二刀不動、無風險。Obsidian 工作紀錄已寫 |
+| eManager 改版 | 本次資料_Notion批改稿_20260706\（成品_給組員看＝內嵌圖自包含批改稿+修改清單xlsx；_編輯用＝來源HTML+build.py+51圖；7/6）| 未定（回灌 Notion / GitHub）| 待人工：7/1 批改稿包重整為乾淨交付結構（來源／成品分離、build.py 一鍵重生內嵌版、lightbox 不斷圖）＋批改稿新增 5 條共用元件建議（Last/Next Update 元件+API、切換角色模糊查詢共用元件、通知信共用寄信服務併 S6），合計 56 條批註。內容版本仍 7/1、**未直接修改線上 Notion**；結構方向 A/B/C、S1–S6 缺失模組補草稿、批改稿如何套用（手貼 vs AI 寫入）皆待拍板，placement 未定。Obsidian 工作紀錄已寫 |
 | Budget Platform | 查證_MSU_Average除數疑點.md（7/1）| 未定（需業務拍板）| 待人工：`BudgetPlatformService.cs Get_BasicData` MSU 分支「當年平均前推」除數 bug（高信心）——case 10 應 `/9` 卻 `/11`、case 11 應 `/10` 卻 `/11`（case 12/13 正確）。**2026 循環 MSU FCST_Month=11 → case 11 正觸發 → Others 家族 Nov/Dec 預估目前實際低估約 9%**。**未自行修改**（動到已顯示/可能已據以編列的數字），待 Hyman 拍板 (a) 直接修正（改除實際月數）或 (b) 保留現狀僅記錄；若修正建議先跑修正前後 MSU 樣本 CC 比對。屬計算/業務邏輯問題，不對外發佈。Obsidian 工作紀錄已寫 |
 
 > ℹ️ 完整盤點與已建結構見 `D:\Obsidian Note\專案盤點對照表.md`。
@@ -43,9 +44,11 @@
 | eManager / MSU Scorecard | ATMC自動化_初版.html（E15 年月動態，commit `e9ee35a`）＋ SYNC_LOG 修正（`d0dc8ce`）| it-documents/msu-scorecard/功能模組/：**6/30 起待認證的 push 本次完成**——`git push` 成功 `7529d77..d0dc8ce main -> main`（credential 阻擋已排除），GitHub Pages 已發佈。Obsidian「開發記錄\MSU Scorecard.md」同步狀態更新為「E15 push 已完成」 |
 | eManager 改版 / 框架 | Notion 批改稿交付包（7/1，交付_Notion批改稿_20260701\）| Obsidian「eManager Maintain Notes\開發記錄\eManager 改版框架與系統分析.md」新增「Notion 批改稿交付包（2026-07-01）」段＋修改歷程列＋待決策更新。GitHub/Notion 對外待人工（見待同步） |
 | Budget Platform | 待確認_Denodo用途問題.md ＋ 查證_MSU_Average除數疑點.md（7/1）| Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「待確認文件與 MSU 平均除數疑點（2026-07-01）」段＋修改歷程列＋同步狀態。對外/修正決策待人工（見待同步） |
+| eManager 改版 / 框架 | 批改稿交付結構重整 ＋ 5 條共用元件建議（`本次資料_Notion批改稿_20260706\`，7/6 午後）| Obsidian「eManager Maintain Notes\開發記錄\eManager 改版框架與系統分析.md」新增「批改稿重整為交付結構 ＋ 共用元件建議（2026-07-06）」段＋修改歷程列（07/06）＋同步狀態更新至 7/6。GitHub/Notion 對外待人工（見待同步） |
 
 > 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 6/30 同步後落差為：(a) **MSU E15 的待認證 push 本次成功排除**（credential 阻擋解除，`e9ee35a`+`d0dc8ce` 已 push，GitHub Pages 發佈）；(b) eManager 改版 7/1 新增 Notion 批改稿交付包（對照 Notion 6/30 現況 vs 需求規格書，浮現結構 A/B/C 與整模組缺失，未改線上 Notion）→ Obsidian；(c) Budget Platform 7/1 兩份查證/待確認（Denodo 用途問題單、MSU `Get_BasicData` 除數 bug 查證）→ Obsidian。
-> 本次唯一對外動作＝MSU E15 GitHub push（屬先前已 commit、僅待認證之主要設計文件改版）。eManager 批改稿與 Budget 兩份查證皆待拍板（結構方向／Denodo 外部答案／MSU 除數修正動到已顯示數字），故僅 Obsidian 工作紀錄，無其他 git push，Notion 均未動。
+> **7/6 午後追加一次掃描**：新增落差＝eManager 改版把 7/1 批改稿包重整為乾淨交付結構（`本次資料_Notion批改稿_20260706\`：成品/編輯用來源成品分離、build.py 一鍵重生內嵌圖版、lightbox 縮圖放大不斷圖）並在批改稿新增 5 條共用元件建議 🟢（Last/Next Update 元件+API、切換角色模糊查詢共用元件、通知信共用寄信服務併 S6，合計 56 條批註）；內容版本仍 7/1、**未改線上 Notion**。屬批改/待拍板材料（結構方向 A/B/C、S1–S6 補草稿、套用方式皆未定、placement 未定）→ 僅 Obsidian 工作紀錄，GitHub/Notion 列待人工。
+> 本次唯一對外動作＝MSU E15 GitHub push（屬先前已 commit、僅待認證之主要設計文件改版）。eManager 批改稿（含 7/6 重整）與 Budget 兩份查證皆待拍板（結構方向／Denodo 外部答案／MSU 除數修正動到已顯示數字），故僅 Obsidian 工作紀錄，無其他 git push，Notion 均未動。
 
 ### 2026-06-30
 
