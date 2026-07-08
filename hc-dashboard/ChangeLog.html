@@ -12,6 +12,7 @@
   h1{font-size:2em; border-bottom:2px solid var(--border); padding-bottom:.3em; margin-top:0;}
   h2{font-size:1.5em; border-bottom:1px solid var(--border); padding-bottom:.3em; margin-top:2em;}
   h3{font-size:1.2em; margin-top:1.6em;}
+  h4{font-size:1.05em; margin-top:1.3em;}
   blockquote{border-left:4px solid var(--accent); margin:1em 0; padding:.4em 1em; color:var(--muted); background:var(--code-bg);}
   table{border-collapse:collapse; width:100%; margin:1em 0; font-size:.93em; display:block; overflow-x:auto;}
   th,td{border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top;}
@@ -33,7 +34,35 @@
 <p>本檔記錄 HC Dashboard 報表改版的逐日變更。整體設計見 <code>改版設計_HC_Dashboard.md</code>、命名對齊見 <code>名稱對齊_*.md</code>。
 程式碼在 <code>D:\Project\eManagerCore</code>（共用框架，ReportCode='HC Dashboard'）；SQL 腳本在本資料夾 <code>SQL Server\</code>。</p>
 </blockquote>
-<hr>
+<hr />
+<h2 id="2026-07-07">2026-07-07</h2>
+<h3 id="sbu-hierarchy-7-revenue-sbu-hierarchy-change-20260707xlsx">SBU Hierarchy 改版：加 7 個小計/總計 + 重寫 Revenue 對應（依 <code>SBU Hierarchy Change 20260707.xlsx</code>）</h3>
+<ul>
+<li><strong>範圍</strong>：SBU 由「31 Leaf、無小計」→「31 Leaf + 7 Rollup 小計 = 38 列」。葉節點順序/內容不變。列數驗收基準 SBU 31→38。</li>
+<li><strong>新增 7 小計</strong>（Rollup）：iSystem Total、iAutomation Total、Embedded total w/o ACG、Embedded total、iService total w/o AURES、iService total、SBU Total。</li>
+<li><strong><code>DSB_HC_Hierarchy</code></strong>（SBU 段）：加 7 個 <code>NodeType=Rollup</code> 列並重排 Sort（1~38）。<code>iAutomation-Common Pool</code> 的 HcSourceKey 暫沿用已驗證 <code>iAutomation-Others</code>（改版 Excel 標 <code>iAutomation-Common Pool</code>，待來源確認）。</li>
+<li><strong><code>DSB_HC_Rollup</code></strong>（SBU 段，原本 0 筆）：新增 51 筆組合。SBU Total 以子小計組合，SP 遞迴展開去重後 = 全部 31 葉。</li>
+<li><strong><code>DSB_HC_ScorecardMap</code></strong>（SBU 段）：依 Excel D 欄重寫 38 列 Revenue 對應——多列 PG 由 <code>Intelligent System</code> 改為各自 PG；小計「直抓」群組 Total PG。<strong>支援列共用群組 Total PG → 會顯示相同群組總營收（使用者確認之規格）</strong>。</li>
+<li>加欄位 <code>[FilterExcludePD]</code>：供 SP (d) 分支用。</li>
+<li><code>iService-AiCS</code> 的 PROD_DIVI 沿用複數 <code>AiCS (City Services)</code>（Excel 為單數，取現行可抓到值者）。</li>
+<li><strong><code>sp_DSB_HC_New</code></strong> 3 處改動：
+  1. Stage2 (a) 分支加 <code>AND m.FilterExcludePD IS NULL</code> 守門（避免 w/o AURES 被 (a) 重複抓）。
+  2. Stage2 新增 (d) 排除分支：<code>Service-IoT ALL − Aures</code>（條件負號 + 外層 SUM）。
+  3. Stage3 直抓守門加強：小計列若在 ScorecardMap 有對應，Revenue 一律不 rollup（即使直抓當月無資料也不退回子列加總，避免營收重複相加出錯數）。</li>
+<li><strong>⚠ 待來源核對之 PROD_GROUP</strong>：<code>Intelligent Systems Total / IoT Automation Total / Embedded-IoT Total / Embedded-IoT Total (wo ACG) / Advantech / WISE</code>——不存在則該列 Revenue 空白（不影響其他列，不報錯）。</li>
+<li><strong>部署</strong>：</li>
+<li>既有環境（不重建整張表）→ 跑 <code>Table\SBU_Change_20260707_Incremental.sql</code>（加欄位 + 只 DELETE/INSERT WHERE HCDashbordType='SBU'，RBU/Operation/COE 不動）。</li>
+<li>全新環境 → 跑 <code>Table\DSB_HC_Config_Tables.sql</code>（整批重建，內容一致）。</li>
+<li>兩者皆需接著跑 <code>SP\sp_DSB_HC_New.sql</code>（ALTER PROCEDURE，不動資料）→ <code>EXEC sp_DSB_HC_New @Year=2026</code>（及去年 2025）→ Ctrl+F5。</li>
+</ul>
+<h4 id="2026-07-07_1">收尾狀態（2026-07-07）</h4>
+<ul>
+<li>✅ 既有環境已跑 <code>SBU_Change_20260707_Incremental.sql</code> 並 <strong>COMMIT</strong>；驗收筆數 Hierarchy 38 / Rollup 51 / ScorecardMap 38 正確。</li>
+<li>⏳ <code>sp_DSB_HC_New.sql</code>（ALTER PROC）與 <code>EXEC sp_DSB_HC_New @Year=2026/2025</code> 重灌 → 待確認是否已跑。</li>
+<li><strong>未決 1｜6 個群組 PG 待核對來源</strong>：<code>Intelligent Systems Total / IoT Automation Total / Embedded-IoT Total / Embedded-IoT Total (wo ACG) / Advantech / Service-IoT / WISE</code> 是否存在於 <code>Global_Fin.dbo.SCORECARD_PROD_N</code>（PROD_DIVI='ALL', DESCRIPTION='Revenue(E2E)'）。找不到者，該 SBU 小計/支援列 Revenue 會空白（不報錯、不影響他列）。驗證查詢已提供。</li>
+<li><strong>未決 2｜SBU Total（及各小計）Revenue 策略</strong>：目前為「直抓群組 PG、不退回加總」（Stage3 守門：小計列有 ScorecardMap 對應則 Revenue 不 rollup）。若來源無對應 PG → 空白。待決定是否改為「直抓優先、抓不到才退回子列加總」（需再改 SP 守門）。</li>
+</ul>
+<hr />
 <h2 id="2026-06-16">2026-06-16</h2>
 <ul>
 <li><strong>部署收尾完成（昨日最高優先）</strong>：<code>sp_DSB_HC_New</code> 已正式上線（變正式 proc／排程改呼叫它），排程不再跑舊 <code>sp_DSB_HC</code> 蓋回舊命名。</li>
@@ -53,7 +82,7 @@
 <li>小段 script：依實際 Region 欄寬動態設定 KPI 凍結欄的 sticky <code>left</code>，<code>resize</code> 重算、<code>&lt;=1600px</code>（共用 CSS 取消 sticky）清掉位移。</li>
 <li>驗收：CSS/View 改動，部署後務必 <strong>Ctrl+F5</strong>。</li>
 </ul>
-<hr>
+<hr />
 <h2 id="2026-06-15">2026-06-15</h2>
 <h3 id="_1">一、資料層目視驗收與修正</h3>
 <ul>

@@ -9,6 +9,7 @@
 | 專案 | 檔案 | 目標位置 | 備註 |
 |------|------|---------|------|
 | eManagerReport | 既有連結 | Notion eManagerReport 頁 | 補 SA 摘要（小項）|
+| eManager / HC Dashboard | SBU Hierarchy 改版（7/7，31→38 列＋7 Rollup＋重寫 Revenue 對應）| Notion HC Dashboard 子頁 | 待人工：結構性資料/維度變更已 COMMIT，惟 **SBU Total/小計 Revenue 策略（直抓 vs 抓不到退回加總）未定** + **6 個群組 PG 是否存在於 `SCORECARD_PROD_N` 待核對來源**；策略拍板＋來源確認後，再更新 🧩 功能與資料段（維度/資料表）與 📊 衡量指標段。GitHub ChangeLog.html 已更新，Obsidian 已記 |
 | SBU Scorecard | （無設計文件，僅 SP） | Notion SBU 子頁已註明 | 待撰寫設計文件後再發 |
 | TCP 改版 | BuildLog.md（6/9）| — | 待人工：屬建置「紀錄」非主要設計文件，是否發佈待定 |
 | TCP 改版 | 同步舊版資料表.sql（6/9）| — | 待人工：SQL 位於改版根（非 03_DB_Migration），是否比照 DB 變更記錄發佈待定 |
@@ -34,6 +35,18 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-07-08
+
+> （本次排程於 2026-07-08 執行，掃到自 7/6 以來的落差：HC Dashboard 7/7 SBU Hierarchy 改版、MSU Scorecard 7/7~7/8 ATMC 調整報告。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| eManager / HC Dashboard | ChangeLog.html（**更新**：新增 2026-07-07「SBU Hierarchy 改版」段——SBU 31 Leaf → 31 Leaf + 7 Rollup = 38 列、`DSB_HC_Rollup` 0→51 筆、`DSB_HC_ScorecardMap` 重寫 38 列 Revenue 對應 + 加 `FilterExcludePD` 欄、`sp_DSB_HC_New` 3 處守門/排除分支調整；既有環境已跑 `SBU_Change_20260707_Incremental.sql` 並 COMMIT，驗收 Hierarchy 38／Rollup 51／ScorecardMap 38）| it-documents/hc-dashboard/（由 ChangeLog.md 以 python-markdown 重生 → git push）；Obsidian「開發記錄\HC Dashboard.md」新增 07-07 修改歷程列 + 3 項待確認（6 群組 PG 來源、SBU Total Revenue 策略、SP 重灌）+ 同步狀態。**Notion 暫不動**（Revenue 策略/PG 來源未定，見待人工）|
+| eManager / MSU Scorecard | ATMC自動化_調整報告_20260708.html（tina 3 月 9 項比對；① 效能：3 支 DENODO-PROD 遠端查詢 `@Year` 下推只抓當年（`#Mopex_Raw`/`#Zrpp89_Raw`/`#Kp27_Raw`），結果不變、附帶修好歷史年重跑撈空；② #1 Hourly Rate-人力 兩個工時字串 bug（LA Labor 多空格、CTOS 字串錯）修後收斂到與 tina 差 −1~2%；③ #6/#7/#9 實跑驗收 PASS；④ MOPEX% NO ROW 根因＝sharepoint 來源 Plant/KPI 欄全 NULL，須來源端修）| it-documents/msu-scorecard/功能模組/（複製 HTML → git push，同 SP 修正交接/初版慣例，無敏感安全細節）；Obsidian「開發記錄\MSU Scorecard.md」新增 07-07~08 修改歷程列 + 待確認（#1 殘差/#5 LA MOPEX 待 tina、MOPEX% 來源標籤）+ 原始文件 + 同步狀態。**Notion 暫不動**（SP 仍 pre-production，效能/bug 修正未動 KPI 定義）|
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 7/6 同步後落差為：(a) **HC Dashboard** ChangeLog.md 7/7 新增「SBU Hierarchy 改版」段（主要設計文件改版，比照 6/16 發佈慣例）→ 重生 ChangeLog.html 推 GitHub + Obsidian；(b) **MSU Scorecard** 7/8 產出 ATMC 調整報告 HTML（效能下推＋#1 工時字串修正＋#6/#7/#9 驗收＋MOPEX% 根因）→ 複製到 GitHub 功能模組 + Obsidian。兩者對外皆為主要設計/報告文件、無敏感安全細節，故 GitHub push；Notion 皆暫不動（HC SBU Revenue 策略/PG 來源未定案、MSU 仍 pre-production）。
+> 附帶：eManager 改版 7/6 午後另有 `待續清單_20260706.md`、`今日修改摘要_20260706.html` 等收工檔，屬 7/6 已記錄之批改稿批次（結構方向 A/B/C 未定），仍列待人工，無新增動作。HC Dashboard／MSU 的診斷/測試/設定 SQL 與主改 SP 屬程式碼，依發佈集規則不逐一發佈，已於文件說明。
 
 ### 2026-07-06
 

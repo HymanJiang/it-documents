@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ATMC 自動化 — 調整報告 20260708</title>
+<style>
+  :root{ --ink:#1f2933; --mut:#66707a; --line:#e2e6ea; --bg:#fff;
+         --ok:#127a3d; --okbg:#e7f6ec; --warn:#8a5a00; --warnbg:#fdf3e0;
+         --bad:#a11; --badbg:#fbeaea; --info:#0b5aa2; --infobg:#e9f2fb; --code:#f5f7f9; }
+  *{box-sizing:border-box}
+  body{font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
+       color:var(--ink);line-height:1.65;max-width:960px;margin:0 auto;padding:32px 24px;background:var(--bg);}
+  h1{font-size:1.6rem;margin:0 0 4px}
+  h2{font-size:1.2rem;margin:34px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+  h3{font-size:1.02rem;margin:20px 0 6px}
+  .sub{color:var(--mut);margin:0 0 4px}
+  p{margin:8px 0}
+  code{background:var(--code);padding:1px 5px;border-radius:4px;font-family:"Cascadia Code",Consolas,monospace;font-size:.88em}
+  pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow-x:auto;font-family:Consolas,monospace;font-size:.84rem;border:1px solid var(--line)}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f3f5f7;font-weight:600}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tag{display:inline-block;padding:1px 9px;border-radius:999px;font-size:.8rem;font-weight:600;white-space:nowrap}
+  .t-ok{color:var(--ok);background:var(--okbg)} .t-warn{color:var(--warn);background:var(--warnbg)}
+  .t-bad{color:var(--bad);background:var(--badbg)} .t-info{color:var(--info);background:var(--infobg)}
+  .callout{border-left:4px solid var(--info);background:var(--infobg);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+  .callout.warn{border-color:var(--warn);background:var(--warnbg)}
+  .callout.ok{border-color:var(--ok);background:var(--okbg)}
+  .muted{color:var(--mut);font-size:.88rem}
+  ul{margin:8px 0;padding-left:22px} li{margin:3px 0}
+  .foot{margin-top:40px;padding-top:12px;border-top:1px solid var(--line);color:var(--mut);font-size:.82rem}
+  @media print{body{padding:0;max-width:none} h2{page-break-after:avoid} table,pre,.callout{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<h1>ATMC 自動化 — 調整報告</h1>
+<p class="sub">對象 SP：<code>[dbo].[uSP_MSUScorecard2026_N_Data_TW]</code>（獨立手動 EXEC）　·　資料庫 <code>Global_Fin</code></p>
+<p class="sub">日期：2026-07-08　·　驗證年月：2026 年 1–3 月（<code>EXEC ... 2026, 3</code>）</p>
+
+<h2>一、總覽</h2>
+<table>
+  <thead><tr><th>項目</th><th>類型</th><th>狀態</th><th>摘要</th></tr></thead>
+  <tbody>
+    <tr><td>執行效能優化</td><td>效能</td><td><span class="tag t-ok">已完成</span></td><td>3 支 DENODO 遠端查詢改為只抓當年，砍掉「抓 2 年只用 1 年」的浪費</td></tr>
+    <tr><td>#1 Hourly Rate – 人力</td><td>Bug 修正</td><td><span class="tag t-ok">已修</span> <span class="tag t-warn">殘差待定義</span></td><td>修正 2 個工時字串 bug，從 ~2.9× 收斂到與 tina 差 −1~2%</td></tr>
+    <tr><td>#6 / #7 閒置成本(%) LA</td><td>驗收</td><td><span class="tag t-ok">PASS</span></td><td>符合 tina 期望（誤差 ~1e-10）</td></tr>
+    <tr><td>#9 泛System Hourly Rate-Assembly</td><td>驗收</td><td><span class="tag t-ok">PASS</span></td><td>符合 tina 期望（誤差 ~1e-9）</td></tr>
+    <tr><td>MOPEX % / MOPEX %(Excl)</td><td>根因調查</td><td><span class="tag t-bad">NO ROW</span></td><td>根因＝sharepoint 來源缺 Plant/KPI 標籤，須來源端修</td></tr>
+    <tr><td>#5 LA MOPEX(K)（連動 #2/#3/#4）</td><td>待定義</td><td><span class="tag t-info">待 tina</span></td><td>79,782→77,224 需明確「多排除哪些科目」</td></tr>
+  </tbody>
+</table>
+
+<h2>二、執行效能優化</h2>
+<h3>問題</h3>
+<p>SP 全跑約 8 分鐘，瓶頸在 4 支跨 linked server 的 DENODO 遠端查詢。其中 3 支（DENODO-PROD）遠端條件寫 <code>&gt;= 今年-1</code>（抓 2 年），但程式在本機一律 <code>WHERE [YEAR_ID]=@Year</code>，<b>前一年資料 100% 被丟掉＝每次白抓一整年</b>（含最大的 MOPEX 明細表 <code>ksb1_opex_all</code>）。</p>
+<h3>調整</h3>
+<p>將 3 支查詢改為用 <code>sp_executesql</code> 把 <code>@Year</code> 下推到遠端，只抓當年：先抓進本機暫存表（<code>#Mopex_Raw</code> / <code>#Zrpp89_Raw</code> / <code>#Kp27_Raw</code>），再把原 <code>OPENQUERY(...)</code> 換成讀該暫存表。<b>原有的 CASE / 轉換 / UNPIVOT / CTE 邏輯完全未動。</b></p>
+<table>
+  <thead><tr><th>查詢</th><th>來源</th><th>改前遠端條件</th><th>改後遠端條件</th></tr></thead>
+  <tbody>
+    <tr><td>MOPEX</td><td><code>sap.iv_biprd_ztha_fin_ksb1_opex_all</code></td><td><code>FISCAL_YEAR &gt;= 今年-1</code></td><td><code>FISCAL_YEAR = @Year</code></td></tr>
+    <tr><td>產出工時</td><td><code>sap.rv_biprd_ztpp_zrpp89</code></td><td><code>GETYEAR(...) &gt;= 今年-1</code></td><td><code>GETYEAR(...) = @Year</code></td></tr>
+    <tr><td>標準率</td><td><code>sap.rv_biprd_ztha_fin_kp27_hourlyrate</code></td><td><code>GJAHR &gt;= 今年-1</code></td><td><code>GJAHR = @Year</code></td></tr>
+  </tbody>
+</table>
+<div class="callout ok"><b>附帶修正一個隱藏問題：</b>遠端原本寫死 <code>&gt;= 今年-1</code>，會讓 <code>EXEC ...,2024</code> 這類歷史年重跑撈空；改 <code>= @Year</code> 後歷史年重跑也正確。</div>
+<h3>驗證與影響</h3>
+<ul>
+  <li><b>資料一致性：</b>改後 <code>MOPEX(K)</code> 各月數值與改前完全相同（比對測試「符合現況＝PASS」）→ 證明下推未破壞任何結果。</li>
+  <li><b>預期效益：</b>3 支查詢遠端傳輸量大致砍半以上（少抓一整年；MOPEX 另可再評估下推 <code>@Month</code>）。實際改善幅度請用計時工具量測。</li>
+  <li><b>未動：</b>sharepoint 那支（linked server <code>DENODO</code>，非 -PROD）暫不調整（小表、且遠端欄位型別待確認）。</li>
+</ul>
+
+<h2>三、#1 Hourly Rate – 人力（兩個工時字串 Bug）</h2>
+<p>#1 原本回報值約為 tina 期望的 2.9 倍。診斷發現分母（工時）漏抓，來自兩個「引用的 DESCRIPTION 字串與實際產出對不到」的 bug：</p>
+<table>
+  <thead><tr><th>Bug</th><th>SP 引用（錯）</th><th>實際產出（對）</th><th>後果</th></tr></thead>
+  <tbody>
+    <tr><td>① LA Labor 工時</td><td><code>SAP產出工時 -<b> </b>Labor(Hr)</code>（dash 後多空格）</td><td><code>SAP產出工時 -Labor(Hr)</code></td><td>LA Labor 工時（最大宗）漏進分母</td></tr>
+    <tr><td>② CTOS 工時</td><td><code>產出工時-SAP(H)</code></td><td><code>SAP產出工時(H)</code></td><td>CTOS 工時整批漏進分母</td></tr>
+  </tbody>
+</table>
+<h3>收斂過程（M01 / M02 / M03）</h3>
+<table>
+  <thead><tr><th>階段</th><th class="num">M01</th><th class="num">M02</th><th class="num">M03</th><th>vs tina</th></tr></thead>
+  <tbody>
+    <tr><td>最初回報</td><td class="num">2462.57</td><td class="num">3597.69</td><td class="num">2268.36</td><td>~2.9×</td></tr>
+    <tr><td>修①（LA Labor 空格）</td><td class="num">886.55</td><td class="num">1321.21</td><td class="num">843.74</td><td>+4~7%</td></tr>
+    <tr><td><b>修②（CTOS 字串）</b></td><td class="num"><b>834.73</b></td><td class="num"><b>1216.90</b></td><td class="num"><b>780.18</b></td><td><b>−1.3~2.2%</b></td></tr>
+    <tr><td>tina 期望</td><td class="num">853.14</td><td class="num">1233.46</td><td class="num">790.39</td><td>—</td></tr>
+  </tbody>
+</table>
+<div class="callout warn"><b>殘差 −1~2% 非程式 bug。</b>用實跑數字反推證明：三源工時全部加總後仍略超所需分母，光靠調工時湊不出 tina。這是 #1 一開始就標記的「需定義」——最後一哩要 tina 確認<b>確切分子/分母範圍</b>（CTOS 是否用全部工時、LA 是否只算 Labor、PG Charge 如何扣）。</div>
+
+<h2>四、#6 / #7 / #9 驗收（先前調整）</h2>
+<p>本次一併以實跑驗收先前的三項調整，全部符合 tina 期望：</p>
+<ul>
+  <li><span class="tag t-ok">PASS</span> <b>#6/#7 ATMC-LA 閒置成本(%) – Labor / SMT</b>：分母由 Production Value 改為「工時 × 標準率」，三個月誤差 ~1e-10。</li>
+  <li><span class="tag t-ok">PASS</span> <b>#9 ATMC-泛System Hourly Rate-Assembly</b>：公式 <code>(MOPEX − PG Charge)×1000 / 工時</code>，三個月誤差 ~1e-9，且無 fan-out 翻倍問題。</li>
+</ul>
+
+<h2>五、MOPEX % NO ROW — 根因調查</h2>
+<p>比對測試中 <code>MOPEX %</code> 與 <code>MOPEX %(Exclude Internal PV)</code> 皆 NO ROW。逐層追查結論：</p>
+<pre>sharepoint 來源 (bv_sharepoint_emanager_atmu_scorecard) 2026 共 16 列
+   → Plant 欄、KPI 欄「全部為 NULL」（僅月份數字有值）
+   → SP 以 [Plant] LIKE '%ATMC%' 過濾 → 一列都插不進 Temp
+   → Temp 內無 Production Value(K)（此為唯一來源）
+   → MOPEX % = MOPEX(K) INNER JOIN Production Value(K) → 右邊空 → 產 0 列</pre>
+<div class="callout"><b>定性：非 SP bug、非命名文字差異、與本次效能改動無關</b>（此 KPI 從最早的第一次比對就是 NO ROW）。欄位名稱正確（就叫 Plant/KPI），但<b>值在來源就是 NULL</b>，故改 SP 比對字串無效。<br>
+<b>須在來源端修</b>：SharePoint scorecard 清單或 Denodo view 的 Plant/KPI 欄位對應壞了／未填。建議再撈 <code>WHERE [Year]=2025</code> 判斷是「2026 這批壞掉」還是「一直未運作」。此項屬 #2/#3 連動、須來源端處理。</div>
+
+<h2>六、待辦（非程式 Bug）</h2>
+<table>
+  <thead><tr><th>項目</th><th>負責</th><th>內容</th></tr></thead>
+  <tbody>
+    <tr><td>#1 最後 −1~2%</td><td>tina</td><td>確認 #1 確切分子/分母範圍（CTOS 用全部工時？LA 只算 Labor？PG Charge 如何扣？）</td></tr>
+    <tr><td>#5 LA MOPEX(K)</td><td>tina</td><td>79,782→77,224 需明確「再多排除哪些科目」；連動修正 #2 MOPEX%、#3 MOPEX%(Excl)、#4 MOPEX(K)</td></tr>
+    <tr><td>Production Value 缺標籤</td><td>SharePoint / Denodo 維護</td><td>來源 Plant/KPI 欄位補齊，MOPEX % 系列才能計算</td></tr>
+  </tbody>
+</table>
+
+<h2>七、變更檔案與備份</h2>
+<h3>SP（已保 UTF-16 LE BOM + CRLF）</h3>
+<ul>
+  <li><code>SP\uSP_MSUScorecard2026_N_Data_TW.sql</code> — 本次修改（效能下推 + #1 兩個字串修正）</li>
+  <li>備份：<code>...sql.bak_20260708_perf</code>（效能改前）、<code>...sql.bak_20260708b_prefix</code>（#1 字串改前）</li>
+</ul>
+<h3>測試 / 診斷腳本（TW\，皆相容舊版 SQL）</h3>
+<ul>
+  <li><code>比對測試_ATMC_20260707.sql</code> — 9 項 KPI 對「改前現況 / tina 期望」比對</li>
+  <li><code>效能_分段計時_20260708.sql</code> — 4 支 DENODO 查詢分段計時</li>
+  <li><code>DENODO_連線測試_20260708.sql</code> — linked server 分層連線測試</li>
+  <li><code>診斷_人力2.28倍_20260708.sql</code> — #1 分子/分母/工時字串 HIT-MISS</li>
+  <li><code>診斷_sharepoint_PV_20260708.sql</code>、<code>診斷_sharepoint_原始_20260708.sql</code> — MOPEX% 根因追查</li>
+</ul>
+
+<p class="foot">產出：2026-07-08　·　狀態：整體 SP 尚未正式上線，待上述待辦確認後上線。</p>
+
+</body>
+</html>
