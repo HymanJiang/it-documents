@@ -25,9 +25,10 @@
 | Budget Platform | 年度改造_第一輪完成小結.html（6/29）| 未定（GitHub/Notion）| 待人工：3 張 Denodo View 動態年度+凍結快照改造**實際完成**（2 新表+2 新 SP+2 View flip 成 UNION 殼，零行為變化）。**無資安弱點細節**（僅 View/SP/表物件名與年度硬編），低風險；但第一輪未收尾（凍結 orchestrator/第二刀未做），仍歸對外待決集待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
 | Budget Platform | 優化進度總覽.html（6/29）＋ 年度改造第二輪 ETL SP 年度參數化/synonym + 凍結 orchestrator 腳本（6/29~6/30）| 未定（GitHub/Notion）| 待人工：第二輪收尾叢集② ETL SP（@Year=NULL 自動推導+synonym 去分年度庫）與凍結 orchestrator。**無資安弱點細節**；SP 腳本屬程式碼不逐一發佈，HTML 為進度儀表板。整體年度改造對外發佈仍待 Hyman 連同整體取捨決定（第二刀多年度存取仍待答）。Obsidian 工作紀錄已寫 |
 | eManager 改版 | 交付_Notion批改稿_20260701\（對照版/全文標註/摘要卡 HTML + Notion線上圖對照/圖片對照 HTML + Notion修改清單.xlsx + Notion現況vs需求規格書_差異報告.md，7/1）| 未定（回灌 Notion / GitHub） | 待人工：以需求規格書為格式基準、抓 Notion 6/30 現況（51 圖）逐段比對之批改稿交付包。**未直接修改線上 Notion**。待決策：結構方向 (A) 保留 Notion SA 格式補模組 /(B) 重整 9 模組 /(C) 併存；整模組缺失（匯出/申請權限/LOG/登入/權限管理/寄信）待補 SA 草稿；報表狀態四態 vs 兩態；是否由 AI 直接改線上 Notion 或先出對照稿。F1 篩選列已釐清為非衝突、D1 使用者已修。placement 未定。Obsidian 工作紀錄已寫 |
-| Budget Platform | 待確認_Denodo用途問題.md（7/1）| 未定（外部確認）| 待人工：年度改造第二刀唯一缺的外部答案——Denodo 消費端是否有報表讀「已結案年度」`vw_BudgetPlatformCurrentData`，期望 (A) 送審當下固定值（＝現行凍結，符合）或 (B) 隨匯率重算即時值（需保留即時路徑）。**需向 Denodo 平台負責人（非本專案 C# 範圍）確認**。取得答案前第二刀不動、無風險。Obsidian 工作紀錄已寫 |
+| Budget Platform | 第二刀 多年度存取（設計_多年度存取.md + 部署_vw_*_History.sql，7/8）| 未定（GitHub/Notion）| ✅**閘已清**：Denodo 用途問題（7/1 待確認）設計文件記載**已答 (A) 固定值（2026-07-08）** → 第二刀可部署（新增 `vw_BudgetPlatformCurrentData/BudgetData_History`，純新增撤銷=DROP）。**GitHub/Notion 對外仍待人工**（歸 Budget Platform 整體對外待決集）。⚠️ `待確認事項\README.md` 表格狀態欄仍標「⬜ 待回覆」與設計文件（已答 A）不一致，請 Hyman 留意。Obsidian 工作紀錄已寫 |
 | eManager 改版 | 本次資料_Notion批改稿_20260706\（成品_給組員看＝內嵌圖自包含批改稿+修改清單xlsx；_編輯用＝來源HTML+build.py+51圖；7/6）| 未定（回灌 Notion / GitHub）| 待人工：7/1 批改稿包重整為乾淨交付結構（來源／成品分離、build.py 一鍵重生內嵌版、lightbox 不斷圖）＋批改稿新增 5 條共用元件建議（Last/Next Update 元件+API、切換角色模糊查詢共用元件、通知信共用寄信服務併 S6），合計 56 條批註。內容版本仍 7/1、**未直接修改線上 Notion**；結構方向 A/B/C、S1–S6 缺失模組補草稿、批改稿如何套用（手貼 vs AI 寫入）皆待拍板，placement 未定。Obsidian 工作紀錄已寫 |
-| Budget Platform | 查證_MSU_Average除數疑點.md（7/1）| 未定（需業務拍板）| 待人工：`BudgetPlatformService.cs Get_BasicData` MSU 分支「當年平均前推」除數 bug（高信心）——case 10 應 `/9` 卻 `/11`、case 11 應 `/10` 卻 `/11`（case 12/13 正確）。**2026 循環 MSU FCST_Month=11 → case 11 正觸發 → Others 家族 Nov/Dec 預估目前實際低估約 9%**。**未自行修改**（動到已顯示/可能已據以編列的數字），待 Hyman 拍板 (a) 直接修正（改除實際月數）或 (b) 保留現狀僅記錄；若修正建議先跑修正前後 MSU 樣本 CC 比對。屬計算/業務邏輯問題，不對外發佈。Obsidian 工作紀錄已寫 |
+| Budget Platform | 查證_MSU_Average除數疑點.md（7/1）→ **已在 C# 分支修正（7/8）**| 未定（C# push）| 進度更新：MSU「當年平均前推」除數 bug（case 10/11 應 `/9`·`/10` 卻 `/11`）已於年度改造結案 C# 分支 `feature/budget-optimization` **修正（#3，部署碼用 `/10`，probe 驗證低估精確 9.09%）**——即採決策 (a) 直接修正。**分支維持本地、未 push（使用者決定）**；測試檔 `Fcst_MSU_DivisorProbeTests.cs` 未追蹤。待人工＝C# push/PR 時機。屬計算/業務邏輯，不對外發佈。Obsidian 工作紀錄已寫 |
+| Budget Platform | 年度改造 結案總表（結案總表.md，7/8）＋ 預算匯率自維設計（設計_預算匯率自維.md，7/9）| 未定（GitHub/Notion）| 待人工：年度改造**主線結案**（對外 View flip snapshot+殼、Snapshot 基建+Orchestrator+年度參數化 ETL SP 全部署正式 DB；★SQL Agent「每日凍結」交 DBA 建為唯一營運後果尾巴）。**預算匯率自維**（範圍 B、7/9 拍板）＝結案後加值設計，讓預算計劃匯率脫離共用 `OPEX_PlanRate`、改由後台頁維護 `Budget_PlanRate`，**尚未動程式/DB、待審核**。皆無資安弱點細節但歸 Budget Platform 對外待決集，GitHub/Notion 待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
 
 > ℹ️ 完整盤點與已建結構見 `D:\Obsidian Note\專案盤點對照表.md`。
 > 小項待補：eManagerReport 既有連結補 SA 摘要。（TCP 3 個舊 DB 連結 SA 已於 6/12 補齊）
@@ -35,6 +36,19 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-07-09
+
+> （本次排程於 2026-07-09 執行，掃到自 7/8 同步後的落差：Budget Platform 年度改造結案＋第二刀部署就緒＋預算匯率自維設計，MSU 效能瓶頸定位。**本次無對外 GitHub/Notion 動作**——全數落在 Budget Platform 對外待決集或屬程式碼/診斷；實際同步動作僅 Obsidian 工作紀錄 + 本 SYNC_LOG。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| Budget Platform | 結案總表.md（7/8）＋ 設計_多年度存取.md（7/8）＋ 設計_預算匯率自維.md（7/9）＋ 部署/探勘/驗證 SQL | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「年度改造結案 + 第二刀部署就緒 + 預算匯率自維設計（2026-07-08~07-09）」段＋修改歷程列（07-08、07-09）＋同步狀態更新至 7/9。**GitHub/Notion 對外待人工**（見待同步）|
+| eManager / MSU Scorecard | 效能_整支SP計時_20260709.sql／效能_分段計時_20260709.sql ＋ uSP CTOS PG 調整（bak_20260709_ctospg）| Obsidian「開發記錄\MSU Scorecard.md」新增 07-09 修改歷程列（效能瓶頸定位進行中＋CTOS PG 調整）＋同步狀態。**GitHub/Notion 不動**（診斷/計時 SQL 與 SP 調整屬程式碼、無新報告文件；SP 仍 pre-production、KPI 定義未變）|
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 7/8 同步後落差為：(a) **Budget Platform** 年度改造**主線結案**（`結案總表.md`：對外 View flip snapshot+殼、Snapshot 基建＋`SP_FreezeOrchestrator`＋年度參數化 ETL SP 全部署正式 DB；SQL Agent「每日凍結」交 DBA 建）＋**第二刀多年度存取閘已清可部署**（`設計_多年度存取.md`：Denodo 已答 (A) 固定值 → 新增 `_History` View 純新增）＋**預算匯率自維設計**（`設計_預算匯率自維.md`：範圍 B、7/9 拍板、脫離共用 `OPEX_PlanRate` 改後台維護 `Budget_PlanRate`，尚未動程式/DB 待審）；(b) **MSU Scorecard** 7/9 效能瓶頸定位（分段計時遠端健康 1~2 分 vs 整支曾 13 分，產出整支/分段計時 SQL 一刀切開瓶頸，結論待判讀）＋ CTOS PG SP 調整。
+> **本次無任何對外動作**：Budget Platform 全數歸對外待決集（年度改造無資安弱點細節但整體對外發佈待 Hyman 取捨、預算匯率自維為未實作設計；早前分析報告含 SQL 注入等敏感細節）；MSU 7/9 為診斷/計時 SQL 與 SP 調整（程式碼）、無新報告文件，依發佈集規則不發佈、Notion 系統說明未實質變動。→ 僅 Obsidian 工作紀錄。
+> 進度亮點（見待同步更新）：7/1 待確認的 **Denodo 用途問題已獲答 (A)**（第二刀解閘）；7/1 查證的 **MSU 平均除數 bug 已在 C# 分支修正**（#3、`/10`、probe 驗證，本地未 push）。⚠️ `Budget Platform\待確認事項\README.md` 狀態欄仍標「待回覆」與設計文件（已答 A）不一致，已於 Obsidian／待同步標註請 Hyman 留意。
 
 ### 2026-07-08
 
