@@ -27,7 +27,7 @@
 <body>
   <div class="topbar">
     <h1>📄 文件同步紀錄（SYNC_LOG）</h1>
-    <div class="sub">由 SYNC_LOG.md 自動產生 · 產生時間 2026-07-13 14:26</div>
+    <div class="sub">由 SYNC_LOG.md 自動產生 · 產生時間 2026-07-13 16:09</div>
   </div>
   <div class="wrap">
     <div class="meta">
@@ -60,11 +60,21 @@
 <tr><td>Budget Platform</td><td>查證_MSU_Average除數疑點.md（7/1）→ <strong>已在 C# 分支修正（7/8）</strong></td><td>未定（C# push）</td><td>進度更新：MSU「當年平均前推」除數 bug（case 10/11 應 <code>/9</code>·<code>/10</code> 卻 <code>/11</code>）已於年度改造結案 C# 分支 <code>feature/budget-optimization</code> <strong>修正（#3，部署碼用 <code>/10</code>，probe 驗證低估精確 9.09%）</strong>——即採決策 (a) 直接修正。<strong>分支維持本地、未 push（使用者決定）</strong>；測試檔 <code>Fcst_MSU_DivisorProbeTests.cs</code> 未追蹤。待人工＝C# push/PR 時機。屬計算/業務邏輯，不對外發佈。Obsidian 工作紀錄已寫</td></tr>
 <tr><td>SBU Scorecard</td><td>uSP_SBUScorecard2026.sql（7/10，NRE-ADM6 MType 正規化）</td><td>—（無設計文件）</td><td>待人工：<code>uSP_SBUScorecard2026</code> 加一段——2026/6 來源單據 <code>NRE-ADM6</code> 的 <code>MType</code> 誤設 <code>ZFIN</code>(FACT=3)，於 <code>#tmpITPDetail</code> 正規化為 <code>ZSRV</code>，使下游 8 處 <code>part LIKE &#x27;%NRE%&#x27; AND MType=&#x27;ZSRV&#x27;</code> 的 NRE 判斷落 NRE 桶（來源修正後影響 0 列）。<strong>SP-only、無設計文件、無對應 Obsidian vault</strong>，依發佈集規則不發佈；歸屬／是否建記錄待人工。</td></tr>
 <tr><td>Budget Platform</td><td>預算匯率自維 開工/實作（設計_預算匯率自維.md 更新 + 部署/補資料/還原 SQL，7/13）</td><td>未定（GitHub/Notion）</td><td>待人工：7/9 設計轉入實作。⓪ <strong>BRL 補列已寫入正式 <code>Budget_PlanRate</code></strong>（<code>步驟0_補BRL_LinkedServer.sql</code>，補 2 列 USD/EURO type=5.70、驗證 0 列、附還原檔；⚠️②部署後需冪等重跑）；① 後台 Plan Rate 維護頁 C# 全分層完成（<code>feature/budget-optimization</code>、未 commit/push、離線測試 17/17）；② <code>SP_Budget_FXRate</code> v3 停推腳本備妥<strong>未部署</strong>（前提＝①先上線，附還原檔）；③ BudgetData flip 未開工。<strong>無資安弱點細節</strong>；C#／SQL 屬程式碼不逐一發佈。歸 Budget Platform 對外待決集，GitHub/Notion 待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫。</td></tr>
+<tr><td>Budget Platform</td><td>Plan Rate 多年度主鍵（<code>部署_BudgetPlanRate_PK加Year.sql</code> + 還原檔，7/13 下午）</td><td>未定（GitHub/Notion）</td><td>待人工：<code>PK_Budget_PlanRate</code> 由 <code>(CurrencyType,Currency)</code> 改 <code>(CurrencyType,Year,Currency)</code>，解鎖①頁面跨年度並存、宣稱讀取端零影響，附還原檔。屬 DB 變更腳本／程式碼不逐一發佈；⚠️<strong>是否已於正式環境執行本輪無法確認、列待確認</strong>。歸 Budget Platform 對外待決集。Obsidian 工作紀錄已寫。</td></tr>
+<tr><td>Budget Platform</td><td>權限表年度移除 DB 前置（<code>DB前置_權限表去重備份.sql</code> + 還原檔，7/13 下午，<strong>新工作線·無設計文件</strong>）</td><td>未定（GitHub/Notion）</td><td>待人工：權限延續制移除年度維度，備份 2058／875 列後 <code>DELETE [Year]&lt;&#x27;2026&#x27;</code>（預期刪 139／331、留 2026 的 1919／544），宣稱正式站零影響，附整表回灌還原檔。⚠️<strong>含對正式權限表 DELETE，是否已執行本輪無法確認、列待確認（若已跑即實質營運後果）</strong>；且此為新工作線、<strong>是否需補設計文件待人工</strong>。屬 DB 變更腳本／程式碼不逐一發佈，歸 Budget Platform 對外待決集。Obsidian 工作紀錄已寫。</td></tr>
 <tr><td>Budget Platform</td><td>年度改造 結案總表（結案總表.md，7/8）＋ 預算匯率自維設計（設計_預算匯率自維.md，7/9）</td><td>未定（GitHub/Notion）</td><td>待人工：年度改造<strong>主線結案</strong>（對外 View flip snapshot+殼、Snapshot 基建+Orchestrator+年度參數化 ETL SP 全部署正式 DB；★SQL Agent「每日凍結」交 DBA 建為唯一營運後果尾巴）。<strong>預算匯率自維</strong>（範圍 B、7/9 拍板）＝結案後加值設計，讓預算計劃匯率脫離共用 <code>OPEX_PlanRate</code>、改由後台頁維護 <code>Budget_PlanRate</code>，<strong>尚未動程式/DB、待審核</strong>。皆無資安弱點細節但歸 Budget Platform 對外待決集，GitHub/Notion 待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫</td></tr>
 </table>
 <div class="note">ℹ️ 完整盤點與已建結構見 <code>D:\Obsidian Note\專案盤點對照表.md</code>。<br>小項待補：eManagerReport 既有連結補 SA 摘要。（TCP 3 個舊 DB 連結 SA 已於 6/12 補齊）</div>
 <hr>
 <h2>✅ 已同步記錄</h2>
+<h3>2026-07-13（下午追補）</h3>
+<div class="note">（同日午後再次排程，掃到自上午同步（截至 ~11:49）後的新落差：Budget Platform 午後 13:46~15:41 新增兩組 DB 腳本 + ①後台頁測試截圖。<strong>本次無對外 GitHub/Notion 內容發佈</strong>——皆屬程式碼／DB 變更腳本且歸 Budget Platform 對外待決集；實際同步動作僅 Obsidian 工作紀錄 + 本 SYNC_LOG + sync-log.html 重生。）</div>
+<table>
+<tr><th>專案</th><th>檔案</th><th>目標位置</th></tr>
+<tr><td>Budget Platform</td><td><code>預算匯率自維\部署_BudgetPlanRate_PK加Year.sql</code> + <code>_還原備份\還原_BudgetPlanRate_PK.sql</code>（7/13 15:41）</td><td>Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「續（2026-07-13 下午）：Plan Rate 多年度主鍵 + 權限表年度移除 DB 前置」段＋修改歷程列（07-13 下午）＋同步狀態追補。<strong>GitHub/Notion 對外待人工</strong>（見待同步）</td></tr>
+<tr><td>Budget Platform</td><td><code>權限年度移除\DB前置_權限表去重備份.sql</code> + <code>_還原備份\還原_權限表年度移除前置.sql</code>（7/13 14:54，新工作線·無設計文件）＋ <code>測試照片\後台網站測試 0713.png</code>（13:46）</td><td>同上 Obsidian 段。<strong>GitHub/Notion 對外待人工</strong>（見待同步）</td></tr>
+</table>
+<div class="note">本次（自動排程同步·下午）掃 <code>D:\Work\專案</code> 比對三目的地，自上午同步後落差為 Budget Platform 兩組午後 DB 腳本：(a) <strong>Plan Rate 多年度主鍵</strong>——<code>PK_Budget_PlanRate</code> 加 <code>Year</code>（解鎖①後台頁跨年度並存、宣稱讀取端零影響）；(b) <strong>權限表年度移除 DB 前置</strong>（新工作線、尚無設計文件）——備份後刪 2026 前舊列（宣稱正式站零影響）。兩者皆附一鍵還原檔。另①後台 Plan Rate 頁瀏覽器測試截圖留檔。<br><strong>本次無任何對外 GitHub/Notion 內容動作</strong>：兩組腳本屬 DB 變更／程式碼（依發佈集規則不逐一發佈）、無資安弱點細節但整體歸 Budget Platform 對外待決集（待 Hyman 取捨）。→ 僅 Obsidian 工作紀錄＋本 SYNC_LOG（含 sync-log.html 重生）。⚠️ <strong>提醒：兩腳本是否已於正式環境執行本輪無法確認（設計文件進度段停在上午 11:49）→ 列待確認；權限前置含對正式權限表 <code>DELETE</code>（139+331 列），若已跑即實質營運後果。</strong></div>
 <h3>2026-07-13</h3>
 <div class="note">（本次排程於 2026-07-13 執行，掃到自 7/9 同步後的落差：Budget Platform 預算匯率自維 由設計轉入實作、SBU Scorecard SP 修正、MSU 7/9 晚間 LA MOPEX 排除階梯診斷。<strong>本次無對外 GitHub/Notion 內容發佈</strong>——全數落在待決集或屬程式碼/診斷；實際同步動作僅 Obsidian 工作紀錄 + 本 SYNC_LOG + sync-log.html 重生。）</div>
 <table>
