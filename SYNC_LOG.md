@@ -28,6 +28,8 @@
 | Budget Platform | 第二刀 多年度存取（設計_多年度存取.md + 部署_vw_*_History.sql，7/8）| 未定（GitHub/Notion）| ✅**閘已清**：Denodo 用途問題（7/1 待確認）設計文件記載**已答 (A) 固定值（2026-07-08）** → 第二刀可部署（新增 `vw_BudgetPlatformCurrentData/BudgetData_History`，純新增撤銷=DROP）。**GitHub/Notion 對外仍待人工**（歸 Budget Platform 整體對外待決集）。⚠️ `待確認事項\README.md` 表格狀態欄仍標「⬜ 待回覆」與設計文件（已答 A）不一致，請 Hyman 留意。Obsidian 工作紀錄已寫 |
 | eManager 改版 | 本次資料_Notion批改稿_20260706\（成品_給組員看＝內嵌圖自包含批改稿+修改清單xlsx；_編輯用＝來源HTML+build.py+51圖；7/6）| 未定（回灌 Notion / GitHub）| 待人工：7/1 批改稿包重整為乾淨交付結構（來源／成品分離、build.py 一鍵重生內嵌版、lightbox 不斷圖）＋批改稿新增 5 條共用元件建議（Last/Next Update 元件+API、切換角色模糊查詢共用元件、通知信共用寄信服務併 S6），合計 56 條批註。內容版本仍 7/1、**未直接修改線上 Notion**；結構方向 A/B/C、S1–S6 缺失模組補草稿、批改稿如何套用（手貼 vs AI 寫入）皆待拍板，placement 未定。Obsidian 工作紀錄已寫 |
 | Budget Platform | 查證_MSU_Average除數疑點.md（7/1）→ **已在 C# 分支修正（7/8）**| 未定（C# push）| 進度更新：MSU「當年平均前推」除數 bug（case 10/11 應 `/9`·`/10` 卻 `/11`）已於年度改造結案 C# 分支 `feature/budget-optimization` **修正（#3，部署碼用 `/10`，probe 驗證低估精確 9.09%）**——即採決策 (a) 直接修正。**分支維持本地、未 push（使用者決定）**；測試檔 `Fcst_MSU_DivisorProbeTests.cs` 未追蹤。待人工＝C# push/PR 時機。屬計算/業務邏輯，不對外發佈。Obsidian 工作紀錄已寫 |
+| SBU Scorecard | uSP_SBUScorecard2026.sql（7/10，NRE-ADM6 MType 正規化）| —（無設計文件）| 待人工：`uSP_SBUScorecard2026` 加一段——2026/6 來源單據 `NRE-ADM6` 的 `MType` 誤設 `ZFIN`(FACT=3)，於 `#tmpITPDetail` 正規化為 `ZSRV`，使下游 8 處 `part LIKE '%NRE%' AND MType='ZSRV'` 的 NRE 判斷落 NRE 桶（來源修正後影響 0 列）。**SP-only、無設計文件、無對應 Obsidian vault**，依發佈集規則不發佈；歸屬／是否建記錄待人工。|
+| Budget Platform | 預算匯率自維 開工/實作（設計_預算匯率自維.md 更新 + 部署/補資料/還原 SQL，7/13）| 未定（GitHub/Notion）| 待人工：7/9 設計轉入實作。⓪ **BRL 補列已寫入正式 `Budget_PlanRate`**（`步驟0_補BRL_LinkedServer.sql`，補 2 列 USD/EURO type=5.70、驗證 0 列、附還原檔；⚠️②部署後需冪等重跑）；① 後台 Plan Rate 維護頁 C# 全分層完成（`feature/budget-optimization`、未 commit/push、離線測試 17/17）；② `SP_Budget_FXRate` v3 停推腳本備妥**未部署**（前提＝①先上線，附還原檔）；③ BudgetData flip 未開工。**無資安弱點細節**；C#／SQL 屬程式碼不逐一發佈。歸 Budget Platform 對外待決集，GitHub/Notion 待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫。|
 | Budget Platform | 年度改造 結案總表（結案總表.md，7/8）＋ 預算匯率自維設計（設計_預算匯率自維.md，7/9）| 未定（GitHub/Notion）| 待人工：年度改造**主線結案**（對外 View flip snapshot+殼、Snapshot 基建+Orchestrator+年度參數化 ETL SP 全部署正式 DB；★SQL Agent「每日凍結」交 DBA 建為唯一營運後果尾巴）。**預算匯率自維**（範圍 B、7/9 拍板）＝結案後加值設計，讓預算計劃匯率脫離共用 `OPEX_PlanRate`、改由後台頁維護 `Budget_PlanRate`，**尚未動程式/DB、待審核**。皆無資安弱點細節但歸 Budget Platform 對外待決集，GitHub/Notion 待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
 
 > ℹ️ 完整盤點與已建結構見 `D:\Obsidian Note\專案盤點對照表.md`。
@@ -36,6 +38,18 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-07-13
+
+> （本次排程於 2026-07-13 執行，掃到自 7/9 同步後的落差：Budget Platform 預算匯率自維 由設計轉入實作、SBU Scorecard SP 修正、MSU 7/9 晚間 LA MOPEX 排除階梯診斷。**本次無對外 GitHub/Notion 內容發佈**——全數落在待決集或屬程式碼/診斷；實際同步動作僅 Obsidian 工作紀錄 + 本 SYNC_LOG + sync-log.html 重生。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| Budget Platform | 設計_預算匯率自維.md（7/13 進度段）＋ 部署_SP_Budget_FXRate_v3_停推BudgetPlanRate.sql／步驟0_補BRL(_LinkedServer).sql／還原檔（7/13）| Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「預算匯率自維 — 開工/實作（2026-07-13）」段（⓪①②③ 四步驟進度）＋修改歷程列（07-13）＋同步狀態更新至 7/13。**GitHub/Notion 對外待人工**（見待同步）|
+| eManager / MSU Scorecard | 診斷_LA_MOPEX_排除階梯_20260709.sql ＋ ATMC自動化_比對／待tina確認_20260709.xlsx（7/9 晚）| Obsidian「開發記錄\MSU Scorecard.md」新增 07-09（續）修改歷程列（#5 LA MOPEX 排除階梯診斷）＋同步狀態更新至 7/13。**GitHub/Notion 不動**（純診斷 SQL＋原始比對資料，屬程式碼/底稿；結論待 tina）|
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 7/9 同步後落差為：(a) **Budget Platform** 預算匯率自維**由設計轉入實作**（`設計_預算匯率自維.md` 補 7/13 進度＋部署/補資料/還原 SQL）——⓪ **BRL 補列已於正式 `Budget_PlanRate` 執行**（Linked Server 版、附還原檔、⚠️②部署後需冪等重跑）＝本輪唯一已落地營運後果；① 後台 Plan Rate 維護頁 C# 全分層完成（`feature/budget-optimization`、未 commit/push、離線 17/17）；② `SP_Budget_FXRate` v3 停推腳本備妥**未部署**（前提＝①先上線）；③ BudgetData flip 未開工。(b) **SBU Scorecard** 7/10 `uSP_SBUScorecard2026` 加 NRE-ADM6 MType 正規化（來源 ZFIN→ZSRV、影響 0 列）——SP-only、無設計文件、無 vault → 待人工。(c) **MSU Scorecard** 7/9 晚 LA MOPEX 排除階梯診斷 SQL＋比對 xlsx → Obsidian。
+> **本次無任何對外 GitHub/Notion 內容動作**：Budget Platform 預算匯率自維無資安弱點細節但整體對外發佈待 Hyman 取捨、且 C#／SQL 屬程式碼；SBU SP-only 無設計文件；MSU 為診斷 SQL＋原始資料。→ 僅 Obsidian 工作紀錄＋本 SYNC_LOG（含 sync-log.html 重生）。⚠️ 提醒：Budget ⓪ BRL 補列在②部署前是暫時的（FX Rate 每月排程會洗掉），②部署後須冪等重跑一次。
 
 ### 2026-07-09
 
