@@ -30,8 +30,10 @@
 | Budget Platform | 查證_MSU_Average除數疑點.md（7/1）→ **已在 C# 分支修正（7/8）**| 未定（C# push）| 進度更新：MSU「當年平均前推」除數 bug（case 10/11 應 `/9`·`/10` 卻 `/11`）已於年度改造結案 C# 分支 `feature/budget-optimization` **修正（#3，部署碼用 `/10`，probe 驗證低估精確 9.09%）**——即採決策 (a) 直接修正。**分支維持本地、未 push（使用者決定）**；測試檔 `Fcst_MSU_DivisorProbeTests.cs` 未追蹤。待人工＝C# push/PR 時機。屬計算/業務邏輯，不對外發佈。Obsidian 工作紀錄已寫 |
 | SBU Scorecard | uSP_SBUScorecard2026.sql（7/10，NRE-ADM6 MType 正規化）| —（無設計文件）| 待人工：`uSP_SBUScorecard2026` 加一段——2026/6 來源單據 `NRE-ADM6` 的 `MType` 誤設 `ZFIN`(FACT=3)，於 `#tmpITPDetail` 正規化為 `ZSRV`，使下游 8 處 `part LIKE '%NRE%' AND MType='ZSRV'` 的 NRE 判斷落 NRE 桶（來源修正後影響 0 列）。**SP-only、無設計文件、無對應 Obsidian vault**，依發佈集規則不發佈；歸屬／是否建記錄待人工。|
 | Budget Platform | 預算匯率自維 開工/實作（設計_預算匯率自維.md 更新 + 部署/補資料/還原 SQL，7/13）| 未定（GitHub/Notion）| 待人工：7/9 設計轉入實作。⓪ **BRL 補列已寫入正式 `Budget_PlanRate`**（`步驟0_補BRL_LinkedServer.sql`，補 2 列 USD/EURO type=5.70、驗證 0 列、附還原檔；⚠️②部署後需冪等重跑）；① 後台 Plan Rate 維護頁 C# 全分層完成（`feature/budget-optimization`、未 commit/push、離線測試 17/17）；② `SP_Budget_FXRate` v3 停推腳本備妥**未部署**（前提＝①先上線，附還原檔）；③ BudgetData flip 未開工。**無資安弱點細節**；C#／SQL 屬程式碼不逐一發佈。歸 Budget Platform 對外待決集，GitHub/Notion 待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫。|
-| Budget Platform | Plan Rate 多年度主鍵（`部署_BudgetPlanRate_PK加Year.sql` + 還原檔，7/13 下午）| 未定（GitHub/Notion）| 待人工：`PK_Budget_PlanRate` 由 `(CurrencyType,Currency)` 改 `(CurrencyType,Year,Currency)`，解鎖①頁面跨年度並存、宣稱讀取端零影響，附還原檔。屬 DB 變更腳本／程式碼不逐一發佈；⚠️**是否已於正式環境執行本輪無法確認、列待確認**。歸 Budget Platform 對外待決集。Obsidian 工作紀錄已寫。|
-| Budget Platform | 權限表年度移除 DB 前置（`DB前置_權限表去重備份.sql` + 還原檔，7/13 下午，**新工作線·無設計文件**）| 未定（GitHub/Notion）| 待人工：權限延續制移除年度維度，備份 2058／875 列後 `DELETE [Year]<'2026'`（預期刪 139／331、留 2026 的 1919／544），宣稱正式站零影響，附整表回灌還原檔。⚠️**含對正式權限表 DELETE，是否已執行本輪無法確認、列待確認（若已跑即實質營運後果）**；且此為新工作線、**是否需補設計文件待人工**。屬 DB 變更腳本／程式碼不逐一發佈，歸 Budget Platform 對外待決集。Obsidian 工作紀錄已寫。|
+| Budget Platform | Plan Rate 多年度主鍵（`部署_BudgetPlanRate_PK加Year.sql` + 還原檔，7/13 下午）| 未定（GitHub/Notion）| 待人工：`PK_Budget_PlanRate` 由 `(CurrencyType,Currency)` 改 `(CurrencyType,Year,Currency)`，解鎖①頁面跨年度並存、宣稱讀取端零影響，附還原檔。屬 DB 變更腳本／程式碼不逐一發佈；✅**已確認於 07-13 執行於正式 DB**（7/14 補確認）。歸 Budget Platform 對外待決集。Obsidian 工作紀錄已寫。|
+| Budget Platform | 權限表年度移除 DB 前置（`DB前置_權限表去重備份.sql` + 還原檔，7/13 下午，**新工作線·無設計文件**）| 未定（GitHub/Notion）| 待人工：權限延續制移除年度維度，備份 2058／875 列後 `DELETE [Year]<'2026'`（預期刪 139／331、留 2026 的 1919／544），宣稱正式站零影響，附整表回灌還原檔。✅**已確認於 07-13 執行於正式 DB**（7/14 補確認），且權限去年度 C# 已 commit/push 部署測試站；**尾巴＝正式站發版後 DROP 權限表 Year 欄＋清備份表（屆時出腳本）**、此新工作線**是否需補設計文件待人工**。屬 DB 變更腳本／程式碼不逐一發佈，歸 Budget Platform 對外待決集。Obsidian 工作紀錄已寫。|
+| Budget Platform | 預算匯率自維 7/14 結案（`步驟3a/3b_*.sql`＋`部署_SP_Budget_FXRate_v3_*.sql` 更新＋還原檔 2＋`設計_預算匯率自維.md` 結案段＋`測試清單_給PM前驗收.md`，7/14）| 未定（GitHub/Notion）| 待人工：預算匯率自維**全案結案**（②v3 部署含移除 OPEX_PlanRate 複製段、⓪ BRL 在位、③a 驗證 208,812 列 EXCEPT=0/0、③b BudgetData View＋凍結 SP flip 改讀 `Budget_PlanRate`，指紋與基準一致）。**無資安弱點細節**，惟 C#／SQL 部署腳本屬程式碼、且整體歸 Budget Platform 對外待決集，GitHub/Notion 待 Hyman 連同整體取捨決定。未來時點：8 月 3–6 號 FX Rate 排程跑完後須確認 `Budget_PlanRate` 未被覆蓋（證 v3 停推生效）。Obsidian 已含 07-14 結案段。|
+| SBU Scorecard | `uSP_SBUScorecard2026_Trigger.sql`＋`Fix_QuotaAchvIncludeDC_DEV_WEB_OneTime.sql`（7/13 晚）| —（無設計文件）| 待人工：Trigger 重算 Quota 及下游 KPI（惟只補 'Quota Achv.%'）；一次性腳本補算 `SCORECARD_PROD_N_DEV_WEB` 漏掉的 'Quota Achv.%(include Double Count)'＝(Revenue(E2E)+Double Count Rev.(E2E))/Quota（例 ARM Computing YTD 155.34%→150.85%）。**⚠️ 一次性腳本非永久——下次跑 Trigger 會覆寫回舊值，SP 本身仍待補相同 include-DC 邏輯才一勞永逸**。**SP-only、無設計文件、無對應 Obsidian vault**，依發佈集規則不發佈；歸屬／是否建記錄待人工。|
 | Budget Platform | 年度改造 結案總表（結案總表.md，7/8）＋ 預算匯率自維設計（設計_預算匯率自維.md，7/9）| 未定（GitHub/Notion）| 待人工：年度改造**主線結案**（對外 View flip snapshot+殼、Snapshot 基建+Orchestrator+年度參數化 ETL SP 全部署正式 DB；★SQL Agent「每日凍結」交 DBA 建為唯一營運後果尾巴）。**預算匯率自維**（範圍 B、7/9 拍板）＝結案後加值設計，讓預算計劃匯率脫離共用 `OPEX_PlanRate`、改由後台頁維護 `Budget_PlanRate`，**尚未動程式/DB、待審核**。皆無資安弱點細節但歸 Budget Platform 對外待決集，GitHub/Notion 待 Hyman 連同整體取捨決定。Obsidian 工作紀錄已寫 |
 
 > ℹ️ 完整盤點與已建結構見 `D:\Obsidian Note\專案盤點對照表.md`。
@@ -40,6 +42,18 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-07-14
+
+> （本次排程於 2026-07-14 執行，掃到自 7/13 下午同步後的落差：Budget Platform 預算匯率自維 7/14 全案結案、SBU Scorecard 7/13 晚間兩支 Quota 相關 SQL。**本次無對外 GitHub/Notion 內容發佈**——Budget 全數歸對外待決集、SBU 為 SP-only 無設計文件；Budget Obsidian 本日已由使用者自行補記至 7/14（含將 9 篇 MD 整理進 vault），故實際同步動作僅台帳/SYNC_LOG 對齊 + sync-log.html 重生。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| Budget Platform | 預算匯率自維 7/14 結案：`步驟3a_flip前驗證_BudgetData即時支等值.sql`／`步驟3b_部署_BudgetData_FreezeSP_flip改讀BudgetPlanRate.sql`／`部署_SP_Budget_FXRate_v3_停推BudgetPlanRate.sql`（更新）＋還原檔 2 份＋`設計_預算匯率自維.md`（補結案段）＋`測試清單_給PM前驗收.md` | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」**已含 07-14 結案段＋修改歷程列＋同步狀態＋Vault 筆記索引**（本日使用者自行補記，內容與檔案系統一致，本輪確認無需重寫）。**GitHub/Notion 對外待人工**（見待同步，同歸 Budget Platform 整體對外待決集）|
+| SBU Scorecard | `SP\uSP_SBUScorecard2026_Trigger.sql`（7/13 18:56，重算 Quota 及下游 KPI）＋`SP\Fix_QuotaAchvIncludeDC_DEV_WEB_OneTime.sql`（7/13 18:33，一次性補算 include-Double-Count 版）＋`20260713  驗證資料.xlsx`（16:05） | **無同步動作**——SP-only、無設計文件、無對應 Obsidian vault，依發佈集規則不發佈；歸屬/是否建記錄待人工（見待同步）|
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 7/13 下午同步後落差為：(a) **Budget Platform** 預算匯率自維 **7/14 全案結案**（⓪①②③ 全部完成並驗證）——② `SP_Budget_FXRate` v3 部署（含使用者 7/14 拍板加碼**移除 OPEX_PlanRate 分年度庫複製段**，SP 只剩 Budget_FXRate 重建段、分年度庫依賴歸零）；⓪ BRL 確認在位（7/13 補列未被排程洗掉、冪等重跑 0 補）；③a 驗證全過（即時支換匯段 208,812 列新舊雙向 EXCEPT=0/0）；③b `vw_BudgetPlatformBudgetData`＋`SP_FreezeSnapshot_BudgetData` flip 改讀 `Budget_PlanRate`（自檢 0 列、View 指紋 MSU −1226451664／RBU −54054080／SBU 1516615081 與基準一致）。**BudgetData 與 CurrentData 自此完全走 `Budget_PlanRate`、脫離共用 `OPEX_PlanRate` 與分年度庫**；唯一殘留 = FSCT `#Temp_Currency`（可選、未做）。另補 07-13 待確認狀態：Plan Rate PK 加 Year 與權限表年度移除前置**兩腳本確認均已於 07-13 執行於正式 DB**；權限去年度 C# 已 commit/push 部署測試站。並產出 `測試清單_給PM前驗收.md`（本波全改動驗收清單，測試站）。(b) **SBU Scorecard** 7/13 晚 `uSP_SBUScorecard2026_Trigger` 重算 Quota 及下游 KPI（惟只補 'Quota Achv.%'）＋一次性 `Fix_QuotaAchvIncludeDC_DEV_WEB_OneTime.sql` 補算漏掉的 'Quota Achv.%(include Double Count)'（＝(Revenue(E2E)+Double Count Rev.(E2E))/Quota；SP 本身仍待補同邏輯才一勞永逸）＋驗證 xlsx。
+> **本次無任何對外 GitHub/Notion 內容動作**：Budget Platform 7/14 結案無資安弱點細節，但整體對外發佈仍待 Hyman 取捨、且 C#／SQL 部署腳本屬程式碼；SBU 為 SP-only 無設計文件、無 vault。Budget Obsidian 工作紀錄本日已由使用者自行補齊至 7/14（含 vault 整理 9 篇 MD），本輪核對內容與檔案系統一致、確認無需重寫。→ 實際同步動作僅台帳/本 SYNC_LOG 對齊 + sync-log.html 重生。
 
 ### 2026-07-13（下午追補）
 
