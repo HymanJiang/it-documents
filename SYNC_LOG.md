@@ -43,6 +43,18 @@
 
 ## ✅ 已同步記錄
 
+### 2026-07-15
+
+> （本次排程於 2026-07-15 執行，掃到自 7/14 同步後的落差：MSU Scorecard 7/15 SP 覆蓋改動、Budget Platform H1 結案歸檔＋H2 工項規劃。**本次無對外 GitHub/Notion 內容發佈**——MSU 為 SP＋診斷 SQL＋原始資料且 pre-production；Budget 為規劃/紀錄文件且整體歸對外待決集。實際同步動作僅 Obsidian 工作紀錄 + 台帳/本 SYNC_LOG + sync-log.html 重生。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| eManager / MSU Scorecard | `SP\uSP_MSUScorecard2026_N_Data_TW.sql`（**#5 ATMC-LA MOPEX 改「User 上傳覆蓋」**＋`MOPEX %`/`MOPEX %(Excl)` 改比率型 KPI 走 Q/H/YTD 加權）＋`TW\檢查_上傳覆蓋_LA_MOPEX_20260715.sql`（覆蓋前置檢查）＋`TW\0715-1/2/3.xlsx`（驗收）；備份 `..bak_20260715b_qhytd`／`..bak_20260715c_lapv` | Obsidian「開發記錄\MSU Scorecard.md」新增 07-15 修改歷程列＋更新待確認 #5（改採上傳覆蓋、列驗證條件）＋同步狀態。**GitHub/Notion 不動**（SP＋診斷 SQL＋原始資料屬程式碼/底稿、SP 仍 pre-production、KPI 調整未定案、無新報告文件）|
+| Budget Platform | H1 結案歸檔：工作目錄重整為 `2026H1優化_已結案\`（規劃/過程紀錄/結案交付）＋`README.md`（索引，記正式站發版後 4 尾巴）；H2 規劃：`2026H2優化\工項規劃_RBU_SBU.md`（自 Notion H2 ticket list 篩 13 張 RBU/SBU 票切 9 個 feature branch，07-16 起估 7–9 週、5 待確認） | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「H1 優化結案歸檔＋H2 工項規劃（2026-07-15）」段＋修改歷程列＋同步狀態。**GitHub/Notion 待人工**（規劃/紀錄文件、無資安弱點細節、尚未動程式，同歸 Budget Platform 對外待決集）|
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 7/14 同步後落差為：(a) **MSU Scorecard** 7/15 於 `uSP_...N_Data_TW.sql` 做 **#5 ATMC-LA MOPEX 改「User 上傳覆蓋」**——不再逐階梯追排除科目（07-09 診斷線久拖未決），改讓 ATMC-LA 的 `MOPEX(K)`/`MOPEX-SMT/Labor` 由上傳表 `SCORECARD_MSU_UploadData_New` 就地覆蓋系統計算值（UNPIVOT M01–M12、上傳→系統命名對應、`UsingUpload='X'` 保留 fallback），連動 `MOPEX %`/`MOPEX %(Exclude Internal PV)` 改為比率型 KPI（`'X'`＋`CountType=0`）走 Q/H/YTD **加權**（期望 ATMC total/MOPEX %/Q1 ≈ 0.06337）；產出覆蓋前置檢查 SQL＋驗收 xlsx，備份 qhytd（比率加權前）/lapv（LA PV 覆蓋前）。(b) **Budget Platform** 上半年優化全案 7/15 **驗收通過並歸檔**（工作目錄重整為 `2026H1優化_已結案\`＋README 索引，記正式站發版後 4 尾巴：發版→驗證範本→`DROP COLUMN Year`×2→清備份表），並**啟動下半年工項規劃**（`工項規劃_RBU_SBU.md`：自 Notion「Platform Issue Ticket List - 2026 H2」篩 13 張 RBU/SBU 票切 9 個 feature branch，快贏優先/外部依賴早發起/大包中段，5 待確認）。
+> **本次無任何對外 GitHub/Notion 內容動作**：MSU 7/15 為 SP＋診斷 SQL＋原始 xlsx（程式碼/底稿）、SP 仍 pre-production 且 KPI 定義調整未定案，依發佈集規則不發佈、Notion 系統說明未實質變動；Budget H1 README 為結案索引、H2 為前瞻工項規劃（尚未動程式），皆無資安弱點細節但整體歸 Budget Platform 對外待決集（待 Hyman 取捨）。→ 實際同步動作僅 Obsidian 工作紀錄 + 台帳/本 SYNC_LOG 對齊 + sync-log.html 重生。
+
 ### 2026-07-14
 
 > （本次排程於 2026-07-14 執行，掃到自 7/13 下午同步後的落差：Budget Platform 預算匯率自維 7/14 全案結案、SBU Scorecard 7/13 晚間兩支 Quota 相關 SQL。**本次無對外 GitHub/Notion 內容發佈**——Budget 全數歸對外待決集、SBU 為 SP-only 無設計文件；Budget Obsidian 本日已由使用者自行補記至 7/14（含將 9 篇 MD 整理進 vault），故實際同步動作僅台帳/SYNC_LOG 對齊 + sync-log.html 重生。）

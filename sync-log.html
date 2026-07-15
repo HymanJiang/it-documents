@@ -27,7 +27,7 @@
 <body>
   <div class="topbar">
     <h1>📄 文件同步紀錄（SYNC_LOG）</h1>
-    <div class="sub">由 SYNC_LOG.md 自動產生 · 產生時間 2026-07-14 16:45</div>
+    <div class="sub">由 SYNC_LOG.md 自動產生 · 產生時間 2026-07-15 16:14</div>
   </div>
   <div class="wrap">
     <div class="meta">
@@ -69,6 +69,14 @@
 <div class="note">ℹ️ 完整盤點與已建結構見 <code>D:\Obsidian Note\專案盤點對照表.md</code>。<br>小項待補：eManagerReport 既有連結補 SA 摘要。（TCP 3 個舊 DB 連結 SA 已於 6/12 補齊）</div>
 <hr>
 <h2>✅ 已同步記錄</h2>
+<h3>2026-07-15</h3>
+<div class="note">（本次排程於 2026-07-15 執行，掃到自 7/14 同步後的落差：MSU Scorecard 7/15 SP 覆蓋改動、Budget Platform H1 結案歸檔＋H2 工項規劃。<strong>本次無對外 GitHub/Notion 內容發佈</strong>——MSU 為 SP＋診斷 SQL＋原始資料且 pre-production；Budget 為規劃/紀錄文件且整體歸對外待決集。實際同步動作僅 Obsidian 工作紀錄 + 台帳/本 SYNC_LOG + sync-log.html 重生。）</div>
+<table>
+<tr><th>專案</th><th>檔案</th><th>目標位置</th></tr>
+<tr><td>eManager / MSU Scorecard</td><td><code>SP\uSP_MSUScorecard2026_N_Data_TW.sql</code>（<strong>#5 ATMC-LA MOPEX 改「User 上傳覆蓋」</strong>＋<code>MOPEX %</code>/<code>MOPEX %(Excl)</code> 改比率型 KPI 走 Q/H/YTD 加權）＋<code>TW\檢查_上傳覆蓋_LA_MOPEX_20260715.sql</code>（覆蓋前置檢查）＋<code>TW\0715-1/2/3.xlsx</code>（驗收）；備份 <code>..bak_20260715b_qhytd</code>／<code>..bak_20260715c_lapv</code></td><td>Obsidian「開發記錄\MSU Scorecard.md」新增 07-15 修改歷程列＋更新待確認 #5（改採上傳覆蓋、列驗證條件）＋同步狀態。<strong>GitHub/Notion 不動</strong>（SP＋診斷 SQL＋原始資料屬程式碼/底稿、SP 仍 pre-production、KPI 調整未定案、無新報告文件）</td></tr>
+<tr><td>Budget Platform</td><td>H1 結案歸檔：工作目錄重整為 <code>2026H1優化_已結案\</code>（規劃/過程紀錄/結案交付）＋<code>README.md</code>（索引，記正式站發版後 4 尾巴）；H2 規劃：<code>2026H2優化\工項規劃_RBU_SBU.md</code>（自 Notion H2 ticket list 篩 13 張 RBU/SBU 票切 9 個 feature branch，07-16 起估 7–9 週、5 待確認）</td><td>Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「H1 優化結案歸檔＋H2 工項規劃（2026-07-15）」段＋修改歷程列＋同步狀態。<strong>GitHub/Notion 待人工</strong>（規劃/紀錄文件、無資安弱點細節、尚未動程式，同歸 Budget Platform 對外待決集）</td></tr>
+</table>
+<div class="note">本次（自動排程同步）掃 <code>D:\Work\專案</code> 比對三目的地，自 7/14 同步後落差為：(a) <strong>MSU Scorecard</strong> 7/15 於 <code>uSP_...N_Data_TW.sql</code> 做 <strong>#5 ATMC-LA MOPEX 改「User 上傳覆蓋」</strong>——不再逐階梯追排除科目（07-09 診斷線久拖未決），改讓 ATMC-LA 的 <code>MOPEX(K)</code>/<code>MOPEX-SMT/Labor</code> 由上傳表 <code>SCORECARD_MSU_UploadData_New</code> 就地覆蓋系統計算值（UNPIVOT M01–M12、上傳→系統命名對應、<code>UsingUpload=&#x27;X&#x27;</code> 保留 fallback），連動 <code>MOPEX %</code>/<code>MOPEX %(Exclude Internal PV)</code> 改為比率型 KPI（<code>&#x27;X&#x27;</code>＋<code>CountType=0</code>）走 Q/H/YTD <strong>加權</strong>（期望 ATMC total/MOPEX %/Q1 ≈ 0.06337）；產出覆蓋前置檢查 SQL＋驗收 xlsx，備份 qhytd（比率加權前）/lapv（LA PV 覆蓋前）。(b) <strong>Budget Platform</strong> 上半年優化全案 7/15 <strong>驗收通過並歸檔</strong>（工作目錄重整為 <code>2026H1優化_已結案\</code>＋README 索引，記正式站發版後 4 尾巴：發版→驗證範本→<code>DROP COLUMN Year</code>×2→清備份表），並<strong>啟動下半年工項規劃</strong>（<code>工項規劃_RBU_SBU.md</code>：自 Notion「Platform Issue Ticket List - 2026 H2」篩 13 張 RBU/SBU 票切 9 個 feature branch，快贏優先/外部依賴早發起/大包中段，5 待確認）。<br><strong>本次無任何對外 GitHub/Notion 內容動作</strong>：MSU 7/15 為 SP＋診斷 SQL＋原始 xlsx（程式碼/底稿）、SP 仍 pre-production 且 KPI 定義調整未定案，依發佈集規則不發佈、Notion 系統說明未實質變動；Budget H1 README 為結案索引、H2 為前瞻工項規劃（尚未動程式），皆無資安弱點細節但整體歸 Budget Platform 對外待決集（待 Hyman 取捨）。→ 實際同步動作僅 Obsidian 工作紀錄 + 台帳/本 SYNC_LOG 對齊 + sync-log.html 重生。</div>
 <h3>2026-07-14</h3>
 <div class="note">（本次排程於 2026-07-14 執行，掃到自 7/13 下午同步後的落差：Budget Platform 預算匯率自維 7/14 全案結案、SBU Scorecard 7/13 晚間兩支 Quota 相關 SQL。<strong>本次無對外 GitHub/Notion 內容發佈</strong>——Budget 全數歸對外待決集、SBU 為 SP-only 無設計文件；Budget Obsidian 本日已由使用者自行補記至 7/14（含將 9 篇 MD 整理進 vault），故實際同步動作僅台帳/SYNC_LOG 對齊 + sync-log.html 重生。）</div>
 <table>
