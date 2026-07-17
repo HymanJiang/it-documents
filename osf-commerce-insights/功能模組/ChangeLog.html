@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSF Commerce Insights — 修改紀錄 (ChangeLog)</title>
+<style>
+  :root{ --fg:#24292f; --muted:#57606a; --border:#d0d7de; --bg:#fff; --code-bg:#f6f8fa; --accent:#0969da; }
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;
+       color:var(--fg); line-height:1.7; max-width:980px; margin:0 auto; padding:48px 32px; background:var(--bg);}
+  h1{font-size:2em; border-bottom:2px solid var(--border); padding-bottom:.3em; margin-top:0;}
+  h2{font-size:1.5em; border-bottom:1px solid var(--border); padding-bottom:.3em; margin-top:2em;}
+  h3{font-size:1.2em; margin-top:1.6em;}
+  h4{font-size:1.05em; margin-top:1.3em;}
+  blockquote{border-left:4px solid var(--accent); margin:1em 0; padding:.4em 1em; color:var(--muted); background:var(--code-bg);}
+  table{border-collapse:collapse; width:100%; margin:1em 0; font-size:.93em; display:block; overflow-x:auto;}
+  th,td{border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top;}
+  th{background:var(--code-bg); font-weight:600;}
+  tr:nth-child(even) td{background:#fafbfc;}
+  code{background:var(--code-bg); padding:.2em .4em; border-radius:6px; font-size:.88em;
+       font-family:"Cascadia Code",Consolas,"Courier New",monospace;}
+  pre{background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:16px; overflow-x:auto;}
+  pre code{background:none; padding:0; font-size:.86em; line-height:1.5;}
+  ul,ol{padding-left:1.6em;}
+  li{margin:.25em 0;}
+  hr{border:none; border-top:1px solid var(--border); margin:2em 0;}
+  a{color:var(--accent); text-decoration:none;} a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<h1 id="osf-commerce-insights">OSF Commerce Insights 修改紀錄</h1>
+<hr>
+<h2 id="2026-07-17-operational-excellence-kpi-o2ro2ss2aa2cc2rfreight">第七次修改（2026-07-17）— Operational Excellence KPI 調整（O2R/O2S/S2A/A2C/C2R/Freight）</h2>
+<h3 id="kpi-20260717jpg">需求（調整KPI 20260717.jpg）</h3>
+<table>
+<thead>
+<tr>
+<th>報表 KPI</th>
+<th>PBI 實際名稱（查 DB 確認，與需求圖片略有出入）</th>
+<th>YTM 規則</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Order 2 Received (O2R) D</td>
+<td><code>Order 2 Received_O2R(D)</code></td>
+<td>加總（SUM，原本即是）</td>
+</tr>
+<tr>
+<td>Order 2 Ship (O2S) D</td>
+<td><code>Order 2 Ship(D)_O2S</code></td>
+<td>平均數（AVG，新型別）</td>
+</tr>
+<tr>
+<td>Ship 2 Arrival (S2A) D</td>
+<td><code>Ship to Arrival_S2A(D)</code></td>
+<td>平均數</td>
+</tr>
+<tr>
+<td>Arrival 2 Clearance (A2C) D</td>
+<td><code>Arrival to Clearnace_A2C(D)</code>（PBI 端拼字如此）</td>
+<td>平均數</td>
+</tr>
+<tr>
+<td>Clearance 2 Received (C2R) D</td>
+<td><code>Clearance to received_C2R(D)</code></td>
+<td>平均數</td>
+</tr>
+<tr>
+<td>Freight Act. ($)</td>
+<td><code>Freight Act.($)</code></td>
+<td>加總（SUM，原本即是）</td>
+</tr>
+<tr>
+<td>Freight Fee %</td>
+<td><code>Freight Fee(%)</code></td>
+<td>RECALC_SUM：SUM(Freight Act. ($)) / (SUM(2026 Achv. (K)) * 1000)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_1">發現的問題</h3>
+<ol>
+<li><strong>PBI KPI 名稱與設定表不一致</strong>：<code>PBI_OSF_Commerce_Performance</code> 的這 7 個 KPI 名稱與 <code>OSF_CommerceInsightsKPI</code> 設定名稱完全對不上，SP 原樣寫入 PBI 名稱 → 前端以設定名稱查找 → 這 7 個 KPI 在報表上完全無資料（<code>OSF_CommerceInsights</code> 2026 查無任何相關列）。</li>
+<li><strong>Freight Fee % 單位</strong>：PBI monthly 值為比例（0.0464 = 4.64%），設定表 <code>hasPercentage=1</code> 由前端 ×100 顯示 → YTM 亦存比例。需求圖的「*100」屬顯示層，公式內不再乘。分母 <code>2026 Achv. (K)</code> 單位為 K，需 ×1000（同第四次 ROAS 修正）。</li>
+<li><strong>Freight Fee % DecimalPlaces=0</strong>：後端會把比例值（0.0464）四捨五入成 0，百分比全變 0% → 改為 3（與 GP% 一致，顯示 1 位小數）。</li>
+</ol>
+<h3 id="sp_osf_commerceinsightssql">SP_OSF_CommerceInsights.sql（三處）</h3>
+<ol>
+<li><code>PBI_Data</code> CTE：KPI 欄加 <code>CASE</code> 對應，把上表 7 個 PBI 名稱轉為報表名稱。</li>
+<li>新增 <strong>③ YTMCalcType = 'AVG'</strong> 區塊（比照 SUM 區塊，改用 <code>AVG([Value])</code>，設定驅動）；原 ③④ 改編號為 ④⑤。</li>
+<li>RECALC_SUM 區段新增 <strong>Freight Fee %</strong> 區塊：<code>[FreightAct] / NULLIF([Revenue] * 1000, 0)</code>。</li>
+</ol>
+<h3 id="update_osf_commerceinsightskpi_ytmsql">Update_OSF_CommerceInsightsKPI_YTM.sql</h3>
+<ul>
+<li>Step 0（新增）：CHECK 約束重建，<code>YTMCalcType</code> 允許值加入 <code>'AVG'</code>。DB 上實查從未建立此約束（只有 DEFAULT），故用 <code>IF EXISTS</code> 判斷存在才 DROP、再 ADD。</li>
+<li>Step 1-1（新增）：O2S / S2A / A2C / C2R 四個 KPI 設為 <code>AVG</code>。</li>
+<li>Freight Fee % 設為 <code>RECALC_SUM</code>，公式 <code>[Freight Act. ($)] / ([CurrentYear Achv. (K)] * 1000)</code>；DecimalPlaces 0 → 3。</li>
+</ul>
+<h3 id="_2">其他</h3>
+<ul>
+<li><code>Create_OSF_CommerceInsightsKPI.sql</code>：CHECK 約束同步加入 <code>'AVG'</code>。</li>
+<li><code>OSF_CommerceInsightsKPI.xlsx</code>：更新 5 個 KPI 的 YTM 備註欄與 Freight Fee % 的 DecimalPlaces。</li>
+</ul>
+<h3 id="2026-07-17">部署（2026-07-17 已完成，結果已驗證）</h3>
+<ol>
+<li><code>Update_OSF_CommerceInsightsKPI_YTM.sql</code>（含 CHECK 約束變更）已執行。</li>
+<li><code>SP_OSF_CommerceInsights</code> 已 ALTER 並重算（@HierarchyYear=2026）。</li>
+<li>驗證基準：YTM 的 O2S~C2R 為月平均；Freight Fee % YTM ≈ 3%（Jan ALL 驗算：3942.81 / 131508.6 ≈ 0.030）；Freight Fee % 需求圖分母用 Achv.，與 PBI monthly 自身分母不同，YTM 與 monthly 數字基準不同屬預期。</li>
+</ol>
+<h3 id="_3">⚠️ 後續注意</h3>
+<ul>
+<li>PBI 端 KPI 名稱拼字不一致（<code>Arrival to Clearnace</code>、<code>Clearance to received</code>），SP 的 CASE 對應是照 DB 實際名稱寫的；若 PBI 日後改正名稱，SP 對應需同步更新，否則該 KPI 會再度無資料。</li>
+</ul>
+<hr>
+<h2 id="2026-06-11-store">第六次修改（2026-06-11）— Store 資料權限（簡化版）</h2>
+<h3 id="_4">背景與決策</h3>
+<p>報表頁面要依登入者權限限制可看資料。曾評估「Region 權限」,但因 Region 是階層中間層,受限使用者的 Level 1 數字需「只加總可看 Region」→ 必須重算,且其分量來自無法修改的 <code>PBI_OSF_Commerce_Performance</code>,複雜度高(一度建了「存原始、讀取時算」的 Raw 表 + 兩支新 SP,後因故放棄)。</p>
+<p><strong>最終改用 Store（階層最外層 Level 1）作為權限維度</strong>,複雜度大幅下降:<br>
+- Store 是最外層,所有預存的 ALL 彙總列本來就「每個 Store 各自一份」→ <strong>完全不需要重算</strong>,只要過濾「顯示哪些 Store 的列」。<br>
+- <strong>完全沿用現有資料管線</strong>(<code>SP_OSF_CommerceInsights</code> 寫入 + <code>OSF_CommerceInsights</code> 預存表),不新增任何 DB 物件、不改任何 SQL。</p>
+<blockquote>
+<p>註:先前嘗試的 <code>OSF_CommerceInsights_Raw</code>、<code>SP_OSF_CommerceInsights_LoadRaw</code>、<code>SP_OSF_CommerceInsights_Get</code> 已<strong>全部移除</strong>(檔案已刪)。若先前曾在 DB 建立這些物件,可一併 DROP:<br>
+<code>sql
+DROP PROCEDURE [dbo].[SP_OSF_CommerceInsights_Get];
+DROP PROCEDURE [dbo].[SP_OSF_CommerceInsights_LoadRaw];
+DROP TABLE     [dbo].[OSF_CommerceInsights_Raw];</code></p>
+</blockquote>
+<h3 id="c-emanagercore-0">C# 變更（eManagerCore,已編譯通過 0 錯誤）</h3>
+<table>
+<thead>
+<tr>
+<th>檔案</th>
+<th>變更</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IOSFCommerceRepository.cs</code> / <code>OSFCommerceRepository.cs</code></td>
+<td>新增 <code>OSF_CommerceInsightsPermission(email, hierarchyName)</code> → 查 <code>OSF_CommerceInsightsPermission</code>(以 <code>HierarchyName</code> 為參數,可重用)</td>
+</tr>
+<tr>
+<td><code>IOSFCommerceService.cs</code> / <code>OSFCommerceService.cs</code></td>
+<td>新增 <code>GetStorePermission(email)</code> → 以 <code>HierarchyName='Store'</code> 轉發</td>
+</tr>
+<tr>
+<td><code>OSF_CommerceInsights.cshtml.cs</code></td>
+<td>新增 <code>displayEmail</code>、<code>LoadStorePermissionAsync()</code>(<code>ALL</code>→<code>_storeAll=true</code>;否則 <code>_allowedStores</code> 集合;無列→空集合無資料);<code>OnGet</code> 以權限過濾 <code>StoreList</code>;<code>OnGetDataAsync</code> <strong>維持原本 C# 維度篩選邏輯</strong>,僅加 Store 權限過濾</td>
+</tr>
+<tr>
+<td><code>OSFCommerceController.cs</code></td>
+<td><strong>移除</strong>(舊版報表的 <code>[Authorize]</code>-only 進入點,已無用)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Git:以上變更已 commit 於 <code>eManagerCore</code> repo 的 <code>develop</code> 分支(<code>0621048</code>,6 files)；尚未 push。<code>.gitignore</code> 的 <code>/CLAUDE.md</code> 變更未納入。</p>
+</blockquote>
+<p><strong>資料流維持原狀</strong>:<code>OnGetDataAsync</code> 仍呼叫 <code>GetOSFCommerceInsights(year)</code> 取完整 DTO、在 C# 依 Level 篩選(與本次之前完全相同),只多了:<br>
+- Level 1：<code>hierarchies</code>(Store 維度欄)與資料皆 <code>Where(_allowedStores.Contains(Store))</code>。<br>
+- Level 2/3：若 <code>SelectedStore</code> 不在權限內 → 回空(防手動改網址越權)。<br>
+- <code>OnGet</code>：<code>StoreList</code> 下拉只保留允許的 Store。<br>
+- <code>_storeAll</code>(含 <code>'ALL'</code>)→ 不過濾,看全部。</p>
+<h3 id="_5">權限資料</h3>
+<p>報表專屬表 <code>[ProjectReport].[dbo].[OSF_CommerceInsightsPermission]</code>（欄位 <code>HierarchyName</code>、<code>Value</code>、<code>Email</code>）。本功能讀 <strong><code>HierarchyName='Store'</code></strong> 的列,<code>Value</code>=可看 Store 或 <code>'ALL'</code>,一個 Email 多列=多個 Store。設定檔:<code>SQL Server/Table/OSF_CommerceInsightsPermission.{sql,xlsx}</code>。</p>
+<h3 id="_6">⚠️ 設定/驗證重點</h3>
+<ol>
+<li><strong><code>OSF_CommerceInsightsPermission</code> 需有 <code>HierarchyName='Store'</code> 的資料</strong>(原本 xlsx 是 Region,需改成 Store 維護)。</li>
+<li><strong>Store 值須與 <code>OSF_CommerceInsightsHierarchy</code> Level 1 的 Store 值字面一致</strong>(含 <code>'IoTMart '</code> 前綴等),否則對不上、受限使用者看到空白。</li>
+<li>Debug 時登入帳號(<code>SimulateUserEmail</code> / <code>ClaimTypes.Email</code>)須在權限表內(先用 <code>'ALL'</code> 帳號驗證等同現行報表,再測受限帳號)。</li>
+</ol>
+<hr>
+<h2 id="2026-05-26">第五次修改（2026-05-26）</h2>
+<h3 id="sp_osf_commerceinsightssql_1">修正 SP_OSF_CommerceInsights.sql（兩項）</h3>
+<h4 id="1shipmentsummary-storeall-regionall-countryall">修正 1：ShipmentSummary 缺少 Store=ALL, Region=ALL, Country=ALL 維度</h4>
+<ul>
+<li><strong>問題</strong>：<code>ShipmentSummary</code> CTE 只產生 7 種 Store/Region/Country ALL 組合，缺少第 8 種（三者皆為 ALL），導致 Level 1 總覽（不選任何維度時）Actual 相關 KPI 無值。</li>
+<li><strong>影響 KPI</strong>：<code>2025 Actual (K)</code>、<code>2026 Achv. (K)</code>、<code>YoY Growth %</code>、<code>GP%</code>、<code>AOV($)</code>、<code>ROAS</code></li>
+<li><strong>修正</strong>：在 <code>ShipmentSummary</code> 最後一個 UNION ALL 後新增：<br>
+<code>sql
+  UNION ALL
+  SELECT [Year], [Month], [Currency],
+         'ALL' AS [Store], 'ALL' AS [Region], 'ALL' AS [Country], [KPI],
+         SUM([Value]) AS [Value]
+  FROM #Temp_Shipment
+  GROUP BY [Year], [Month], [Currency], [KPI]</code></li>
+</ul>
+<h4 id="2country-country">修正 2：Country 過濾造成新 Country 資料遺漏</h4>
+<ul>
+<li><strong>問題</strong>：<code>#Temp_Shipment</code> 用 <code>OSF_CommerceInsightsHierarchy Level 3</code> 過濾 Country，但 Level 3 是 SP 執行後才動態重建，形成循環依賴。新出現的 Country（如 USA）不在舊 Level 3 裡，資料被過濾掉，造成加總偏低（差異 3017.38）。</li>
+<li><strong>修正</strong>：移除 <code>#Temp_Shipment</code> 的 Level 3 Country 過濾，讓所有 Country 進入 Temp Table，Level 3 完全由 SP 執行後從實際資料動態產生。</li>
+<li><strong>保留</strong>：Level 1（Store）和 Level 2（Region）過濾維持不變（人工維護）。</li>
+</ul>
+<hr>
+<h2 id="2026-04-29">第一次修改（2026-04-29）</h2>
+<h3 id="osf_commerceinsightscshtmlcs">一、修正 OSF_CommerceInsights.cshtml.cs</h3>
+<h4 id="bug-1">Bug 1：維度篩選對回傳結果完全無效</h4>
+<ul>
+<li><strong>檔案</strong>：<code>eManagerCore/Areas/ScoreCard/Pages/OSF_CommerceInsights/OSF_CommerceInsights.cshtml.cs</code></li>
+<li><strong>問題</strong>：<code>OnGetDataAsync()</code> 中，Level-based 維度篩選（Store / Region / Country）在 <code>combinedData = filteredData.ToList()</code> 之後才執行，對已材料化的 <code>combinedData</code> 完全無效，導致回傳資料未依選擇的維度過濾。</li>
+<li><strong>修正</strong>：將所有維度篩選移至 <code>.ToList()</code> 之前，先套用完整篩選條件再材料化。</li>
+</ul>
+<h4 id="bug-2ytm-local">Bug 2：YTM Local 直接修改原始物件造成資料污染</h4>
+<ul>
+<li><strong>問題</strong>：<code>item.DateDimension = "YTMLocal"</code> 直接修改原始 DTO 物件，導致同一筆記錄被加入兩次，且原始資料的 YTM 記錄被永久改名為 YTMLocal。</li>
+<li><strong>修正</strong>：改用 <code>.Select(x =&gt; new OSFInsightsRecord { ... })</code> 深複製新物件，原始資料不動。另加上 <code>localCurrencyMap.ContainsKey()</code> 防止 <code>KeyNotFoundException</code>。</li>
+</ul>
+<h4 id="bug-3">Bug 3：命名空間與類別名稱衝突</h4>
+<ul>
+<li><strong>問題</strong>：Page 所在 namespace 為 <code>eManagerCore.Areas.ScoreCard.Pages.OSF_CommerceInsights</code>，與資料模型類別 <code>OSF_CommerceInsights</code> 同名，當程式碼顯式使用 <code>OSF_CommerceInsights</code> 作為型別時，編譯器優先識別 namespace 而報錯。</li>
+<li><strong>修正</strong>：在 using 區塊加入別名：<br>
+<code>csharp
+  using OSFInsightsRecord = eManagerCore.Models.DataModels.OSFCommerce.OSF_CommerceInsights;</code></li>
+</ul>
+<h4 id="bug-4-string-literal">Bug 4：亂碼 string literal</h4>
+<ul>
+<li><strong>問題</strong>：<code>ErrorMessage</code> 的中文字串因檔案編碼問題顯示為亂碼。</li>
+<li><strong>修正</strong>：還原為正確繁體中文：<code>"無法讀取資料，請稍後再試。"</code> / <code>$"讀取資料時發生錯誤：{ex.Message}"</code></li>
+</ul>
+<h3 id="osf_commerceinsightscshtmljavascript">二、修正 OSF_CommerceInsights.cshtml（JavaScript）</h3>
+<h4 id="_7">百分比顯示邏輯</h4>
+<ul>
+<li><strong>問題</strong>：<code>formatNumber()</code> 未對 <code>hasPercentage</code> 的值做 <code>* 100</code>，導致百分比顯示錯誤。</li>
+<li><strong>業務規則</strong>：原始值為小數（0.1234 = 12.34%），<code>decimalPlaces</code> 是原始值的小數位，顯示小數位 = <code>Math.max(0, decimalPlaces - 2)</code></li>
+<li><strong>修正</strong>：<br>
+<code>javascript
+  var displayValue = hasPercentage ? value * 100 : value;
+  var displayDecimalPlaces = hasPercentage ? Math.max(0, decimalPlaces - 2) : decimalPlaces;</code></li>
+</ul>
+<h4 id="level-3-country">Level 3 只顯示有資料的 Country</h4>
+<ul>
+<li><strong>需求</strong>：Level 3 時，只顯示至少有一筆 KPI 資料的 Country，完全空白的 Country 隱藏。</li>
+<li><strong>修正</strong>：<code>if (level === 3 &amp;&amp; !dataIndex[dimValue]) return;</code></li>
+</ul>
+<hr>
+<h2 id="2026-05-21">第四次修改（2026-05-21）</h2>
+<h3 id="sp_osf_commerceinsightssql_2">一、修正 SP_OSF_CommerceInsights.sql（兩項）</h3>
+<h4 id="1ytm-sum-shipment-kpi-template-vs">修正 1：YTM SUM 無法命中 Shipment KPI（名稱 template vs 實際年份不符）</h4>
+<ul>
+<li><strong>問題</strong>：<code>OSF_CommerceInsightsKPI</code> 設定表存的是 template 名稱（<code>LastYear Actual (K)</code>、<code>CurrentYear Achv. (K)</code>），但 SP 執行時已將它們替換為實際年份（如 <code>2025 Actual (K)</code>、<code>2026 Achv. (K)</code>）；YTM SUM 的 IN 子查詢從設定表取出 template 名稱，對不上 <code>#Temp_YtmMonthly</code> 的資料，導致這兩個 KPI 的 YTM 完全不計算。</li>
+<li><strong>修正</strong>：IN 子查詢加 <code>CASE WHEN [KPI] LIKE '%LastYear%' THEN REPLACE(...) WHEN [KPI] LIKE '%CurrentYear%' THEN REPLACE(...) ELSE [KPI] END</code>，將 template 名稱動態轉成實際年份名稱再比對。</li>
+</ul>
+<h4 id="2roas-ytm-adex-k-1000">修正 2：ROAS 的 YTM 分母應為 ADEX (K) * 1000</h4>
+<ul>
+<li><strong>問題</strong>：原公式 <code>CurrentYear Achv. (K) / ADEX (K)</code>，ADEX 單位為千元，需乘以 1000 才與分子單位一致。</li>
+<li><strong>修正</strong>：<code>[Revenue] / NULLIF([Adex] * 1000, 0)</code>；comment 同步更新。</li>
+</ul>
+<h4 id="3new-customer-ytm-avgaccu-member-sum">修正 3：New Customer % 的 YTM 分母應為 AVG(Accu Member #)，而非 SUM</h4>
+<ul>
+<li><strong>問題</strong>：原設計依賴後續 New Customer % 區塊「自動」計算 YTM，但該區塊直接用 <code>#Temp_OSF_CommerceInsights</code> 裡的 YTM 列（Accu Member # YTM = SUM of monthly），導致公式變成 <code>SUM(New Registrant #) / SUM(Accu Member #)</code>，分母不正確。</li>
+<li><strong>正確公式</strong>：<code>AVG(New Registrant #) / AVG(Accu Member #)</code>（分子分母皆取各月平均值）。</li>
+<li><strong>修正</strong>（SP step ④ RECALC_AVG）：</li>
+<li>在 <code>DROP TABLE #Temp_YtmMonthly</code> 之前，新增 <code>[NewCustomerYtm]</code> CTE，從 <code>#Temp_YtmMonthly</code> 用 <code>AVG</code>/<code>AVG</code> CASE 分別彙總，INSERT YTM 的 <code>New Customer %</code> 紀錄。</li>
+<li>New Customer % 區塊的兩個 CTE 加 <code>AND [DateDimension] &lt;&gt; 'YTM'</code>，防止它再用 SUM/SUM 重複計算一筆錯誤的 YTM。</li>
+</ul>
+<hr>
+<h2 id="2026-05-14">第三次修改（2026-05-14）</h2>
+<h3 id="osfcommerceservicecs">一、修正 OSFCommerceService.cs</h3>
+<h4 id="decimalplaces">數值精度：依 DecimalPlaces 四捨五入</h4>
+<ul>
+<li><strong>邏輯</strong>：<code>DecimalPlaces</code> 代表原始值的有效小數位數（例如 0.123456789 + DecimalPlaces=3 → 0.123），後端在回傳資料前應先完成這一步，避免 DB <code>decimal(18,4)</code> 的中間四捨五入影響前端顯示。</li>
+<li><strong>修正</strong>：<code>GetOSFCommerceInsights</code> 拿到 KPIs 與 Insights 後，建立 <code>kpiDecimalMap</code>，對每筆 <code>oSF_CommerceInsights.Value</code> 依對應 KPI 的 <code>DecimalPlaces</code> 做 <code>Math.Round(..., MidpointRounding.AwayFromZero)</code>。</li>
+<li><strong>新增 using</strong>：<code>System.Linq</code></li>
+</ul>
+<h3 id="osf_commerceinsightscshtmljavascript_1">二、修正 OSF_CommerceInsights.cshtml（JavaScript）</h3>
+<h4 id="formatnumber">formatNumber：明確兩步驟邏輯</h4>
+<ul>
+<li><strong>修正</strong>：將原本「先乘以100再截位」改為明確的兩步驟：<br>
+  1. 先對原始值四捨五入至 <code>decimalPlaces</code> 位（<code>Math.round(value * factor) / factor</code>）<br>
+  2. 再判斷 <code>hasPercentage</code>：若是，乘以 100，顯示位數為 <code>Math.max(0, decimalPlaces - 2)</code></li>
+<li><strong>移除</strong>：<code>console.log(valueBackgroundColor)</code> 除錯語句</li>
+</ul>
+<h4 id="bugdecimalplaces-0">Bug：DecimalPlaces = 0 時仍顯示小數點</h4>
+<ul>
+<li><strong>根本原因</strong>：呼叫端 <code>var decimalPlaces = kpiInfo.decimalPlaces || 2</code> 中，<code>0 || 2</code> 在 JavaScript 為 <code>2</code>（<code>0</code> 是 falsy），導致整數 KPI 在傳入 <code>formatNumber</code> 前已被替換為 <code>2</code>。<code>formatNumber</code> 內部同樣的 <code>|| 2</code> 也有相同問題。</li>
+<li><strong>修正</strong>：兩處皆改為 null-check：<br>
+<code>javascript
+  // 呼叫端
+  var decimalPlaces = (kpiInfo.decimalPlaces != null &amp;&amp; kpiInfo.decimalPlaces !== undefined) ? kpiInfo.decimalPlaces : 2;
+  // formatNumber 內部
+  decimalPlaces = (decimalPlaces != null &amp;&amp; decimalPlaces !== undefined) ? decimalPlaces : 2;</code></li>
+</ul>
+<hr>
+<h2 id="2026-05-13">第二次修改（2026-05-13）</h2>
+<h3 id="osfcommercerepositorycs">一、修正 OSFCommerceRepository.cs</h3>
+<h4 id="bugkpi">Bug：KPI 重複顯示</h4>
+<ul>
+<li><strong>根本原因</strong>：<code>OSF_CommerceInsightsKPI</code> 資料表中 KPI 名稱含不可見空白字元（尾端空格等），導致「相同」的 KPI 被視為不同 key，同一 KPI 出現兩列且數值不同；Performance Area 同樣問題導致同一 PA 被拆成兩個區塊。</li>
+<li><strong>注意</strong>：<code>OSF_CommerceInsightsKPI</code> <strong>沒有 <code>HierarchyYear</code> 欄位</strong>，<code>@HierarchyYear</code> 參數僅用於 KPI 名稱中 LastYear/CurrentYear 的年份替換。</li>
+<li><strong>修正</strong>（<code>OSF_CommerceInsightsKPI</code> 查詢）：</li>
+<li>加 <code>LTRIM(RTRIM())</code> 處理 PerformanceArea 和 KPI 名稱</li>
+<li>加 CTE + <code>ROW_NUMBER() OVER (PARTITION BY [PerformanceArea], [KPI] ORDER BY [Sort])</code> 去重，確保每個 (PA, KPI) 組合只保留一筆</li>
+</ul>
+<h4 id="bugosf_commerceinsights-kpi">Bug：OSF_CommerceInsights 資料 KPI 名稱不一致</h4>
+<ul>
+<li><strong>修正</strong>（<code>OSF_CommerceInsights</code> 查詢）：改 <code>SELECT *</code> 為明確欄位列表，對 KPI 欄加 <code>LTRIM(RTRIM([KPI])) AS [KPI]</code>，讓前端 dataIndex 能正確比對。</li>
+</ul>
+<h3 id="osf_commerceinsightscshtmljavascript_2">二、修正 OSF_CommerceInsights.cshtml（JavaScript）</h3>
+<h4 id="kpi">KPI 去重與名稱正規化（前端防護層）</h4>
+<ul>
+<li><strong>背景</strong>：後端 TRIM 處理不可見字元以外的情況（如 Tab），前端加一層防護。</li>
+<li><strong>修正</strong>：</li>
+<li><code>dataIndex</code> 建立時用 <code>item.kpi.trim()</code> 當 key</li>
+<li><code>kpisByPA</code> 建立時對 <code>performanceArea</code> 和 <code>kpi</code> 都做 <code>.trim()</code></li>
+<li>加 <code>seenKpiKeys</code> 字典，同一 <code>(PA + KPI)</code> 組合只保留第一筆，徹底排除重複列</li>
+</ul>
+<h3 id="sp_osf_commerceinsightssql_3">三、修正 SP_OSF_CommerceInsights.sql（四項）</h3>
+<h4 id="1hierarchyyear-sp">修正 1：@HierarchyYear 寫死，SP 無輸入參數</h4>
+<ul>
+<li><strong>修正</strong>：加入 SP 參數 <code>@HierarchyYear int = 2026</code>，預設值保留方便直接執行，未來換年只需傳入不同值。</li>
+</ul>
+<h4 id="2">修正 2：除以零風險</h4>
+<ul>
+<li>YoY Growth %：<code>LastYearValue</code> → <code>NULLIF(LastYearValue, 0)</code></li>
+<li>New Customer %：<code>Member</code> → <code>NULLIF(Member, 0)</code></li>
+</ul>
+<h4 id="3temp-table-concurrent">修正 3：Temp Table 為永久資料表（concurrent 衝突風險）</h4>
+<ul>
+<li><code>[Temp_OSF_CommerceInsights]</code> 改為 <code>#Temp_OSF_CommerceInsights</code>（Local Temp Table）</li>
+<li>所有 INSERT 補上 <code>[HierarchyYear]</code> 欄位並帶入 <code>@HierarchyYear</code></li>
+</ul>
+<h4 id="4country-sort-1">修正 4：Country 的 Sort 全部為 1</h4>
+<ul>
+<li><code>ROW_NUMBER() OVER (PARTITION BY [Value] ORDER BY [Value])</code> → <code>ROW_NUMBER() OVER (ORDER BY [Value])</code></li>
+</ul>
+<h4 id="5hierarchy-hierarchyyearothers-level-1">修正 5：Hierarchy 篩選未限制 HierarchyYear（Others 出現在 Level 1 的原因）</h4>
+<ul>
+<li>Shipment 來源資料的三個 IN 篩選缺少 HierarchyYear 限制，導致舊年份的階層資料（如曾存在的 Store/Region 值）污染當年度的 Shipment 撈取範圍。</li>
+<li><strong>修正</strong>：三行 IN 子查詢加上 <code>AND [HierarchyYear] = @HierarchyYear</code></li>
+</ul>
+<hr>
+<h2 id="_8">報表架構理解</h2>
+<h3 id="_9">資料來源</h3>
+<table>
+<thead>
+<tr>
+<th>資料</th>
+<th>來源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shipment（出貨量/金額）</td>
+<td><code>[ACLSTNR11].[ACLDW].[dbo].[vw_SalesData_BomExpand_LocalRevenue_IoTMart]</code></td>
+</tr>
+<tr>
+<td>其他 KPI（Lead、GP%、AOV 等）</td>
+<td><code>[ACLPBI].[dbo].[PBI_OSF_Commerce_Performance]</code></td>
+</tr>
+<tr>
+<td>KPI 定義與樣式</td>
+<td><code>[OSF_CommerceInsightsKPI]</code>（靜態設定表，無 HierarchyYear）</td>
+</tr>
+<tr>
+<td>層級結構</td>
+<td><code>[OSF_CommerceInsightsHierarchy]</code>（有 HierarchyYear，Level 1/2 人工維護，Level 3 由 SP 動態產生）</td>
+</tr>
+<tr>
+<td>彙整結果</td>
+<td><code>[OSF_CommerceInsights]</code>（SP 執行後寫入，頁面讀取此表）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sp">SP 執行流程</h3>
+<pre><code>1. 清空 #Temp_OSF_CommerceInsights
+2. 撈 Shipment 原始資料（UNPIVOT 多幣別）→ #Temp_Shipment
+3. 產生 Shipment 7 層級彙總（Store/Region/Country 各種 ALL 組合）→ 含 Total（Month=99）
+4. 撈 PBI KPI 資料（依 DataSource 篩選）
+5. 合併 PBI + Shipment INSERT 進 #Temp
+6. 計算 YTM（加總月份 &lt; 當月）
+7. 計算 YoY Growth %（CurrentYear Shipment / LastYear Shipment - 1）
+8. 計算 New Customer %（New Registrant # / Accu Member #）
+9. 動態更新 OSF_CommerceInsightsHierarchy Level 3（Country，從實際資料產生）
+10. DELETE + INSERT OSF_CommerceInsights（以 HierarchyYear 為單位替換）
+</code></pre>
+<h3 id="_10">前端層級邏輯</h3>
+<pre><code>Store 未選     → Level 1（維度欄 = Store，資料條件：Region=ALL, Country=ALL）
+Store 已選     → Level 2（維度欄 = Region，資料條件：Store=選取值, Country=ALL）
+Store+Region 選 → Level 3（維度欄 = Country，資料條件：Store=選取值, Region=選取值）
+</code></pre>
+<h3 id="_11">表格結構</h3>
+<ul>
+<li>第一列：幣別、Q1/Q2/Q3/Q4 群組、Year Total、YTM Total、YTM Local</li>
+<li>第二列：Store/Region/Country、Performance Area、KPI、Jan~Dec</li>
+<li>Dimension Value 欄 rowspan = KPI 總數，Level 1/2 可點擊下鑽</li>
+<li>Performance Area 欄 rowspan = 該 PA 的 KPI 數</li>
+<li>KPI 欄套用 backgroundColor / fontColor / Floor×10px padding</li>
+</ul>
+<h3 id="xlsx">設定資料（設定檔.xlsx）</h3>
+<ul>
+<li><code>OSF_CommerceInsightsKPI</code>：29 筆 KPI 定義，欄位包含 PerformanceArea、KPI、Sort、FontColor、BackgroundColor、Floor、DecimalPlaces、hasLocalCurrency、hasPercentage、DataSource</li>
+<li><code>OSF_CommerceInsightsHierarchy</code>：含 2024/2025/2026 三年，Level 1（7 個 Store）、Level 2（13 個 Region）、Level 3（由 SP 動態產生）</li>
+</ul>
+</body>
+</html>

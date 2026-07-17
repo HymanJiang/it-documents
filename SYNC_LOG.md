@@ -9,6 +9,10 @@
 | 專案 | 檔案 | 目標位置 | 備註 |
 |------|------|---------|------|
 | eManagerReport | 既有連結 | Notion eManagerReport 頁 | 補 SA 摘要（小項）|
+| eManager / OSF Commerce Insights | 第七次修改（7/17 KPI 邏輯）＋ 第六次修改（6/11 Store 資料權限） | Notion OSF Commerce Insights 頁（`375b60a1-adfe-81c2-be42-dee5db09e9fc`）| **待人工／待連線**：2026-07-17 排程執行時 Notion **certificate signature failure 無法連線**，Notion 部分停做。**系統本身確有變、應更新**：① 📊 衡量指標與計算邏輯段 → 補 O2S/S2A/A2C/C2R 之 **AVG** YTM 規則與 **Freight Fee %**＝`SUM(Freight Act. ($)) / (SUM(CurrentYear Achv. (K)) * 1000)`（比例存放、前端 ×100 顯示、DecimalPlaces=3）；② 🧩 功能與資料段 → 補**第六次（6/11）Store 資料權限**（權限維度 Region→Store、報表專屬表 `OSF_CommerceInsightsPermission` 讀 `HierarchyName='Store'`、`'ALL'`＝看全部）；③ 🔗 相關文件 → 加 ChangeLog.html 連結（GitHub 已發佈）。下次連線恢復時處理 |
+| eManager / OSF Commerce Insights | `eManagerCore` `develop` commit `0621048`（6 files，第六次修改 C# 變更） | — | 待人工：ChangeLog 自載「**尚未 push**」（紀錄時點 6/11），現況待查——若仍未 push 則 Store 權限功能未進遠端 |
+| Budget Platform | `2026H2優化\進度總覽_已完成與待執行.html`（7/17） | 未定（GitHub/Notion）| 待人工：H2 進度儀表板（已完成/待執行對照），屬日誌性質、無資安弱點細節；同歸 Budget Platform 對外待決集，待 Hyman 取捨。Obsidian 工作紀錄已寫 |
+| Budget Platform | 權限表信箱疑似無效（Lilith.Chen／Liz.Huang／Tammy.Wu 為 .com 非 .com.tw） | — | 待人工（非文件同步項）：7/17 SAP 閘門角色定版時發現，**待 PM 確認**是否無效帳號 |
 | eManager / HC Dashboard | SBU Hierarchy 改版（7/7，31→38 列＋7 Rollup＋重寫 Revenue 對應）| Notion HC Dashboard 子頁 | 待人工：結構性資料/維度變更已 COMMIT，惟 **SBU Total/小計 Revenue 策略（直抓 vs 抓不到退回加總）未定** + **6 個群組 PG 是否存在於 `SCORECARD_PROD_N` 待核對來源**；策略拍板＋來源確認後，再更新 🧩 功能與資料段（維度/資料表）與 📊 衡量指標段。GitHub ChangeLog.html 已更新，Obsidian 已記 |
 | SBU Scorecard | （無設計文件，僅 SP） | Notion SBU 子頁已註明 | 待撰寫設計文件後再發 |
 | TCP 改版 | BuildLog.md（6/9）| — | 待人工：屬建置「紀錄」非主要設計文件，是否發佈待定 |
@@ -44,6 +48,21 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-07-17
+
+> （本次排程於 2026-07-17 執行，掃到自 7/16 同步後的落差：**OSF Commerce Insights 第七次修改**——Operational Excellence 7 個 KPI 調整，已部署驗證；**Budget Platform H2 進度總覽**＋工項9 第二段＋SAP 閘門角色定版。⚠️ **Notion 本次全程無法連線（certificate signature failure）→ Notion 部分停做、列待人工**。實際同步動作：GitHub 發佈 OSF ChangeLog.html（首次）+ Obsidian 工作紀錄 ×2 + 台帳/本 SYNC_LOG + sync-log.html 重生。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| eManager / OSF Commerce Insights | `OSF_CommerceInsights_ChangeLog.md`（7/17 15:59，新增**第七次修改**；另補記先前未同步的**第六次修改**（6/11 Store 資料權限）） | **GitHub**：轉 `osf-commerce-insights\功能模組\ChangeLog.html`（**首次發佈**，比照 hc-dashboard/ChangeLog.html 樣式）。**Obsidian**：「開發記錄\Commerce Performance Insights.md」補第六/七次修改歷程列＋兩段完整工作紀錄、原始文件路徑由舊 `D:\eManager\...` 更正為現行 `D:\Work\專案\eManager\...`、補已發佈連結。**Notion 待人工**（連線失敗，且 KPI 計算邏輯有變需更新 📊 衡量指標段）|
+| Budget Platform | `2026H2優化\進度總覽_已完成與待執行.html`（7/17 15:15）＋`2026H2優化\工項9_範本草稿\T&E.xlsx`／`General Expense.xlsx`（7/17 13:11） | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「2026 H2 優化 — 進度總覽（2026-07-17）＋ 工項9 第二段」段＋修改歷程列＋同步狀態更新至 7/17。**GitHub/Notion 待人工**（進度儀表板屬日誌性質；同歸 Budget Platform 對外待決集）|
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 7/16 同步後落差為：
+> **(a) OSF Commerce Insights — 第七次修改（7/17，已部署並驗證）**：Operational Excellence 7 個 KPI（O2R／O2S／S2A／A2C／C2R／Freight Act. ($)／Freight Fee %）YTM 規則調整。**根因是三個實質 bug**：① `PBI_OSF_Commerce_Performance` 的 KPI 名稱與 `OSF_CommerceInsightsKPI` 設定表**完全對不上**，SP 原樣寫入 PBI 名稱、前端以設定名稱查找 → 這 7 個 KPI **在報表上完全無資料**（2026 查無任何相關列）；② Freight Fee % 分母 `2026 Achv. (K)` 單位為 K 需 ×1000（同第四次 ROAS 修正之坑）；③ Freight Fee % `DecimalPlaces=0` 使比例值（0.0464）被四捨五入成 0 → 百分比全變 0%。**修法**：SP 三處（`PBI_Data` CTE 加 `CASE` 名稱對應／**新增 `YTMCalcType='AVG'` 區塊**（設定驅動，原 ③④ 改編號 ④⑤）／RECALC_SUM 加 Freight Fee % `[FreightAct] / NULLIF([Revenue] * 1000, 0)`）＋`Update_OSF_CommerceInsightsKPI_YTM.sql`（Step 0 CHECK 約束重建納入 `'AVG'`——DB 實查從未建此約束只有 DEFAULT，故 `IF EXISTS` 判斷；O2S/S2A/A2C/C2R 設 AVG；Freight Fee % 設 RECALC_SUM、DecimalPlaces 0→3）＋`Create_OSF_CommerceInsightsKPI.sql` 同步約束＋`OSF_CommerceInsightsKPI.xlsx` 更新備註/小數位。**部署已完成、結果已驗證**（設定表腳本已跑、SP 已 ALTER 並重算 @HierarchyYear=2026；Jan ALL 驗算 3942.81／131508.6 ≈ 0.030）。⚠️ **後續注意**：PBI 端拼字不一致（`Arrival to Clearnace`、`Clearance to received`），SP 的 CASE 照 **DB 實際名稱**寫，**若 PBI 日後改正拼字，SP 對應需同步更新**，否則該 KPI 會再度無資料。
+> **(b) Budget Platform — H2 進度總覽（7/17）**：本輪已完成／待執行對照表，同時**回答了 7/15~16 紀錄留下的多項待確認**——**2027 預算循環已開啟**（Timer 2027／Deadline 2027-03-01／**FCST_Month=7**（非前次暫定期末值）／PlanRate 2027／八表複製，**三支腳本跑完並驗證**）；**RBU 五工項 merge `7ed2cbb1`**（**工項5 由「FSCT Month 後台設定」變為「Date 頁 RBU (All Regions) 一次套用」**——前次紀錄稱工項5 未動，現已完成惟範圍與原規劃不同；CAPEX 正式範本**已上 share**）；工項8 `baa765dd`／工項6 `22f78730`+`c776ea6e`（⚠️ 催辦信旗標**預設關閉**）／工項7 `6651589d` 測試站實測通過／**工項9 兩段完成**（第一段 cutover **守恆自檢 282 個 Cost Center 差異＝0**、頁面實走驗證全過；**第二段（7/17）＝Excel 範本上 share＋下載/上傳（單步驟與整本）＋表頭字樣修正**，「下載→清庫→上傳回存」閉環煙霧測試兩步驟全綠，`e0bc2845`／`987cc3bc`，**照預設樣式（仿 R&D）定稿**＝前次列的 5 項待 Lilian/PD 定稿已按預設樣式走）；**手動拋 SAP 閘門角色 7/17 拍板**＝Admin／Global Finance／SBU Finance 三角色（19 人，**SBU HQ 不開放**），**權限判斷改看使用者全部角色**（原只取第一筆會漏判多角色者），煙霧測試五角色全綠（`aeafe758`+`07e599cc`）；**「2027 不能編列」修復**＝根因 **Monthly Update ETL 排程結束日過期**、已手動補跑，RBU 主要幣別區 2026 基準數字恢復。
+> **本次對外發佈僅 OSF ChangeLog.html**（設計文件、無資安弱點細節，且 hc-dashboard/ChangeLog.html 已有同類先例）；OSF 的 SP／設定表 SQL／xlsx 屬程式碼與底稿，依發佈集規則不逐一發佈。Budget 進度總覽屬日誌性質＋整體歸對外待決集 → 僅 Obsidian。TCP `舊版\SP_SALES_TCP_New.sql`（7/17 14:37）屬舊版 SP 程式碼、不發佈。
+> ⚠️ **三項提醒**：(1) **Notion 本次完全無法連線**——`certificate signature failure`（連 get-block-children 與 retrieve-a-page 皆失敗），依規則**停做 Notion 部分**；**OSF 頁本應更新**（第七次修改動到 KPI 計算邏輯＝系統本身有變，📊 衡量指標與計算邏輯段需補 O2S~C2R 的 AVG 與 Freight Fee % 公式），**列待人工/待下次連線恢復**。(2) **OSF 第六次修改（6/11 Store 資料權限）先前從未被同步**——台帳「OSF 最後異動」停在 2026-06-04，證實台帳水位線過時；本次已於 Obsidian 補記，Notion 亦需補（🧩 功能與資料段：權限維度由 Region 改 Store、權限表 `OSF_CommerceInsightsPermission` 讀 `HierarchyName='Store'`）。ChangeLog 內另載該次 C# 變更 commit 於 `eManagerCore` `develop`（`0621048`）**當時尚未 push**，現況待查。(3) **Budget A1 硬阻擋「正式站發版」仍未做** → 2027 循環現況應僅測試站生效；新待辦 **Lilith.Chen／Liz.Huang／Tammy.Wu 權限表信箱為 .com 而非 .com.tw 疑似無效帳號、待 PM 確認**。
 
 ### 2026-07-16
 
