@@ -12,7 +12,6 @@
 | eManager / OSF Commerce Insights | 第七次修改（7/17 KPI 邏輯）＋ 第六次修改（6/11 Store 資料權限） | Notion OSF Commerce Insights 頁（`375b60a1-adfe-81c2-be42-dee5db09e9fc`）| **待人工／待連線**：2026-07-17 排程執行時 Notion **certificate signature failure 無法連線**，Notion 部分停做。**系統本身確有變、應更新**：① 📊 衡量指標與計算邏輯段 → 補 O2S/S2A/A2C/C2R 之 **AVG** YTM 規則與 **Freight Fee %**＝`SUM(Freight Act. ($)) / (SUM(CurrentYear Achv. (K)) * 1000)`（比例存放、前端 ×100 顯示、DecimalPlaces=3）；② 🧩 功能與資料段 → 補**第六次（6/11）Store 資料權限**（權限維度 Region→Store、報表專屬表 `OSF_CommerceInsightsPermission` 讀 `HierarchyName='Store'`、`'ALL'`＝看全部）；③ 🔗 相關文件 → 加 ChangeLog.html 連結（GitHub 已發佈）。下次連線恢復時處理 |
 | eManager / OSF Commerce Insights | `eManagerCore` `develop` commit `0621048`（6 files，第六次修改 C# 變更） | — | 待人工：ChangeLog 自載「**尚未 push**」（紀錄時點 6/11），現況待查——若仍未 push 則 Store 權限功能未進遠端 |
 | Budget Platform | `2026H2優化\進度總覽_已完成與待執行.html`（7/17） | 未定（GitHub/Notion）| 待人工：H2 進度儀表板（已完成/待執行對照），屬日誌性質、無資安弱點細節；同歸 Budget Platform 對外待決集，待 Hyman 取捨。Obsidian 工作紀錄已寫 |
-| Budget Platform | 權限表信箱疑似無效（Lilith.Chen／Liz.Huang／Tammy.Wu 為 .com 非 .com.tw） | — | 待人工（非文件同步項）：7/17 SAP 閘門角色定版時發現，**待 PM 確認**是否無效帳號 |
 | eManager / HC Dashboard | SBU Hierarchy 改版（7/7，31→38 列＋7 Rollup＋重寫 Revenue 對應）| Notion HC Dashboard 子頁 | 待人工：結構性資料/維度變更已 COMMIT，惟 **SBU Total/小計 Revenue 策略（直抓 vs 抓不到退回加總）未定** + **6 個群組 PG 是否存在於 `SCORECARD_PROD_N` 待核對來源**；策略拍板＋來源確認後，再更新 🧩 功能與資料段（維度/資料表）與 📊 衡量指標段。GitHub ChangeLog.html 已更新，Obsidian 已記 |
 | SBU Scorecard | （無設計文件，僅 SP） | Notion SBU 子頁已註明 | 待撰寫設計文件後再發 |
 | TCP 改版 | BuildLog.md（6/9）| — | 待人工：屬建置「紀錄」非主要設計文件，是否發佈待定 |
@@ -48,6 +47,21 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-07-20
+
+> （本次排程於 2026-07-20 執行，掃到自 7/17 同步後的落差：**Budget Platform** 工項3 SAP 分時段拋轉的遠端部署交付＋九工項 PM 分項驗收清單＋7/17 權限信箱疑義結案＋進度總覽更新；**MSU Scorecard** 新開 AKMC 一線（linked server ZRCO07_SUM 來源追查＋連線失敗診斷）。**本次無對外 GitHub/Notion 內容發佈**——Budget 全屬程式碼/日誌且歸對外待決集、MSU 為診斷 SQL＋原始資料。**⚠️ Notion 本次仍無法連線（certificate signature failure，同 7/17）→ Notion 部分續停做**。實際同步動作：Obsidian 工作紀錄 ×2 + 台帳/本 SYNC_LOG + sync-log.html 重生。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| Budget Platform | `2026H2優化\工項3_部署說明_分時段拋轉.md`（14:53）＋部署包 `工項3_部署包_UploadALL_分時段\`（Release 19 檔含 exe/pdb）＋`SP\_還原備份\還原_工項3_UploadSchedule補HK_IN模式.sql`（14:55）；`2026H2優化\PM分項驗收清單_2026H2.md`（10:29）；`SP\_還原備份\還原_LilithChen權限列.sql`（10:28）；`2026H2優化\進度總覽_已完成與待執行.html`（14:57 更新） | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「工項3 分時段拋轉部署包＋PM 分項驗收清單＋權限信箱結案（2026-07-20）」段＋修改歷程列＋同步狀態更新至 7/20。**GitHub/Notion 待人工**（Console 部署包/SQL 還原腳本屬程式碼、進度總覽/驗收清單屬日誌/操作文件，無資安弱點細節；同歸 Budget Platform 對外待決集）|
+| eManager / MSU Scorecard | `AKMC\診斷_ZRCO07_SUM_來源檢查_20260720.sql`（15:29）＋`AKMC\診斷_linkedserver_172214_連線失敗_20260720.sql`（15:46）＋`AKMC\ZRCO07_SUM.xlsx`（15:49，來源資料） | Obsidian「開發記錄\MSU Scorecard.md」新增 07-20 修改歷程列（AKMC 新開一線）＋同步狀態＋待確認（linked server 連線/來源確認）。**GitHub/Notion 不動**（診斷 SQL＋原始 xlsx 屬程式碼/底稿；linked server 連不上、分子來源未確認、SP 仍 pre-production、無新報告文件）|
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 7/17 同步後落差為：
+> **(a) Budget Platform（7/20）——工項3 部署交付＋PM 驗收清單＋權限信箱結案**：① **工項3 SAP 分時段拋轉** 產出遠端部署包（原始碼 `D:\Project\BudgetplatformConsole_Upload ALL` 改版、Release 19 檔）＋部署說明——Console 改**啟動參數帶時段**（`...Upload_ALL.exe 07:30`，**無參數＝與舊版全量行為完全相同＝安全回退**），5 點改動：參數帶時段／時段×公司代碼分區（讀 `Budget_SAP_UploadSchedule`，pattern `CN%`/`EU%`）／Deadline 過濾（只拋未過期區、寬限到隔天、天然取 `MAX(Timer.Year)`）／**RBU 回到排程**（舊排程迴圈只跑 SBU＋MSU）／**設定表補漏**（原 34 列漏 HK01/HK05/IN02，補 `HK%`＋放寬 `IN01`→`IN%`，現 36 列全涵蓋，還原檔在）；含遠端機五排程 `schtasks`（07:30/14:30/17:30/20:00/22:00）、驗證與三段回退。冪等背書＝RFC `ZCO_PLAN_KP06` 按鍵值覆寫＋舊制本就一天兩拋。② **九工項 PM 分項驗收清單**（開發側全完成、部署測試站 `dev-emanageradmin-2.advantech.com`），列驗收路徑/預期＋驗收前提醒（部分區 2026 實際數 0＝上游 ZRCO18 缺美國＋10 幣別、SBU 催辦信旗標關閉、工項9 用 VA16）；**工項4 Lock 監控 07-18 首跑偵測 304 筆異動、07-20 持續執行**。③ **✅ 7/17 權限信箱疑義結案**——Liz.Huang／Tammy.Wu 員工主檔查證正式信箱即 `@advantech.com`（有效）；**Lilith.Chen 查無此人（已離職）→ 權限列已移除**（角色列 2＋區域列 19，還原檔 `還原_LilithChen權限列.sql`）。④ 進度總覽 HTML 更新至 7/20。
+> **(b) MSU Scorecard（7/20）——AKMC 新開一線**：承 #9 泛System Hourly Rate-Assembly，追 **AKMC-System** 口徑分子 MOPEX 來源 `[172.21.214.30].[iFactoryPlatform].[SAP].[ZRCO07_SUM]`（**SQL Server linked server，非 Denodo**）。產出來源存在性檢查 SQL（連線/物件/樣本/期別涵蓋/接 HierarchyMapping No=7 對 cost center）＋linked server「**Communication link failure / network name no longer available**」連線失敗診斷 SQL（查 data_source/provider、重試 3 次、OPENROWSET 備援、OS 層埠測試）＋來源 `ZRCO07_SUM.xlsx`。**目前卡在 linked server 連不上（暫時性 vs 設定壞待判）、分子來源未確認**。
+> **本次無任何對外 GitHub/Notion 內容動作**：Budget 全數為 Console 部署包/SQL 還原腳本（程式碼）＋進度總覽/驗收清單（日誌/操作文件），雖**無資安弱點細節**，仍整體歸 Budget Platform 對外待決集（待 Hyman 取捨）；MSU 為診斷 SQL＋原始 xlsx、SP 仍 pre-production。→ 實際同步動作僅 Obsidian 工作紀錄 ×2 + 台帳/本 SYNC_LOG 對齊 + sync-log.html 重生。
+> ⚠️ **兩項提醒**：(1) **Notion 本次仍完全無法連線**（`certificate signature failure`，與 7/17 同）——依規則停做 Notion 部分；**OSF Commerce Insights 頁的 KPI 邏輯更新（第六/七次修改）仍列待人工/待下次連線恢復**（見待同步）。(2) **Budget 工項3 分時段排程本體仍待 E3 確認 SAP 冪等後才於遠端機建立**——在那之前入口頁「Next SAP Update」顯示新時段、實際拋轉仍照舊時段（驗收清單已列為已知落差）；另舊排程 2026-03-19 後停跑且停跑前一路 Error，部署時須順查歷程。
 
 ### 2026-07-17
 
