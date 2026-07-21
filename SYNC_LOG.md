@@ -9,11 +9,12 @@
 | 專案 | 檔案 | 目標位置 | 備註 |
 |------|------|---------|------|
 | eManagerReport | 既有連結 | Notion eManagerReport 頁 | 補 SA 摘要（小項）|
-| eManager / OSF Commerce Insights | 第七次修改（7/17 KPI 邏輯）＋ 第六次修改（6/11 Store 資料權限） | Notion OSF Commerce Insights 頁（`375b60a1-adfe-81c2-be42-dee5db09e9fc`）| **待人工／待連線**：2026-07-17 排程執行時 Notion **certificate signature failure 無法連線**，Notion 部分停做。**系統本身確有變、應更新**：① 📊 衡量指標與計算邏輯段 → 補 O2S/S2A/A2C/C2R 之 **AVG** YTM 規則與 **Freight Fee %**＝`SUM(Freight Act. ($)) / (SUM(CurrentYear Achv. (K)) * 1000)`（比例存放、前端 ×100 顯示、DecimalPlaces=3）；② 🧩 功能與資料段 → 補**第六次（6/11）Store 資料權限**（權限維度 Region→Store、報表專屬表 `OSF_CommerceInsightsPermission` 讀 `HierarchyName='Store'`、`'ALL'`＝看全部）；③ 🔗 相關文件 → 加 ChangeLog.html 連結（GitHub 已發佈）。下次連線恢復時處理 |
 | eManager / OSF Commerce Insights | `eManagerCore` `develop` commit `0621048`（6 files，第六次修改 C# 變更） | — | 待人工：ChangeLog 自載「**尚未 push**」（紀錄時點 6/11），現況待查——若仍未 push 則 Store 權限功能未進遠端 |
 | Budget Platform | `2026H2優化\進度總覽_已完成與待執行.html`（7/17） | 未定（GitHub/Notion）| 待人工：H2 進度儀表板（已完成/待執行對照），屬日誌性質、無資安弱點細節；同歸 Budget Platform 對外待決集，待 Hyman 取捨。Obsidian 工作紀錄已寫 |
 | eManager / HC Dashboard | SBU Hierarchy 改版（7/7，31→38 列＋7 Rollup＋重寫 Revenue 對應）| Notion HC Dashboard 子頁 | 待人工：結構性資料/維度變更已 COMMIT，惟 **SBU Total/小計 Revenue 策略（直抓 vs 抓不到退回加總）未定** + **6 個群組 PG 是否存在於 `SCORECARD_PROD_N` 待核對來源**；策略拍板＋來源確認後，再更新 🧩 功能與資料段（維度/資料表）與 📊 衡量指標段。GitHub ChangeLog.html 已更新，Obsidian 已記 |
 | SBU Scorecard | （無設計文件，僅 SP） | Notion SBU 子頁已註明 | 待撰寫設計文件後再發 |
+| Budget Platform | `執行計畫\00~05_測試腳本_*.md` + `tools\capture.ps1`（7/21）| 未定（GitHub/Notion）| 待人工：H2 九工項測試站逐項驗收腳本包（【R】/【W】/【X】三級分類、5 條紅線、指定 CC）。屬操作/驗收文件、**無資安弱點細節**，惟含測試站 URL 與內部 Cost Center 代碼，且腳本**尚未執行**（結果欄全空）；同歸 Budget Platform 對外待決集，待 Hyman 取捨。Obsidian 工作紀錄已寫 |
+| eManager / MSU Scorecard | `AKMC\修正_AKMC-System_HourlyRate_YTD翻倍_20260720.sql`（7/20 17:29）| —（程式碼不發佈）| 待人工/待確認：對照表 `SCORECARD_MSU_KpiMgr_New` 重複 mapping 列去重腳本，**含對正式對照表的 DELETE**，本輪無法自檔案確認是否已執行；另 STEP 0 的「全表掃其他重複 KPI」結果未見記載，**可能還有別的 KPI 中招**。Obsidian 工作紀錄已寫 |
 | TCP 改版 | BuildLog.md（6/9）| — | 待人工：屬建置「紀錄」非主要設計文件，是否發佈待定 |
 | TCP 改版 | 同步舊版資料表.sql（6/9）| — | 待人工：SQL 位於改版根（非 03_DB_Migration），是否比照 DB 變更記錄發佈待定 |
 | TCP 改版 | README.md（6/5）| — | 待人工：專案 README，一般不列入發佈集 |
@@ -47,6 +48,23 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-07-21
+
+> （本次排程於 2026-07-21 執行。**重點：Notion 連線恢復**——自 7/17、7/20 兩度 `certificate signature failure` 後本次連線成功，**積欠的 OSF Commerce Insights 系統說明更新已補完**。另掃到自 7/20 同步後的落差：**MSU Scorecard** AKMC 線 7/20 傍晚找到 YTD 費率翻倍根因並出修正腳本；**Budget Platform** 7/21 上午新開測試腳本包工作線。此二者皆屬程式碼/操作文件 → 僅 Obsidian。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| eManager / OSF Commerce Insights | （無新檔案；補做 7/17 積欠的 Notion 更新） | **Notion** OSF Commerce Insights 頁（`375b60a1-adfe-81c2-be42-dee5db09e9fc`）：① 📊 衡量指標段新增 3 個 bullet——營運效率指標（O2R/O2S/S2A/A2C/C2R 天數指標，**O2S/S2A/A2C/C2R 之 YTM 採 AVG 不可加總**）、`Freight Act. ($)`、`Freight Fee %`（＝`SUM(Freight Act. ($)) ÷ (SUM(CurrentYear Achv. (K)) × 1000)`，分母單位 K 需 ×1000、比率以小數存放前端 ×100 顯示、小數位 3、YTM 型別 RECALC_SUM）；並 **update-a-block 改寫既有 YTM bullet** 為「YTMCalcType 驅動之 SUM／AVG／RECALC_SUM 三型別」。② 🧩 功能與資料段新增資料權限 bullet（專屬權限表 `OSF_CommerceInsightsPermission`、維度為 Store 讀 `HierarchyName='Store'`、`'ALL'`＝看全部）。③ 🔗 相關文件段加 ChangeLog.html 連結。**GitHub 無新內容**（ChangeLog.html 已於 7/17 發佈）|
+| eManager / MSU Scorecard | `AKMC\驗算_AKMC-System_HourlyRate_Assembly_YTD_20260720.sql`（7/20 16:39）＋`AKMC\修正_AKMC-System_HourlyRate_YTD翻倍_20260720.sql`（7/20 17:29） | Obsidian「開發記錄\MSU Scorecard.md」新增 07-20（續）修改歷程列＋同步狀態＋待確認。**GitHub/Notion 不動**（驗算/修正 SQL 屬程式碼；且為資料重複造成的計算偏差、非 KPI 定義變更）|
+| Budget Platform | `執行計畫\00_測試腳本_執行說明.md`／`01_共用與入口`／`02_RBU`／`03_SBU`／`04_MSU`／`05_Manager`＋`tools\capture.ps1`（7/21 10:50~10:53） | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增 07-21 修改歷程列＋同步狀態。**GitHub/Notion 待人工**（操作/驗收文件，同歸 Budget Platform 對外待決集）|
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地：
+> **(a) ✅ Notion 連線恢復 — OSF Commerce Insights 系統說明補完**：7/17 與 7/20 兩次排程均因 `certificate signature failure` 停做 Notion，本次 `retrieve-a-page` 成功。依待同步列所載，把**第七次修改（7/17 KPI 邏輯）＋第六次修改（6/11 Store 資料權限）**反映進系統說明——皆屬「系統本身有變」（KPI 計算邏輯與權限維度），符合 Notion 只在系統有變時更新之原則；日誌性內容（改了什麼／commit／狀態）一律未寫入 Notion。技術備忘：`update-a-block` 需把 `bulleted_list_item` 當**最上層參數**傳（包在 `type` 下會 400）。
+> **(b) MSU Scorecard（7/20 傍晚）— AKMC YTD 費率翻倍找到根因**：承同日 AKMC 線。`驗算_...YTD_20260720.sql` 以 pooled 口徑 `Σ(MOPEX×1000) ÷ Σ(SAP工時)` 獨立驗算 2026 Jan~Jun（分子 `ZRCO07_SUM.WBTR1` KOSTL KK04/KQ01 對照表 No=7；分母 `ZRPP89_SUM.Activity_To_Conf2` Cost_Center KK04/KQ01/**KQ06**，**分母比分子多一個 cost center**）。`修正_...YTD翻倍_20260720.sql` 確認**根因＝`SCORECARD_MSU_KpiMgr_New` 有兩筆完全相同的 mapping 列**（2026／AKMC-System／`MOPEX(K)-ForHourlyRate`），主 SP LEFT JOIN 把每月列變兩份；**Q1/Q2/H1 用 AVG 免疫、YTD 用 PIVOT SUM ÷ @Month 被灌成 2 倍** → YTD MOPEX 9,581.54（應 4,790.77）、費率 251.95（應 125.97），分母工時只有一筆故剛好 ×2。修法四步：確認重複並全表掃其他重複 → `ROW_NUMBER()` 去重（`BEGIN TRAN` 檢查 rowcount 後才 COMMIT）→ 重跑 `EXEC uSP_MSUScorecard2026`（冪等）→ 驗收 H1/YTD 皆 125.97。
+> **(c) Budget Platform（7/21 上午）— 測試腳本包新工作線**：為 H2 九工項測試站驗收，`執行計畫\` 一口氣產出 6 份 MD ＋ `tools\capture.ps1`，設計給另一個 Claude Code session 搭配 Chrome 自動化執行，逐項含操作步驟／預期結果／截圖檔名／結果欄。核心安全設計＝**【R】唯讀／【W】寫入（留原值、標 `TEST_20260721`、測完還原）／【X】高風險只截圖不點擊**三級分類，因**測試站與正式 DB 共用資料、無獨立測試庫**；另立 5 條紅線。指定 CC＝RBU `OPKFS01`、SBU `VA16`（勿用 SA11）、MSU 取第一個有權限者；Budget Year 2027。腳本內已內建已知非缺陷提示。**腳本尚未執行**（結果欄全空、無 screenshots、無測試報告）。
+> **本次對外發佈僅 Notion（OSF 系統說明）**：MSU 為驗算/修正 SQL（程式碼），且為資料重複造成的偏差、非 KPI 定義變更 → GitHub/Notion 不動；Budget 測試腳本屬操作/驗收文件、腳本未執行，同歸對外待決集 → 僅 Obsidian。GitHub 本次僅推 SYNC_LOG 與 sync-log.html。
+> ⚠️ **三項提醒**：(1) **MSU 修正腳本含對正式對照表 `SCORECARD_MSU_KpiMgr_New` 的 DELETE，是否已執行本輪無法自檔案確認**；且 STEP 0 的「全表掃同 YEAR/PLANT/DESCRIPTION 重複」結果未見記載——**可能還有其他 KPI 同樣中招**，建議補查。(2) **linked server `172.21.214.30` 連線是否已恢復未載明**（7/20 稍早記 Communication link failure，傍晚驗算腳本已寫成可執行形式但無執行結果）。(3) Budget 前次列的尾巴均未見進展：**正式站發版**（＝2027 開循環絕對前提）、DBA 三件排程、工項3 分時段排程本體待 E3 確認 SAP 冪等、ZRCO18 上游補檔。
 
 ### 2026-07-20
 
