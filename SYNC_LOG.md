@@ -13,7 +13,7 @@
 | Budget Platform | `2026H2優化\進度總覽_已完成與待執行.html`（7/17） | 未定（GitHub/Notion）| 待人工：H2 進度儀表板（已完成/待執行對照），屬日誌性質、無資安弱點細節；同歸 Budget Platform 對外待決集，待 Hyman 取捨。Obsidian 工作紀錄已寫 |
 | eManager / HC Dashboard | SBU Hierarchy 改版（7/7，31→38 列＋7 Rollup＋重寫 Revenue 對應）| Notion HC Dashboard 子頁 | 待人工：結構性資料/維度變更已 COMMIT，惟 **SBU Total/小計 Revenue 策略（直抓 vs 抓不到退回加總）未定** + **6 個群組 PG 是否存在於 `SCORECARD_PROD_N` 待核對來源**；策略拍板＋來源確認後，再更新 🧩 功能與資料段（維度/資料表）與 📊 衡量指標段。GitHub ChangeLog.html 已更新，Obsidian 已記 |
 | SBU Scorecard | （無設計文件，僅 SP） | Notion SBU 子頁已註明 | 待撰寫設計文件後再發 |
-| Budget Platform | `執行計畫\00~05_測試腳本_*.md` + `tools\capture.ps1`（7/21）| 未定（GitHub/Notion）| 待人工：H2 九工項測試站逐項驗收腳本包（【R】/【W】/【X】三級分類、5 條紅線、指定 CC）。屬操作/驗收文件、**無資安弱點細節**，惟含測試站 URL 與內部 Cost Center 代碼，且腳本**尚未執行**（結果欄全空）；同歸 Budget Platform 對外待決集，待 Hyman 取捨。Obsidian 工作紀錄已寫 |
+| Budget Platform | `執行計畫\00~05_測試腳本_*.md` + `tools\capture.ps1`（7/21）+ 執行結果與 `screenshots\`（7/22）| 未定（GitHub/Notion）| 待人工：H2 九工項測試站逐項驗收腳本包（【R】/【W】/【X】三級分類、指定 CC）。**7/22 09:49 開跑、執行中**（COM/RBU/SBU 完成、MSU 至 07；MSU-08~10＋Manager 未測、測試報告未產出）。屬操作/驗收文件、**無資安弱點細節**，惟含測試站 URL、內部 CC 代碼與實際預算金額；同歸 Budget Platform 對外待決集，待 Hyman 取捨。⚠️ **殘留測試資料未還原**（含 MSU VG02 工時費率改 50/50，無 `TEST_` 標記，已觸發 MOE 重算）→ 上線前清理清單須納入。Obsidian 工作紀錄已寫 |
 | eManager / MSU Scorecard | `AKMC\修正_AKMC-System_HourlyRate_YTD翻倍_20260720.sql`（7/20 17:29）| —（程式碼不發佈）| 待人工/待確認：對照表 `SCORECARD_MSU_KpiMgr_New` 重複 mapping 列去重腳本，**含對正式對照表的 DELETE**，本輪無法自檔案確認是否已執行；另 STEP 0 的「全表掃其他重複 KPI」結果未見記載，**可能還有別的 KPI 中招**。Obsidian 工作紀錄已寫 |
 | TCP 改版 | BuildLog.md（6/9）| — | 待人工：屬建置「紀錄」非主要設計文件，是否發佈待定 |
 | TCP 改版 | 同步舊版資料表.sql（6/9）| — | 待人工：SQL 位於改版根（非 03_DB_Migration），是否比照 DB 變更記錄發佈待定 |
@@ -48,6 +48,24 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-07-22
+
+> （本次排程於 2026-07-22 16:05 執行。掃到自 7/21 同步後的落差只有一條主線：**Budget Platform 測試腳本於今日 09:49 實際開跑，執行至本次同步時點仍在進行中**。屬操作/驗收文件＋截圖 → **僅 Obsidian**。**GitHub/Notion 本次無內容發佈**，Notion 頁不動（既有功能之驗收，系統本身未變）。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| Budget Platform | `執行計畫\00_測試腳本_執行說明.md`／`01_共用與入口`／`02_RBU`／`03_SBU`／`04_MSU`（7/22 10:08~16:03 陸續回填結果欄）＋`screenshots\{COM,RBU,SBU,MSU}\` 約 57 張截圖 | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」新增「2026 H2 優化 — 測試腳本實際執行（2026-07-22，進行中）」段＋修改歷程列＋同步狀態（含殘留測試資料清單）。**GitHub/Notion 不動**（操作/驗收文件，同歸 Budget Platform 對外待決集；系統本身未變故 Notion 頁維持）|
+| eManager | `Hierarchy\RBU\2026 RBU Hierarchy.xlsx`／`Hierarchy\SBU\2026 SBU Hierarchy.xlsx`（7/21 16:36） | **無同步動作**——組織階層原始資料 xlsx，依發佈集規則不發佈；無伴隨設計文件變更 |
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 7/21 同步後落差為：
+> **Budget Platform — 測試腳本從「已寫好未執行」變成「執行中」**：7/21 上午寫的腳本包，7/22 09:49 由另一個 Claude Code session 搭 Chrome 自動化開跑。**至 16:05 本次同步時點仍在進行**：COM（9 項）／RBU（13 項）／SBU（13 項）結果欄全數回填，MSU 跑到 MSU-07，**MSU-08~10 與 `05_測試腳本_Manager.md`（MGR 全部）結果欄仍空、`測試報告_YYYYMMDD.md` 尚未產出** → 完整報告預計下次同步才收得到。
+> **執行中的兩項協議變更（`00_執行說明.md` 已改寫）**：(1) **【W】改為不用逐項還原**（7/22 使用者裁示；測試資料標 `TEST_20260721`，**正式上線前統一清理一次**，還原失敗不算 Fail；**【X】只截圖不點擊之禁令不受影響**）。(2) **Save／Delete／Finish 點擊前先截圖告知使用者**——本輪多處遇自動化工具（screenshot／click）逾時無回應、須 `navigate` 強制重整才恢復，研判**極可能是網頁跳出瀏覽器原生 confirm/alert 對話框**（會完全阻擋 CDP，自動化看不到也點不掉），**非平台缺陷** → 受影響項目（RBU-13／SBU-05／SBU-06／SBU-10）一律記 **Blocked／待人工確認**而非 Fail。
+> **驗證良好的部分**：**工項9（SBU T&E／General Expense 拆分）全綠**——T&E **8 科目**齊、General Expense **18 科目**齊、Business Related 移出後**精準剩 13 分類**、**SBU-09 Summary 總額守恆抽驗逐月零誤差**（T&E Apr/May/Jun＝4,244／16,647／1,193,621、GE 六個月數字皆與步驟頁 Subtotal 完全一致），Group 5／Group 13 兩獨立列均進 Summary；**工項7** Current Allocation Rule 唯讀 **14 欄**且確實在選單最後（Rule Period 2026/6）；**工項6** SBU Overview 單一 Summary Status 欄；**工項1** CAPEX 範本可下載（`CAPEX.xlsx` 12,623 bytes）；**工項3** 入口頁 Last／Next SAP Update 顯示正常；RBU 五個費用頁（Marketing／R&D／T&E／Freight／Others-Fix）**cell-level 即時自動存檔**皆正常並已驗持久化；**MSU-06 Working Hour** 費率 SMT 0%→50%、Labor 連動 50%，存檔後 **Total MOE 由 0.0 變 176,017.0**，證實 `Save_WorkingHourRate` 觸發分攤重算正常。
+> **缺陷／待釐清（5 件）**：① ❌ **COM-06 — Overview 的「Excel Download」(`DownloadOverview`) 逾時 90 秒×2 完全無檔案產出**，而同頁「Download Template」可正常下載（45,939 bytes / 20-30 秒）→ **不同後端端點、只有前者壞**，本輪唯一明確 Fail。② ⚠️ **SBU-08 — 「2027 New Capital」彙總框存檔後與整頁重載後皆仍顯示 0.0/0.0**，與明細列 Total Expense=1.0 不一致（前端彙總欄未刷新，小 bug）。③ ⚠️ **RBU-12 — Summary 全頁找不到 Submit／Confirm 按鈕**（用 find 確認不存在），與腳本預期不符，待確認是權限或機制不在此頁。④ ⚠️ **Blocked ×2 待人工實點**：RBU-13（篩 OPKFS01 查得空表原因未明；改篩 Company Code=EU01 後工具全逾時，下載與篩選聯動未及測試）、SBU-10（Finish **點擊指令本身即逾時**，重整後仍 Un-completed）。⑤ ⚠️ **效能偏慢**：Overview 35-40 秒、RBU Summary 20+ 秒、SBU Summary 約 40 秒，疑與 ① 的下載端同源（後端彙總查詢）。
+> **設計性發現（皆非缺陷，但腳本假設需修正）**：(a) **Headcount／People Cost 三型全唯讀**（RBU-02／SBU-02／MSU-02 實測輸入不被接受，頁面明寫「You cannot change in platform」），資料由 HR 匯入、整批 Excel 上傳維護 → 「改值→存檔→還原」模式不適用，平均薪資自動帶值也連帶無法驗證（2027 HC 未匯入前恆為 0）。(b) **RBU 沒有獨立「Based on inflation rate」步驟** — 通膨推算是內嵌在 T&E／Freight／R&D／Others／Business Related 各頁 2026 表最後一欄的 **GR%** 機制（逐科目可不同），且推算後的 2027 數字不在這些頁面顯示 → **建議改用 Excel 匯出內容核對此計算**。(c) **MSU-07 General Allocated Expense 唯讀**（頁面明示「Please use the upload function」）。(d) MSU 選單機制為先選 Group 再自動帶出第一個 Costcenter（本輪＝**VG02**），無獨立 Costcenter 下拉。
+> **本次無任何對外 GitHub/Notion 內容動作**：測試腳本與截圖屬操作/驗收文件（日誌性質），**無資安弱點細節**，惟含測試站 URL、內部 Cost Center 代碼與實際預算金額，整體歸 Budget Platform 對外待決集 → 僅 Obsidian；且本次為**既有功能之驗收、系統本身未變**，依 Notion 去日誌化原則 **Notion 頁不動**。GitHub 本次僅推 SYNC_LOG 與 sync-log.html。
+> ⚠️ **三項提醒**：(1) **殘留測試資料未還原**（7/22 使用者裁示改為上線前統一清理）：`TEST_20260721` 標記散落於 **RBU OPKFS01**（Marketing 新增列、R&D 650700／T&E 620110／Freight 630502／Others 650401 各一格 Jul=1）、**SBU VA16**（Marketing 列、R&D 專案列、**T&E Travel-Accommodation Jan=2.0（刪除步驟未完成）**、GE Overtime meal Jan=1、Capital 一列）、**MSU VG02**（Marketing 列、R&D 專案列、Capital 一列）。**特別注意：MSU VG02 的 Working Hour 費率被改為 SMT 50%／Labor 50%（原 0%／100%）且未還原——這是設定值變更、不帶 `TEST_` 標記難以辨識，且已觸發 MOE 分攤重算（Total MOE 0→176,017），清理清單務必補上**（測試站與正式 DB 共用資料）。(2) **測試尚未跑完** — MSU-08~10 與 Manager 後台（MGR）全部未測，測試報告未產出；Manager 後台是尚未有任何驗證覆蓋的一塊。(3) **前次列的尾巴仍無進展**：正式站發版（＝2027 開循環絕對前提）、DBA 三件排程、工項3 分時段排程本體待 E3 冪等確認、ZRCO18 上游補檔；另 7/21 提的 **MSU Scorecard 修正腳本是否已執行、是否還有其他 KPI 重複 mapping** 亦未見新進展。
 
 ### 2026-07-21
 
