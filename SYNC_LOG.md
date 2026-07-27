@@ -8,6 +8,9 @@
 
 | 專案 | 檔案 | 目標位置 | 備註 |
 |------|------|---------|------|
+| Quota Platform（新專案）| `docs\QuotaPlatform_程式架構整理.md`＋`output\...html`（7/25）＋`docs\SBU_QuotaForecast_資料搬遷建議.md`（7/25）| 未定（GitHub/Notion 歸屬）| 待人工：**新專案**（QPF 模組，原始碼 `D:\Project\eManagerCoreAdmin`）。it-documents 無對應資料夾、Notion「📊 eManager」下無對應子頁 → 依規則**不自行建頁/建資料夾**，歸屬待 Hyman 決定（納 eManager 傘下？與 Budget/TCP 平行？）。架構整理**不含資安弱點細節**（僅 code-quality 觀察與硬編碼），但屬新專案結構決策。Obsidian 已建 `Quota Platform Notes\` vault 記工作內容。SBU 搬遷建議 8 個業務決策點未答、搬遷未執行 |
+| Budget Platform | `執行計畫\安全批_角色矩陣草案_20260724.md`（7/24 傍晚）| —（**不自動對外發佈**）| 🔴 **待人工·含資安弱點細節**：回應 P0-2 Manager 後台安全缺口的角色授權矩陣草案（12 功能群×建議角色），載明「所有寫入 API 只驗登入不驗角色、`CreateBudgetPermission` 可自我提權、`PagesController` 整 class 無 `[Authorize]` 匿名可讀」→ 與 6/23 分析報告、7/23 Manager 盤點同級，**依規則不自動對外發佈**。待 Hyman 核可矩陣＋回答三問（{Region} Finance 是否保留寫入／SBU Finance 是否需額外寫入／TEST 角色是否清掉），核可後估 1-2 天實作。Obsidian 工作紀錄已寫 |
+| Budget Platform | `SP\View效能_第二階段\00_說明.md`（定稿）＋`部署04_fn_BudgetPlatform_OverviewRBU.sql`（7/24 傍晚）| 未定（GitHub/Notion）| 待人工：View 效能第二階段收斂——`00_說明.md` 記兩支 ByCC 函數已部署且實測 0.41s/0.45s（原 161.8s/7.9s）、等值 16/16 全 0、C# 分支 `feature/2026h2-view-perf` 六方法改 FROM 函數；`部署04` 著手處理 COM-06 剩餘 99 秒 OverviewRBU。**無資安弱點細節**，惟 SQL 屬程式碼不逐一發佈、且函數是否正式上線／C# 是否 merge 未確認 → 歸 Budget Platform 對外待決集。Obsidian 工作紀錄已寫 |
 | eManagerReport | 既有連結 | Notion eManagerReport 頁 | 補 SA 摘要（小項）|
 | eManager / OSF Commerce Insights | `eManagerCore` `develop` commit `0621048`（6 files，第六次修改 C# 變更） | — | 待人工：ChangeLog 自載「**尚未 push**」（紀錄時點 6/11），現況待查——若仍未 push 則 Store 權限功能未進遠端 |
 | Budget Platform | `2026H2優化\進度總覽_已完成與待執行.html`（7/17） | 未定（GitHub/Notion）| 待人工：H2 進度儀表板（已完成/待執行對照），屬日誌性質、無資安弱點細節；同歸 Budget Platform 對外待決集，待 Hyman 取捨。Obsidian 工作紀錄已寫 |
@@ -53,6 +56,23 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-07-27
+
+> （本次排程於 2026-07-27 執行。掃 `D:\Work\專案` 比對三目的地，自 07-24 16:05 同步後的落差有兩塊：**(A) Budget Platform 07-24 傍晚增量**（16:05 排程後才產出）＝View 效能第二階段收斂＋Manager 安全批角色矩陣草案；**(B) Quota Platform ＝一個全新專案**（07-25，架構整理＋SBU 搬遷建議）。(A) 屬 SQL 程式碼／含資安弱點細節之安全草案 → 僅 Obsidian，GitHub/Notion 待人工。(B) 為新專案、GitHub/Notion 歸屬未定 → 依規則不自行建頁/建資料夾，列待人工；已建 `Quota Platform Notes\` vault 記工作內容。**GitHub 本次僅推 SYNC_LOG 與 sync-log.html，Notion 各頁不動**（無任何系統之功能/KPI/邏輯變更，且新專案歸屬未定）。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| Budget Platform | `SP\View效能_第二階段\00_說明.md`（定稿）＋`部署02` 更新＋`部署04_fn_BudgetPlatform_OverviewRBU.sql`＋`_還原備份\還原_View效能第二階段_fn.sql` 更新（7/24 傍晚）／`執行計畫\安全批_角色矩陣草案_20260724.md`（7/24 傍晚） | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」：修改歷程新增「2026-07-24（傍晚追補）」列（View 效能收斂＋安全批角色矩陣兩筆）＋更新待確認（View 驗證已記實測 0.41/0.45s·16/16 全 0、OverviewRBU 已新增 部署04、新增安全批待核可項）＋同步狀態新增 07-27 段。**GitHub/Notion 不動**（SQL 屬程式碼；角色矩陣草案含資安弱點細節不自動對外；函數是否正式上線／C# 是否 merge 未確認，系統對外行為未變）|
+| Quota Platform（新專案）| `docs\QuotaPlatform_程式架構整理.md`＋`output\...html`＋`docs\SBU_QuotaForecast_資料搬遷建議.md`＋`CLAUDE.md`／`memory\*`（7/25） | Obsidian **新建 vault**「Quota Platform Notes\開發記錄\QuotaPlatform 架構整理.md」（維運視角摘要：系統位置／四層架構／GR% 審核流／RefreshResult 計算／Hierarchy Block 凍結／SBU 搬遷建議／待人工）。**GitHub/Notion 待人工**：新專案歸屬未定，依規則不自行建 it-documents 資料夾/Notion 頁 |
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 07-24 16:05 同步後落差為：
+> **(A) Budget Platform — 07-24 傍晚兩筆增量**（上次排程 16:05 執行，這兩筆 17:50 前後才產出，故本輪才掃到）：
+> **(A-1) View 效能第二階段收斂**（`SP\View效能_第二階段\00_說明.md` 定稿）：延續 07-24 白天開工的「不改既有 View、改新增兩支先過濾再組裝 TVF」路線，`00_說明.md` 補齊實測與部署狀態——`fn_BudgetPlatform_BudgetData_ByCC` **0.41s**（原 161.8s）、`fn_BudgetPlatform_CurrentData_ByCC` **0.45s**（原 7.9s），兩支稱「**已部署 2026-07-24**」；**等值驗證 16/16 全 0**（EAMAR00／OPKFS01／VA16／CTOS製造 ×兩函數×雙向 EXCEPT，BudgetData 閘門改寫後另補 8 項複驗）。C# 消費端於分支 `feature/2026h2-view-perf`（→ BudgetPlatform）把 `BudgetPlatformRepository_RBU.cs` 六個方法改 FROM 函數（簽名不變、順帶 IN 字串內插改參數化 CSV）。**新增 `部署04_fn_BudgetPlatform_OverviewRBU.sql`** ＝著手處理前列標「未納入本次範圍」的 **COM-06 剩餘 99 秒 `vw_BudgetPlatformOverviewRBU`**。教訓記載：mTVF 內逐列 `NOT EXISTS` 對 51.9 萬列 snapshot 表會退化成每列全掃（83.7s），凍結區清單須先落表變數再 `NOT IN`。
+> **(A-2) Manager 安全批（P0-2）角色矩陣草案**（`執行計畫\安全批_角色矩陣草案_20260724.md`）：把 7/23 Manager 後台盤點揭露的安全缺口從「等定義」推進到「等核可」。盤現有角色（Admin／Global Finance／SBU Finance／{Region} Finance ×20／Owner ×5／Viewer ×4／SBU HQ／ATW MKT／TEST），提**12 個功能群 × 建議允許角色**矩陣（Costcenter／權限個別維護／Cost Element／FSCT GR%／Average Salary／Plan Rate／Date＝Admin+Global Finance；RoleSetting／UploadPermission＝僅 Admin；Upload SAP 維持 07-17 定版），實作＝泛化 `IsUploadSapAllowed` 成共用 `RequireRoles(...)`＋PagesController 加 class 級 `[Authorize]`＋`User` 改取 Claims、不改資料表不影響前台。三個待 Hyman 拍板問題（{Region} Finance 是否保留任何 Manager 寫入、SBU Finance 是否需 Upload SAP 以外寫入、TEST 角色是否清掉）。
+> **(B) Quota Platform — 全新專案**（`D:\Work\專案\Quota Platform\`，7/25）：模組內部代號 **QPF**、原始碼在 `D:\Project\eManagerCoreAdmin`（與 Budget/TCP 同方案）、頁面 `/Admin/QuotaPlatform/Index`。整理出四層架構（Web 22 端點／Service 1,227 行含 Excel／Repository 4,581 行 Dapper 手寫 SQL 無 SP／14 張 `QPF_*` 表／3 Job）＋三章深入（GR% Confirm/Reject 審核流以 `IsFormal` 旗標＋覆蓋式 Confirm、RefreshResult 每次整年全量重算 RBU+SBU 兩平台的效能熱點、Hierarchy Block 階層換版凍結且僅前端擋）。另一份 `SBU_QuotaForecast_資料搬遷建議.md`＝舊 ASP `SBU_Quota_Forecast` 搬到新 `dbo.SBU_Quota` 的維度落差分流與搬遷步驟（8 個業務決策點未答、未執行）。
+> **本次無任何對外 GitHub/Notion 內容動作**：(A-1) View 效能為 SQL 程式碼、(A-2) 安全批角色矩陣**含明確資安弱點細節（依規則不自動對外發佈）**、(B) 為新專案且 it-documents/Notion 皆無對應歸屬（依規則不自行建頁/建資料夾）→ 三者皆列待人工，工作內容進 Obsidian。Notion 各頁維持不動（無任何系統之功能/KPI/邏輯變更）。GitHub 本次僅推 SYNC_LOG 與 sync-log.html。
+> ⚠️ **三項提醒**：(1) 🔴 **Manager 後台安全缺口仍未修**——角色矩陣草案已備、待 Hyman 核可＋回答三問即可動工（估 1-2 天）；含資安弱點細節故不自動對外。(2) ⚠️ **View 效能第二階段成效仍未經正式站證實**——`00_說明.md` 雖記實測 0.41/0.45s 與 16/16 全 0，但**兩支函數是否已於正式 `OPEXdb` 上線、`部署04` OverviewRBU 是否已部署、C# 分支 `feature/2026h2-view-perf` 是否已 merge/切換皆未載明**（還原檔警示：C# 已切則退函數須連 C# 一起退，否則 Summary 會 500）。(3) 📌 **Quota Platform 歸屬待 Hyman 決定**（納 eManager 傘下 or 平行），決定後才能建 it-documents 資料夾與 Notion 頁對外發佈。**前次列的尾巴仍無進展**：正式站發版（＝2027 開循環絕對前提）、DBA 三件排程、工項3 分時段排程本體待 E3 冪等確認、ZRCO18 上游補檔、Manager 第一批 `47a980ca` 補實測、信件 P0 bug 待部署窗口、`feature/2026h2-mail-batch` 待 merge、SBU-10 Finish 待人工點一次、MSU Scorecard 修正腳本是否已執行/是否還有其他重複 mapping。
 
 ### 2026-07-24
 
