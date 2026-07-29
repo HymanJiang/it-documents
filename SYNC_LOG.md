@@ -57,6 +57,18 @@
 
 ## ✅ 已同步記錄
 
+### 2026-07-29
+
+> （本次排程於 2026-07-29 執行。掃 `D:\Work\專案`（Budget Platform／eManager／Quota Platform／SAP上雲／SBU Scorecard／TCP 六專案）比對三目的地，並核對 it-documents git 狀態。**結果：自 07-27 同步後，`D:\Work\專案` 底下無任何 `.md/.html/.sql`（實則任何副檔名）檔案異動** → 無新增未發佈、無已改版需更新的設計文件。it-documents git 工作區乾淨、HEAD 即 07-27 同步 commit（`e3765b3`）。**本次無任何 GitHub/Notion/Obsidian 內容動作**，僅記錄本次掃描結果。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| （全部） | — 無新異動 — | — 本次無同步動作 — |
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 07-27 排程同步後**零落差**：六個專案資料夾中沒有任何檔案的 LastWriteTime ≥ 2026-07-27，代表這兩天沒有新的產出文件或改版。it-documents repo `git status` 乾淨、最新 commit 仍為 07-27 同步紀錄，發佈狀態與檔案系統一致。
+> **所有先前列於「❌ 待同步」的項目維持原狀、無進展**（皆為需人工決策者）：Quota Platform 新專案 GitHub/Notion 歸屬未定；Budget Platform 對外待決集（含 Manager 後台安全缺口角色矩陣草案·含資安弱點細節不自動對外、View 效能第二階段成效未經正式站證實、信件 P0 bug 待部署窗口、H2 各工項待驗收）；SBU Scorecard SP-only 無設計文件；eManager HC Dashboard SBU Hierarchy 改版待 Revenue 策略/PG 來源拍板；eManager 改版框架文件群 placement 未定；MSU/TCP 零星待人工。
+> **本次無對外動作**：無系統之功能/KPI/邏輯變更 → Notion 各頁維持不動；無設計文件新增/改版 → GitHub 無新 HTML；Obsidian 各 vault 無新工作內容。GitHub 僅推本次 SYNC_LOG 與 sync-log.html（記錄一次「無落差」掃描）。
+
 ### 2026-07-27
 
 > （本次排程於 2026-07-27 執行。掃 `D:\Work\專案` 比對三目的地，自 07-24 16:05 同步後的落差有兩塊：**(A) Budget Platform 07-24 傍晚增量**（16:05 排程後才產出）＝View 效能第二階段收斂＋Manager 安全批角色矩陣草案；**(B) Quota Platform ＝一個全新專案**（07-25，架構整理＋SBU 搬遷建議）。(A) 屬 SQL 程式碼／含資安弱點細節之安全草案 → 僅 Obsidian，GitHub/Notion 待人工。(B) 為新專案、GitHub/Notion 歸屬未定 → 依規則不自行建頁/建資料夾，列待人工；已建 `Quota Platform Notes\` vault 記工作內容。**GitHub 本次僅推 SYNC_LOG 與 sync-log.html，Notion 各頁不動**（無任何系統之功能/KPI/邏輯變更，且新專案歸屬未定）。）
