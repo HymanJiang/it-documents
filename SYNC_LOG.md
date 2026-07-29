@@ -8,7 +8,7 @@
 
 | 專案 | 檔案 | 目標位置 | 備註 |
 |------|------|---------|------|
-| Quota Platform（新專案）| `docs\QuotaPlatform_程式架構整理.md`＋`output\...html`（7/25）＋`docs\SBU_QuotaForecast_資料搬遷建議.md`（7/25）| 未定（GitHub/Notion 歸屬）| 待人工：**新專案**（QPF 模組，原始碼 `D:\Project\eManagerCoreAdmin`）。it-documents 無對應資料夾、Notion「📊 eManager」下無對應子頁 → 依規則**不自行建頁/建資料夾**，歸屬待 Hyman 決定（納 eManager 傘下？與 Budget/TCP 平行？）。架構整理**不含資安弱點細節**（僅 code-quality 觀察與硬編碼），但屬新專案結構決策。Obsidian 已建 `Quota Platform Notes\` vault 記工作內容。SBU 搬遷建議 8 個業務決策點未答、搬遷未執行 |
+| Quota Platform（新專案）| `docs\QuotaPlatform_程式架構整理.md`（**7/29 擴寫至 17 章**）＋`docs\QuotaPlatform_白話說明.md`（**7/29 新建，13 章**）＋各自 `output\...html`＋`output\Quota Platform 白話說明.md`（Notion 匯入版）＋`tools\md2html.py`＋`docs\SBU_QuotaForecast_資料搬遷建議.md`（7/25）| 未定（GitHub/Notion 歸屬）＋**部分不自動對外** | 待人工：**新專案**（QPF 模組，原始碼 `D:\Project\eManagerCoreAdmin`）。it-documents 無對應資料夾、Notion「📊 eManager」下無對應子頁 → 依規則**不自行建頁/建資料夾**，歸屬待 Hyman 決定（納 eManager 傘下？與 Budget/TCP 平行？）。🔴 **7/29 更新（原記載「不含資安弱點細節」已不適用）**：技術版第十五章載明 **P0 提權漏洞**（`POST Permission` 全鏈路無角色檢查，任何登入者可上傳 Excel 自我提權為 PowerUser）＋確切端點/行號/硬編 RoleIndex GUID，白話版第十三章亦有對應白話陳述 → **依規則不自動對外發佈**，即使歸屬拍板仍需 Hyman 另行核可（或先出去敏感版）。白話版 Notion 匯入版已備好但**使用者未指定放在哪個頁面/資料庫下** → 不自行建頁。Obsidian `Quota Platform Notes\` vault 已更新工作內容。SBU 搬遷建議 8 個業務決策點未答、搬遷未執行 |
 | Budget Platform | `執行計畫\安全批_角色矩陣草案_20260724.md`（7/24 傍晚）| —（**不自動對外發佈**）| 🔴 **待人工·含資安弱點細節**：回應 P0-2 Manager 後台安全缺口的角色授權矩陣草案（12 功能群×建議角色），載明「所有寫入 API 只驗登入不驗角色、`CreateBudgetPermission` 可自我提權、`PagesController` 整 class 無 `[Authorize]` 匿名可讀」→ 與 6/23 分析報告、7/23 Manager 盤點同級，**依規則不自動對外發佈**。待 Hyman 核可矩陣＋回答三問（{Region} Finance 是否保留寫入／SBU Finance 是否需額外寫入／TEST 角色是否清掉），核可後估 1-2 天實作。Obsidian 工作紀錄已寫 |
 | Budget Platform | `SP\View效能_第二階段\00_說明.md`（定稿）＋`部署04_fn_BudgetPlatform_OverviewRBU.sql`（7/24 傍晚）| 未定（GitHub/Notion）| 待人工：View 效能第二階段收斂——`00_說明.md` 記兩支 ByCC 函數已部署且實測 0.41s/0.45s（原 161.8s/7.9s）、等值 16/16 全 0、C# 分支 `feature/2026h2-view-perf` 六方法改 FROM 函數；`部署04` 著手處理 COM-06 剩餘 99 秒 OverviewRBU。**無資安弱點細節**，惟 SQL 屬程式碼不逐一發佈、且函數是否正式上線／C# 是否 merge 未確認 → 歸 Budget Platform 對外待決集。Obsidian 工作紀錄已寫 |
 | eManagerReport | 既有連結 | Notion eManagerReport 頁 | 補 SA 摘要（小項）|
@@ -57,17 +57,38 @@
 
 ## ✅ 已同步記錄
 
-### 2026-07-29
+### 2026-07-29（第二次·當日下午排程）
 
-> （本次排程於 2026-07-29 執行。掃 `D:\Work\專案`（Budget Platform／eManager／Quota Platform／SAP上雲／SBU Scorecard／TCP 六專案）比對三目的地，並核對 it-documents git 狀態。**結果：自 07-27 同步後，`D:\Work\專案` 底下無任何 `.md/.html/.sql`（實則任何副檔名）檔案異動** → 無新增未發佈、無已改版需更新的設計文件。it-documents git 工作區乾淨、HEAD 即 07-27 同步 commit（`e3765b3`）。**本次無任何 GitHub/Notion/Obsidian 內容動作**，僅記錄本次掃描結果。）
+> （當日第二次排程。上午那次（見下段）掃到零落差；之後 11:49~15:36 使用者在 **Quota Platform** 做了一整天文件工作 → 本輪掃到的落差**全部集中在 Quota Platform 單一專案**：技術版架構整理由 13 章擴寫為 **17 章**、**新建 13 章白話版**、新增 `md2html.py` 轉檔工具，並更新專案 `CLAUDE.md` 與 `memory\`。🔴 擴寫的第十五章揪出 **P0 提權漏洞**。**GitHub/Notion 本次無內容動作**：本專案歸屬仍未定（不自行建資料夾/建頁），且文件已含資安弱點細節（依規則不自動對外發佈）→ **僅 Obsidian**。）
 
 | 專案 | 檔案 | 目標位置 |
 |------|------|---------|
-| （全部） | — 無新異動 — | — 本次無同步動作 — |
+| Quota Platform | `docs\QuotaPlatform_程式架構整理.md`（11:49，13→**17 章**）＋`output\QuotaPlatform_程式架構整理.html`（11:50 重生） | Obsidian「Quota Platform Notes\開發記錄\QuotaPlatform 架構整理.md」：**新增段落**「技術版第十四~十七章深入整理（2026-07-29 新增）」＋修改歷程新增 07-29 列＋**更新既有「待確認」第 1 項**（原記載「不含資安弱點細節」已不適用）＋新增「同步狀態」段。**GitHub/Notion 不動**（歸屬未定＋含資安弱點細節） |
+| Quota Platform | `docs\QuotaPlatform_白話說明.md`（15:00，新建 13 章）＋`output\QuotaPlatform_白話說明.html`（15:00）＋`output\Quota Platform 白話說明.md`（15:08，去 H1 的 Notion 匯入版） | Obsidian 同筆記**新增段落**「白話版文件（2026-07-29 新建）」＋修改歷程新增列＋待確認新增「白話版待上傳 Notion（位置未指定）」。**Notion 不動**：匯入版已備好但**使用者未指定放在哪個頁面/資料庫下** → 依規則不自行建頁 |
+| Quota Platform | `tools\md2html.py`（13:40 新增）＋`CLAUDE.md`（15:36）＋`memory\MEMORY.md`／`quota-platform-source-and-doc.md`／`qpf-doc-pending-followups.md`（15:35） | Obsidian 同筆記「原始文件」段補上工具與文件更新流程（改 `.md` → `python tools\md2html.py <src> <dst>` 重生 HTML）＋待確認補「使用者本人無 SBU 平台權限」。**GitHub/Notion 不動**（工具/專案設定/AI 記憶檔非設計文件） |
 
-> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 07-27 排程同步後**零落差**：六個專案資料夾中沒有任何檔案的 LastWriteTime ≥ 2026-07-27，代表這兩天沒有新的產出文件或改版。it-documents repo `git status` 乾淨、最新 commit 仍為 07-27 同步紀錄，發佈狀態與檔案系統一致。
+> 本次（自動排程同步）掃 `D:\Work\專案` 六個專案比對三目的地，落差**全部集中在 Quota Platform**（其餘五個專案自上次同步後零檔案異動）：
+> **(a) 技術版擴寫 13 章 → 17 章**（`QuotaPlatform_程式架構整理.md`，25 KB → **54.3 KB**）：以 4 個並行 Explore agent 深讀 `D:\Project\eManagerCoreAdmin` 原始碼後補上四章——
+> **十四 其他上傳流程（CurrentYearQuota／TopDown／Memo／Adjustment）**：實作品質**遠比 GrowthRate 粗糙**，五種上傳橫向對照顯示驗證逐項遞減。**`Adjustment` 是孤兒功能**——上傳僅 5 行、**驗證 0 道**、寫入為 `truncate table QPF_Adjustment` **不帶 WHERE**（RBU 上傳會清掉 SBU 與所有年度）、未走交易，且**全 codebase 無任何下游消費者**（`RefreshResult` 完全沒引用）→ 上傳的數字不影響任何計算，最該優先處理或直接下架。**Memo 越權刪除不對稱**：下載只給權限範圍內的列、刪除卻整平台整年度全刪 → 部分權限者「下載→改一行→上傳」會把別人的 Memo 全刪。**TopDown 靜默失敗**：純 UPDATE，比不到的列不 INSERT 也不報錯，畫面仍顯示成功。**CurrentYearQuota**：全刪重建但 DELETE 與 INSERT **分屬兩個交易**（INSERT 失敗即整年資料毀）、無稽核表不記 UpdatedBy、SBU 下載疑似 Bug（`#EmptyQuota` 誤從 `#RbuHierarchyNoQuota` 取 → SBU 永遠拿不到新階層空白列）、先解鎖後寄信（寄信失敗不回滾且永不補寄）、`@ThisWednesday` 時間陷阱（週一/二上傳會把全部階層列成 Added）。
+> **十五 Permission 權限機制（最重要）**：後端只有 `[Authorize]`（僅驗有登入 eManager），**RoleType 的授權判斷全 codebase 只在前端 `Index.js` 三個 if，後端沒有任何一處用 RoleType 做授權決策**。🔴 **P0 提權漏洞**＝`POST Permission` 全鏈路無角色檢查，任何在 `QPF_Permission` 有一列的登入者（含 RoleType=User）可直打 API 上傳自製 Excel 把自己設為 PowerUser、取得平台完整控制權。🔴 **P0 破壞性上傳無權限限縮**＝CurrentYearQuota／Memo／Permission／Adjustment 皆「全刪重建」，單一 Region 權限者也能影響全平台。另：`GET Permission/Download` 回全公司 Email×角色×階層對照表無角色檢查；`GetUserPermission` 無 ORDER BY → 多列角色不一致時前端有效角色不確定；`CreateRolePermission` 同步 eManager `RolePermission_UsersRole` **只 INSERT 從不 DELETE**（RoleIndex GUID 硬編）→ 移除權限者殘留；`Enum.TryParse` 缺 `IsDefined`；`GetHierarchyByPermission` 缺 PlatformType → 跨平台階層外洩；SwitchToPhase2／Reset 測試端點部署在正式 Controller 且任何登入者可打。
+> **十六 每日排程 RefreshSourceAndOthers**：**Job 鎖殘留**（`FinishJob` 補在 try/catch 而**非 finally**，進程被 kill 則 `IsRunning` 永遠留 1，連帶封鎖前台 CurrentYearQuota 上傳且無自動清理）；**19:00 節流早退副作用**（週三/週五分支跑在節流判斷之前 → EAI 失敗當天仍用舊資料判斷「無異動→解凍」並執行改名）；**純改名週永遠不會自動解凍**（比對以名稱為鍵，純改名＝1 Added+1 Deleted）；效能主因＝`RefreshHierarchy` 對 PG/PD 做完全笛卡兒積（CommandTimeout 3600 秒**只設在 ConsoleApp**，Web 端 `SwitchToPhase2`／`Confirm` 走同一批重 SQL 仍是 Dapper 預設 30 秒）；整條鏈路**零通知**（只寫 `logs/myapp.txt`）；四段大交易分離中途失敗即顯示不一致無回滾；換年硬路徑共 **5 處 MFG26＋2 處 MFG25（測試假資料與正式差一年）＋3 處 Service 年份**，其中 3 處 Linked Server 路徑無 Hardcode 註記容易漏改。
+> **十七 前端 UI 結構**：**表頭年份 2024~2028 硬編 30 處**（RBU/SBU 各一份）與 `pageConfig.year` 脫鉤＝前端最大維護痛點；凍結用 Bootstrap `.disabled` class，對 `<button>` **只是視覺樣式不會阻止 click** → 前端凍結亦可繞過；兩區共用 `tableConfigByPlatform` 互相汙染（Formal 選 Group ViewType 會讓 Unconfirmed 表格少欄）；頁面**無任何平台/年度切換 UI 也無選單入口**（只能靠 query string）；初始化 8 次 HTTP 往返全序列化；下載一律 `window.open` 被彈窗封鎖器無聲攔截；`showErrorAlert` 缺 optional chaining（網路層錯誤時 error modal 自己拋 TypeError）；上傳無 CSRF token；Reset 是永遠不顯示的死按鈕但端點是活的。
+> **(b) 新建白話版文件（13 章）**（`QuotaPlatform_白話說明.md`，20.7 KB）：不含程式碼行號，給非開發人員／不想看程式碼的人，把技術版轉譯成營運語言——平台是什麼／**進入與切換 RBU-SBU＝只能改網址**／三角色能做什麼／**年度四階段時間軸**（準備期→Phase 1 填 GR%→Switch to Fixed Amount 不可逆→Phase 2 填金額）／日常作業流程／結果計算概念版（FCST=max(A+Q, A+B)）／**三支排程 Job 與週三-週五額外任務**／**凍結是刻意設計非故障**／**公司架構變動維護 SOP 五步**（改名與刪除全自動、新增才要人補）／PowerUser 其他工作（含 Adjustment「建議先不要用」）／**權限建立維護＋與 eManager Role Permission 的關係**（11.4 釐清常見誤區：在 Role Permission 加人**不能**讓人進 QPF，同步方向是 QPF→Role Permission 且**只加不減**）／疑難排解對照表／給接手搬遷者的白話提醒。另產 `output\Quota Platform 白話說明.md`＝去掉 H1 的 **Notion 匯入版**。
+> **(c) 工具與專案設定**：新增 `tools\md2html.py`（Markdown→HTML，沿用既有版型），文件更新流程定案為「改 `docs\*.md` → `python tools\md2html.py <src> <dst>` 重生 HTML」；`CLAUDE.md` 與 `memory\`（3 檔）同步記錄兩份文件現況與下次接續待辦。
+> **本次無任何對外 GitHub/Notion 內容動作**（三重理由）：① Quota Platform 為**新專案、歸屬仍未定**（it-documents 無對應資料夾、Notion「📊 eManager」下無對應子頁）→ 依規則不自行建資料夾/建頁；② 技術版第十五章**含明確資安弱點細節**（P0 提權漏洞的確切端點與行號、硬編 RoleIndex GUID），白話版第十三章亦有對應白話陳述（「繞過畫面直打 API 可把自己升成 PowerUser」）→ 依規則**不自動對外發佈**；③ 白話版 Notion 匯入版雖已備好，但**使用者未指定放在哪個頁面/資料庫下** → 不在不確定位置建頁。故工作內容**僅進 Obsidian**，Notion 各頁維持不動（QPF 系統本身無變更，只是被記錄下來）。GitHub 本次僅推 SYNC_LOG 與 sync-log.html。
+> ⚠️ **本次新增三項提醒**：(1) 🔴 **QPF 後端完全沒有角色授權**——`POST Permission` 可自我提權（P0）、四種破壞性上傳無權限限縮（P0）、Confirm/Reject 無 Gatekeeper 後端檢查、測試端點 SwitchToPhase2/Reset 部署在正式 Controller 任何登入者可打。**搬遷/改版設計時務必補後端角色檢查**；是否列為獨立修補工項待 Hyman 決定。(2) 📌 **Quota Platform 對外發佈現在有兩道閘**（原本只有「歸屬未定」一道）：歸屬拍板**之後**仍需就資安弱點細節另行核可，或先產出去敏感版。(3) **白話版 Notion 匯入待指定位置**＋**使用者本人尚無 SBU 平台權限**（其 eManager 角色 E3 與 QPF 無關，需 SBU PowerUser 用 Permission Excel 加入或 DBA 直接 INSERT `QPF_Permission` PlatformType=2），07-29 當天未解決。**前列所有待人工項目仍無進展**：Budget Platform 對外待決集（Manager 後台安全缺口角色矩陣待核可、View 效能第二階段成效未經正式站證實、信件 P0 bug 待部署窗口、H2 各工項待驗收）、正式站發版（＝2027 開循環絕對前提）、DBA 三件排程、SBU Scorecard SP-only 無設計文件、eManager HC Dashboard SBU Hierarchy 改版待拍板、eManager 改版框架文件群 placement 未定、MSU Scorecard 修正腳本是否已執行、TCP 零星待人工。
+
+### 2026-07-29（第一次·當日上午排程）
+
+> （當日第一次排程。掃 `D:\Work\專案`（Budget Platform／eManager／Quota Platform／SAP上雲／SBU Scorecard／TCP 六專案）比對三目的地，並核對 it-documents git 狀態。**結果：自 07-27 同步後，`D:\Work\專案` 底下無任何 `.md/.html/.sql`（實則任何副檔名）檔案異動** → 無新增未發佈、無已改版需更新的設計文件。it-documents git 工作區乾淨、HEAD 即 07-27 同步 commit（`e3765b3`）。**該輪無任何 GitHub/Notion/Obsidian 內容動作**，僅記錄掃描結果。當日 11:49 起才有 Quota Platform 的新工作，見上一段。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| （全部） | — 無新異動 — | — 該輪無同步動作 — |
+
+> 該輪（自動排程同步）掃 `D:\Work\專案` 比對三目的地，自 07-27 排程同步後**零落差**：六個專案資料夾中沒有任何檔案的 LastWriteTime ≥ 2026-07-27，代表這兩天沒有新的產出文件或改版。it-documents repo `git status` 乾淨、最新 commit 仍為 07-27 同步紀錄，發佈狀態與檔案系統一致。
 > **所有先前列於「❌ 待同步」的項目維持原狀、無進展**（皆為需人工決策者）：Quota Platform 新專案 GitHub/Notion 歸屬未定；Budget Platform 對外待決集（含 Manager 後台安全缺口角色矩陣草案·含資安弱點細節不自動對外、View 效能第二階段成效未經正式站證實、信件 P0 bug 待部署窗口、H2 各工項待驗收）；SBU Scorecard SP-only 無設計文件；eManager HC Dashboard SBU Hierarchy 改版待 Revenue 策略/PG 來源拍板；eManager 改版框架文件群 placement 未定；MSU/TCP 零星待人工。
-> **本次無對外動作**：無系統之功能/KPI/邏輯變更 → Notion 各頁維持不動；無設計文件新增/改版 → GitHub 無新 HTML；Obsidian 各 vault 無新工作內容。GitHub 僅推本次 SYNC_LOG 與 sync-log.html（記錄一次「無落差」掃描）。
+> **該輪無對外動作**：無系統之功能/KPI/邏輯變更 → Notion 各頁維持不動；無設計文件新增/改版 → GitHub 無新 HTML；Obsidian 各 vault 無新工作內容。GitHub 僅推 SYNC_LOG 與 sync-log.html（記錄一次「無落差」掃描）。
 
 ### 2026-07-27
 
