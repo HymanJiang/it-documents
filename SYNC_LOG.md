@@ -11,6 +11,7 @@
 | Quota Platform（新專案）| `docs\QuotaPlatform_程式架構整理.md`（**7/29 擴寫至 18 章**，60.4 KB）＋`docs\QuotaPlatform_白話說明.md`（**7/29 新建，13 章**，22.3 KB）＋各自 `output\...html`＋`output\Quota Platform 白話說明.md`（Notion 匯入版）＋`tools\md2html.py`＋`同步舊平台資料 SP\`（2 SQL 快照，7/29 傍晚）＋`docs\SBU_QuotaForecast_資料搬遷建議.md`（7/25）| 未定（GitHub/Notion 歸屬）＋**部分不自動對外** | 待人工：**新專案**（QPF 模組，原始碼 `D:\Project\eManagerCoreAdmin`）。🆕 **7/29 傍晚增量**：新增第十八章「同步舊平台資料 SP」——QPF 正式結果由 DB 端每日排程「Update 2026 Quota」回灌舊平台 `MFG26`（`InterLock`／`Quota_Forecast_Rate`／`SBU_Quota_Forecast`），兩支 SP **不在程式碼庫內**；7 點觀察含 ⚠️ `QPF_AddSbuQuotaAdjustment` 單獨重跑會累積膨脹、雙寫不對稱（本地 MFG26 永遠缺調整列）、**換年硬路徑再 +2 處且連排程 Job 名稱都含年份**、以及**與 SbuQuota 搬遷案的交叉點（搬遷來源表仍被此鏈路每日覆蓋，切換時點必須一併停用/改寫）**。SP 屬程式碼不逐一發佈。it-documents 無對應資料夾、Notion「📊 eManager」下無對應子頁 → 依規則**不自行建頁/建資料夾**，歸屬待 Hyman 決定（納 eManager 傘下？與 Budget/TCP 平行？）。🔴 **7/29 更新（原記載「不含資安弱點細節」已不適用）**：技術版第十五章載明 **P0 提權漏洞**（`POST Permission` 全鏈路無角色檢查，任何登入者可上傳 Excel 自我提權為 PowerUser）＋確切端點/行號/硬編 RoleIndex GUID，白話版第十三章亦有對應白話陳述 → **依規則不自動對外發佈**，即使歸屬拍板仍需 Hyman 另行核可（或先出去敏感版）。白話版 Notion 匯入版已備好但**使用者未指定放在哪個頁面/資料庫下** → 不自行建頁。Obsidian `Quota Platform Notes\` vault 已更新工作內容。SBU 搬遷建議 8 個業務決策點未答、搬遷未執行 |
 | Budget Platform | `執行計畫\安全批_角色矩陣草案_20260724.md`（7/24 傍晚）| —（**不自動對外發佈**）| 🔴 **待人工·含資安弱點細節**：回應 P0-2 Manager 後台安全缺口的角色授權矩陣草案（12 功能群×建議角色），載明「所有寫入 API 只驗登入不驗角色、`CreateBudgetPermission` 可自我提權、`PagesController` 整 class 無 `[Authorize]` 匿名可讀」→ 與 6/23 分析報告、7/23 Manager 盤點同級，**依規則不自動對外發佈**。待 Hyman 核可矩陣＋回答三問（{Region} Finance 是否保留寫入／SBU Finance 是否需額外寫入／TEST 角色是否清掉），核可後估 1-2 天實作。Obsidian 工作紀錄已寫 |
 | Budget Platform | `SP\View效能_第二階段\00_說明.md`（定稿）＋`部署04_fn_BudgetPlatform_OverviewRBU.sql`（7/24 傍晚）| 未定（GitHub/Notion）| 待人工：View 效能第二階段收斂——`00_說明.md` 記兩支 ByCC 函數已部署且實測 0.41s/0.45s（原 161.8s/7.9s）、等值 16/16 全 0、C# 分支 `feature/2026h2-view-perf` 六方法改 FROM 函數；`部署04` 著手處理 COM-06 剩餘 99 秒 OverviewRBU。**無資安弱點細節**，惟 SQL 屬程式碼不逐一發佈、且函數是否正式上線／C# 是否 merge 未確認 → 歸 Budget Platform 對外待決集。Obsidian 工作紀錄已寫 |
+| it-documents（repo 自身）| `_scripts\notion_sync\`（`notion-sync.mjs` 23.7 KB／`sync.ps1`／`mapping.json`，7/30 12:07 產出，**至今未 commit**）| 未定（是否納入 repo）| 待人工（**08-03 新列**）：把 MD 推上 Notion 的輔助工具（`dry`／`push`／`status` 三模式，`sync.ps1` 負責帶 `NODE_EXTRA_CA_CERTS`＋`--no-use-system-ca` 繞公司 TLS 攔截）。**token 讀自 `C:\Users\hyman.jiang\.claude\notion-token.txt`、未硬編於檔內**。惟 (a) 屬**工具腳本而非模組設計文件**，不在「只發主要設計文件」的發佈集內；(b) `mapping.json` 唯一條目 `qpf-plain` 指向 **Quota Platform 白話說明**（`pageId: null`、`parentPageId` 為 IT 系統文件索引頁），而該專案**歸屬本身未定** → 依規則不自行 commit、不自行建頁，是否納入 repo 待 Hyman 決定 |
 | eManagerReport | 既有連結 | Notion eManagerReport 頁 | 補 SA 摘要（小項）|
 | eManager / OSF Commerce Insights | `eManagerCore` `develop` commit `0621048`（6 files，第六次修改 C# 變更） | — | 待人工：ChangeLog 自載「**尚未 push**」（紀錄時點 6/11），現況待查——若仍未 push 則 Store 權限功能未進遠端 |
 | Budget Platform | `2026H2優化\進度總覽_已完成與待執行.html`（7/17） | 未定（GitHub/Notion）| 待人工：H2 進度儀表板（已完成/待執行對照），屬日誌性質、無資安弱點細節；同歸 Budget Platform 對外待決集，待 Hyman 取捨。Obsidian 工作紀錄已寫 |
@@ -56,6 +57,21 @@
 ---
 
 ## ✅ 已同步記錄
+
+### 2026-08-03
+
+> （本次排程於 2026-08-03 執行。掃 `D:\Work\專案` 六個專案比對三目的地，**08-01～08-03 三天工作區零檔案異動**（週末）。唯一落差＝**07-31 16:10 排程同步後的傍晚增量（18:44~18:45）**：Budget Platform 測試報告資料夾「一輪一包」收尾整理。**純文件整理、無程式碼／DB／系統行為變動 → 僅 Obsidian**；GitHub 本次僅推 SYNC_LOG 與 sync-log.html，Notion 全數不動。）
+
+| 專案 | 檔案 | 目標位置 |
+|------|------|---------|
+| Budget Platform | `執行計畫\測試報告\20260731報告-2\`（18:44 新建資料夾，收入 `測試報告_RBU完整重跑_20260731.md`＋`測試報告_RBU完整測試_20260731_單檔版.html`，**兩檔內容未變、僅由 `測試報告\` 根移入**，經 LastWriteTime 14:33／14:35 比對確認）＋`執行計畫\README_資料夾說明.md`（18:45 改寫） | Obsidian「Budget Platform Notes\Budget Platform 概覽.md」：**更新既有「原始文件」段**（測試線敘述改為 07-31 傍晚「一輪一包」定版，兩檔路徑由 `測試報告\` 根改為 `20260731報告-2\`，並補「寄 PM 用定版／3.46 MB／22 張截圖內嵌」）＋修改歷程新增「2026-07-31（傍晚·收尾）」列＋同步狀態新增 08-03 段。**GitHub/Notion 不動** |
+
+> 本次（自動排程同步）掃 `D:\Work\專案` 比對三目的地，落差如下：
+> **(A) 全域掃描結果＝近乎零落差**：六個專案（Budget Platform／eManager／Quota Platform／SBU Scorecard／TCP／SAP上雲）中，**08-01、08-02、08-03 三日無任何檔案新增或修改**（08-01 為週六、08-02 為週日）。工作區最新檔案時戳停在 **2026-07-31 18:45:13**。
+> **(B) 唯一增量＝07-31 傍晚的測試報告資料夾收尾（18:44~18:45）**：因前一輪排程於 **16:10** 執行，此增量落在其後、本輪才掃到。內容＝把當日下午產出的 RBU 完整重跑報告由 `測試報告\` 根**移入新建的 `20260731報告-2\`**，與上午的 `20260731報告-1\` 對齊成「一輪一包」；`README_資料夾說明.md` 同步改寫：測試報告樹改列 `20260731報告-2\` 為 ⭐⭐ 最新並標注**「寄 PM 用定版」**（3.46 MB／22 張截圖全內嵌，§1 對照 PM 報告 8 條／§2 RBU-01~13 每項附圖／§3 Excel 佐證／§4 效能觀察／§5 殘留待辦）、`06` 腳本狀態更新為「07-30 RBU 已執行、07-31 回填 PMV-04／UPDL-01，**SBU/MSU/Manager 部分未執行**」、`02` 腳本加註「07-31 全項重跑（部署 20260731.1／`a69b6475`）、RBU-13 由 Blocked 轉 Pass」，並新增**「一輪一包慣例」**（每輪測試自成 `YYYYMMDD報告[-N]\`，截圖統一放 `screenshots\<輪次名>\`，單檔版已內嵌可獨立寄送）與三條判讀速記。
+> **(C) 因此更新的是「既有內容」而非新增**：Obsidian 筆記的「原始文件」段原記載那兩個報告檔在 `測試報告\` 根，該路徑已因搬移而失準 → 本輪據實際檔案系統改寫該段，而非只在末尾追加一列。
+> **本次無任何對外 GitHub/Notion 內容動作**：屬純文件整理（測試·驗收文件同歸 Budget Platform 對外待決集，含測試站 URL／內部 CC 代碼／實際預算金額），且**報告內容一字未改、系統之功能/KPI/邏輯零異動、修復仍只在測試站** → 僅 Obsidian。Notion「Budget Platform」頁維持 2026-06-17 概覽不動。GitHub 本次僅推 SYNC_LOG 與 sync-log.html。
+> ⚠️ **本次兩項提醒**：(1) 📨 **`20260731報告-2\` 的單檔版已是 PM 定版**（README 自身標注「寄 PM 用定版」），內容完備可直接轉寄，**是否寄給 PM 待 Hyman 決定**——一併留意報告中對 PM 的兩點說明（PM#4 Marketing 只解決一半、用上傳「歸零」設計上不可行；PM#6 仍無法重現待 PM 提供原始失敗檔）。(2) 🆕 **it-documents 出現未追蹤的工具腳本 `_scripts\notion_sync\`**（`notion-sync.mjs`／`sync.ps1`／`mapping.json`，07-30 12:07 產出，至今未 commit）＝把 MD 推上 Notion 的輔助工具，token 讀自 `C:\Users\hyman.jiang\.claude\notion-token.txt`（**未硬編於檔內**）；惟 (a) 屬工具腳本而非模組設計文件、不在發佈集規則內，(b) `mapping.json` 唯一條目指向 **Quota Platform 白話說明**（歸屬未定、`pageId: null`）→ **不自行 commit，列待人工**由 Hyman 決定是否納入 repo。**前列所有待人工項目本輪均無進展**：Quota Platform 歸屬與資安細節兩道閘、Budget Platform 對外待決集（Manager 安全批角色矩陣待核可、信件 P0 bug 待部署窗口、H2 各工項待驗收）、正式站發版（＝2027 開循環絕對前提）、DBA 三件排程、SBU Scorecard SP-only 無設計文件、eManager HC Dashboard SBU Hierarchy 改版待拍板、eManager 改版框架文件群 placement 未定、MSU Scorecard 修正腳本是否已執行、TCP 零星待人工。
 
 ### 2026-07-31
 
