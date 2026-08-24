@@ -35,6 +35,25 @@
 程式碼在 <code>D:\Project\eManagerCore</code>（共用框架，ReportCode='HC Dashboard'）；SQL 腳本在本資料夾 <code>SQL Server\</code>。</p>
 </blockquote>
 <hr />
+<h2 id="2026-08-21">2026-08-21</h2>
+<h3 id="sbu-2026-08-19-notion-2026819-pg-total-notion">SBU 2026-08-19 架構調整（Notion #2026/8/19「調整 PG Total」；含 Notion 規格勘誤與資料核對）</h3>
+<ul>
+<li><strong>範圍</strong>：SBU 38 → 39 列（32 Leaf + 7 Rollup）。RBU / Operation / COE 不動。</li>
+<li><strong>① 新增 <code>iSystem-ISG2</code></strong>：插在 iSystem-ISG 後（Sort 2，原 2 以後 +1）；HCM 2026/8 起有資料（32 人）；Scorecard PG=<code>Intelligent System-2</code>；iSystem Total 加總納入（Rollup 51→52）。</li>
+<li><strong>② <code>iSystem-ESG</code> → <code>iSystem-ASG</code></strong>：Measures + HcSourceKey + FilterPG（<code>Edge Server Group</code>→<code>Applied Server Group</code>）。核對發現 HCM 歷史已重灌成 ASG（2025 全年），但 <strong>Scorecard 未改歷史</strong>（舊 PG 只有 2025、新 PG 只有 2026）→ ScorecardMap <strong>PK 改 SeqNo 代理鍵</strong>，ASG 掛新舊兩列（年度不重疊、不重複計算）。</li>
+<li><strong>③ <code>Embedded-IEVG</code> → <code>Embedded-IPMG</code></strong>：Measures + HcSourceKey + FilterPG（→<code>Industrial Peripherals &amp; Modules Group</code>）。Notion 來源欄原漏更新（仍寫 IEVG），經與 HCM 實際資料核對（IPMG 有 2025 全年）確認用新名，使用者已補正 Notion。Scorecard 2025 無 IEVG/IPMG → 2025 Revenue 維持空白（原本即空白）。</li>
+<li><strong>④ <code>Embedded total w/o ACG</code> Revenue 換來源</strong>：<code>SCORECARD_PROD_N</code> 2026 已無 <code>Embedded-IoT Total (wo ACG)</code> PG → 改抓 <code>SCORECARD_PROD_N_DEV_WEB</code>（使用者指定）。<code>sp_DSB_HC_New</code> Stage2 新增 <strong>(a2) 分支</strong>（依 ScorecardMap.ScorecardSource 分流，與 (a) 互斥）。</li>
+<li><strong>資料核對其他發現</strong>（<code>SQL Server\Check\SBU_Change_20260821_DataCheck.sql</code> + 結果 xlsx）：</li>
+<li>HCM 2026/8 殘留舊名 iSystem-ESG(10 人)、Embedded-IEVG(2 人) → 先照新架構切新鍵，<strong>等 Amber 修來源</strong>，下次排程（每日 8 點整年重灌）自動補回。</li>
+<li><code>iAutomation-Others</code> 於 2026 來源不存在、來源改叫 <code>iAutomation-Common Pool</code>（僅 1–5 月）→ 使用者決定<strong>照舊不動</strong>。</li>
+<li>來源另有規格未提之 <code>Embedded-COE</code>(1–4 月)、<code>Service-IoT</code>(1–5 月)；Scorecard 2026 新 PG <code>Advantech Service+ (AS+)</code>、<code>AKTC</code> → 均不抓，已知悉。</li>
+<li><strong>部署</strong>：<code>Table\SBU_Change_20260821_Incremental.sql</code>（Step 0-A 先驗 DEV_WEB 有 wo ACG PG；Step 0-B PK 改 SeqNo；交易內改三表，驗 39/52/40 再 COMMIT）→ <code>SP\sp_DSB_HC_New.sql</code>（ALTER）→ <code>EXEC sp_DSB_HC_New @Year=2026</code>、<code>@Year=2025</code> → Ctrl+F5。</li>
+<li>✅ 收尾狀態（2026-08-21 下午執行完成，sqlcmd @ 正式 DB）：</li>
+<li>主交易驗證 39/52/40、Sort 1~39、無舊名殘留 → COMMITTED；SP ALTER 生效（含 (a2)）；2026/2025 皆重灌（64s/34s 無錯誤）。</li>
+<li>驗收（Opus 分析 <strong>PASS with notes</strong>）：39 列 2026 全有資料；ASG Revenue 2025(舊 PG 12 月)+2026(新 PG 7 月)銜接無斷點；wo ACG Revenue 19 個月與 DEV_WEB 逐月位元級相符；iSystem Total 增量驗證證明 ISG2 已入 rollup（Aug 559=527+32）；ISG2 僅 2025 無資料（預期）；IPMG 2026 多 1 列為 Budget 維度（正常）。</li>
+<li><strong>需追蹤</strong>：(1) 既有行為——已結束年度的 YTM 只累到「當前月」（2025 YTM=Jan–Jul 非全年），非本次造成，待確認是否為預期口徑；(2) ASG 雙 PG 對應無年度守門，現況年度互斥（舊 PG 只到 2025、新 PG 2026 起）不會雙計，但 Scorecard 若回填就會，長期可考慮 map 加 YearFrom/YearTo；(3) RBU DistinctMeasures=18 與基準 19 不符（兩年一致、既有狀態，與本次無關）；(4) 8 月殘留（ESG 10/IEVG 2 人）使 iSystem Total/Embedded total/SBU Total 8 月同步低估，等 Amber 修來源後排程自動補回。</li>
+</ul>
+<hr />
 <h2 id="2026-07-07">2026-07-07</h2>
 <h3 id="sbu-hierarchy-7-revenue-sbu-hierarchy-change-20260707xlsx">SBU Hierarchy 改版：加 7 個小計/總計 + 重寫 Revenue 對應（依 <code>SBU Hierarchy Change 20260707.xlsx</code>）</h3>
 <ul>
